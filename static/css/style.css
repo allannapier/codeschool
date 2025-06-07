@@ -75,23 +75,10 @@ body {
 }
 
 .hero {
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    background: #334155;
     color: white;
-    padding: 4rem 0;
+    padding: 2rem 0;
     text-align: center;
-    position: relative;
-    overflow: hidden;
-}
-
-.hero::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 100" fill="white" opacity="0.1"><polygon points="0,100 1000,0 1000,100"/></svg>') no-repeat bottom;
-    background-size: cover;
 }
 
 .hero-content {
@@ -103,17 +90,9 @@ body {
 }
 
 .hero h2 {
-    font-size: 2.5rem;
-    font-weight: 700;
-    margin-bottom: 1rem;
-}
-
-.hero p {
-    font-size: 1.2rem;
-    opacity: 0.9;
-    font-weight: 300;
-    max-width: 600px;
-    margin: 0 auto;
+    font-size: 1.5rem;
+    font-weight: 500;
+    margin: 0;
 }
 
 .container {
@@ -431,11 +410,7 @@ body {
     }
     
     .hero h2 {
-        font-size: 2rem;
-    }
-    
-    .hero p {
-        font-size: 1.1rem;
+        font-size: 1.3rem;
     }
     
     .controls {
@@ -476,15 +451,11 @@ body {
     }
     
     .hero {
-        padding: 3rem 0;
+        padding: 1.5rem 0;
     }
     
     .hero h2 {
-        font-size: 1.75rem;
-    }
-    
-    .hero p {
-        font-size: 1rem;
+        font-size: 1.2rem;
     }
     
     .btn {
