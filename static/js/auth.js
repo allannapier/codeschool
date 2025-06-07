@@ -213,7 +213,10 @@ async function handleAuth(e) {
                 email: email,
                 password: password,
                 options: {
-                    emailRedirectTo: window.location.origin
+                    emailRedirectTo: `${window.location.origin}/`,
+                    data: {
+                        signup_source: 'codebotiks_web'
+                    }
                 }
             });
         }
@@ -223,7 +226,8 @@ async function handleAuth(e) {
         }
         
         if (!isLoginMode && result.data.user && !result.data.session) {
-            showAuthError('Account created! You can now login (email confirmation disabled for demo).');
+            // Account created but needs email confirmation
+            showAuthError('Account created! Please check your email for a confirmation link before logging in.');
             // Auto-switch to login mode
             isLoginMode = true;
             updateAuthModalUI();
@@ -232,11 +236,15 @@ async function handleAuth(e) {
     } catch (error) {
         console.error('Auth error:', error);
         
-        // Handle specific email confirmation errors
-        if (error.message.includes('confirmation email') || error.message.includes('email')) {
-            showAuthError('Email confirmation issue. Please check your Supabase email settings or disable email confirmation for testing.');
+        // Handle specific error types
+        if (error.message.includes('Email not confirmed')) {
+            showAuthError('Please check your email and click the confirmation link before logging in.');
         } else if (error.message.includes('Invalid login credentials')) {
-            showAuthError('Invalid email or password. Please check your credentials.');
+            showAuthError('Invalid email or password. If you just signed up, please confirm your email first.');
+        } else if (error.message.includes('signup disabled')) {
+            showAuthError('New signups are currently disabled. Please contact support.');
+        } else if (error.message.includes('confirmation email') || error.message.includes('email')) {
+            showAuthError('Email confirmation issue. Please contact support if this persists.');
         } else {
             showAuthError(error.message);
         }

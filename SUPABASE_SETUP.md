@@ -27,10 +27,49 @@ const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY_HERE';
 
 ## 4. Configure Authentication
 
+### Basic Auth Settings
 1. In your Supabase dashboard, go to Authentication → Settings
-2. Configure your site URL (e.g., `https://codeschool-lilac.vercel.app`)
+2. Configure your site URL (e.g., `https://codeschool-lilac.vercel.app` or `http://localhost:5000` for development)
 3. Add your redirect URLs for authentication
-4. Enable email confirmations if desired
+
+### Enable Email Confirmations
+1. In Authentication → Settings, scroll to "Email Confirmation"
+2. **Enable "Enable email confirmations"**
+3. Set confirmation URL template (optional): `{{ .SiteURL }}/auth/confirm?token={{ .Token }}&type=signup`
+
+### Configure Email Templates
+1. Go to Authentication → Email Templates
+2. Configure "Confirm signup" template:
+   - **Subject**: `Confirm your Codebotiks account`
+   - **Body**: Use a professional template (see example below)
+
+### Example Email Template:
+```html
+<h2>Welcome to Codebotiks!</h2>
+<p>Thanks for signing up! Please confirm your email address to complete your registration.</p>
+<p><a href="{{ .ConfirmationURL }}" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">Confirm Email Address</a></p>
+<p>If the button doesn't work, copy and paste this link: {{ .ConfirmationURL }}</p>
+<p>Best regards,<br>The Codebotiks Team</p>
+```
+
+### SMTP Configuration (Required for Email)
+1. Go to Settings → Project Settings → SMTP Settings
+2. **Option A: Use Supabase SMTP (Recommended)**
+   - Enable "Use custom SMTP server"
+   - Server: `smtp.gmail.com`
+   - Port: `587`
+   - Username: Your Gmail address
+   - Password: Your Gmail App Password (same as used in .env)
+   - Sender email: Your Gmail address
+   - Sender name: `Codebotiks`
+
+3. **Option B: Use Default Supabase Email (Limited)**
+   - Keep default settings (limited to 3 emails/hour for free tier)
+
+### Test Email Configuration
+1. After configuring SMTP, test by creating a new account
+2. Check if confirmation email is received
+3. Click confirmation link to verify it works
 
 ## 5. Set Up Row Level Security (RLS)
 
