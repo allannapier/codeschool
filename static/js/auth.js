@@ -33,11 +33,29 @@ let loginBtn, userMenu, userEmailSpan, logoutBtn, authError;
 
 // Initialize authentication system
 async function initAuth() {
-    // Add a small delay to ensure scripts have loaded
-    await new Promise(resolve => setTimeout(resolve, 100));
+    // Wait for Supabase ready event or timeout
+    console.log('InitAuth called - waiting for Supabase...');
     
-    console.log('InitAuth called - checking Supabase...');
-    console.log('window.supabase at init:', typeof window.supabase);
+    await new Promise((resolve) => {
+        if (window.supabase) {
+            console.log('Supabase already available');
+            resolve();
+        } else {
+            console.log('Waiting for supabaseReady event...');
+            const timeout = setTimeout(() => {
+                console.log('Timeout waiting for Supabase');
+                resolve();
+            }, 3000);
+            
+            window.addEventListener('supabaseReady', () => {
+                console.log('Received supabaseReady event');
+                clearTimeout(timeout);
+                resolve();
+            }, { once: true });
+        }
+    });
+    
+    console.log('After wait - window.supabase:', typeof window.supabase);
     console.log('Available window properties:', Object.keys(window).filter(k => k.toLowerCase().includes('supabase')));
     
     // Try to create Supabase client again if it wasn't created earlier
