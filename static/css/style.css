@@ -1116,10 +1116,11 @@ body {
 
 /* Footer Styles */
 .main-footer {
-    background: var(--surface-color);
-    border-top: 1px solid var(--border-color);
+    background: #334155;
+    color: white;
     padding: 1.5rem 0;
     margin-top: 2rem;
+    box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
 }
 
 .footer-content {
@@ -1140,7 +1141,7 @@ body {
 .footer-link {
     background: none;
     border: none;
-    color: var(--primary-color);
+    color: rgba(255, 255, 255, 0.9);
     font-size: 0.9rem;
     cursor: pointer;
     text-decoration: underline;
@@ -1148,15 +1149,15 @@ body {
 }
 
 .footer-link:hover {
-    color: var(--primary-hover);
+    color: #3b82f6;
 }
 
 .footer-separator {
-    color: var(--text-muted);
+    color: rgba(255, 255, 255, 0.6);
 }
 
 .footer-text {
-    color: var(--text-secondary);
+    color: rgba(255, 255, 255, 0.8);
     font-size: 0.85rem;
 }
 
