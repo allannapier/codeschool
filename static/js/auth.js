@@ -236,7 +236,10 @@ async function handleAuth(e) {
         } else {
             result = await supabase.auth.signUp({
                 email: email,
-                password: password
+                password: password,
+                options: {
+                    emailRedirectTo: window.location.origin
+                }
             });
         }
         
@@ -245,12 +248,23 @@ async function handleAuth(e) {
         }
         
         if (!isLoginMode && result.data.user && !result.data.session) {
-            showAuthError('Please check your email for verification link!');
+            showAuthError('Account created! You can now login (email confirmation disabled for demo).');
+            // Auto-switch to login mode
+            isLoginMode = true;
+            updateAuthModalUI();
         }
         
     } catch (error) {
         console.error('Auth error:', error);
-        showAuthError(error.message);
+        
+        // Handle specific email confirmation errors
+        if (error.message.includes('confirmation email') || error.message.includes('email')) {
+            showAuthError('Email confirmation issue. Please check your Supabase email settings or disable email confirmation for testing.');
+        } else if (error.message.includes('Invalid login credentials')) {
+            showAuthError('Invalid email or password. Please check your credentials.');
+        } else {
+            showAuthError(error.message);
+        }
     } finally {
         authSubmit.disabled = false;
         updateAuthModalUI();
