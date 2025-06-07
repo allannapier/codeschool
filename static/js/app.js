@@ -1015,13 +1015,13 @@ document.addEventListener('DOMContentLoaded', async function() {
         menuToggle.addEventListener('click', toggleMenu);
     }
     
-    if (navMenu) {
-        navMenu.addEventListener('click', (e) => {
-            if (e.target === navMenu) {
-                closeMenu();
-            }
-        });
-    }
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+        if (navMenu && navMenu.classList.contains('active') && 
+            !navMenu.contains(e.target) && !menuToggle.contains(e.target)) {
+            closeMenu();
+        }
+    });
     
     if (menuChallengesSelect) {
         menuChallengesSelect.addEventListener('change', selectMenuChallenge);
