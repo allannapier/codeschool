@@ -1,0 +1,1 @@
+- Use artifact https://claude.ai/public/artifacts/87a422a6-50f4-4adb-9cde-dc40556e9960 as the guide for setting up this application
