@@ -3,7 +3,7 @@ const SUPABASE_URL = 'YOUR_SUPABASE_URL';
 const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
 
 // Initialize Supabase client
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
 // Authentication state
 let currentUser = null;
@@ -15,6 +15,15 @@ let loginBtn, userMenu, userEmailSpan, logoutBtn, authError;
 
 // Initialize authentication system
 async function initAuth() {
+    // Check if Supabase is available and configured
+    if (!window.supabase || !SUPABASE_URL || SUPABASE_URL === 'YOUR_SUPABASE_URL') {
+        console.warn('Supabase not configured. Authentication features disabled.');
+        // Hide auth UI elements
+        const loginBtn = document.getElementById('login-btn');
+        if (loginBtn) loginBtn.style.display = 'none';
+        return;
+    }
+
     // Get DOM elements
     authModal = document.getElementById('auth-modal');
     authForm = document.getElementById('auth-form');
@@ -181,7 +190,7 @@ function showSuccess(message) {
 
 // Progress tracking functions
 async function saveProgress(challengeId, challengeTitle, status = 'completed') {
-    if (!currentUser) {
+    if (!currentUser || !supabase) {
         return false;
     }
     
@@ -205,7 +214,7 @@ async function saveProgress(challengeId, challengeTitle, status = 'completed') {
 }
 
 async function getUserProgress() {
-    if (!currentUser) {
+    if (!currentUser || !supabase) {
         return [];
     }
     
