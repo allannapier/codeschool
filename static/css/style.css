@@ -214,6 +214,10 @@ body {
     overflow: hidden;
     white-space: nowrap;
     min-width: auto;
+    height: 2.75rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .btn::before {
@@ -564,6 +568,7 @@ body {
     .btn {
         padding: 0.65rem 1rem;
         font-size: 0.85rem;
+        height: 2.5rem;
     }
     
     .editor {
