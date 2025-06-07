@@ -535,6 +535,8 @@ let menuChallengesSelect, menuSkillLevelSelect, menuSubmitChallengeBtn, menuProg
 let menuToggle, navMenu;
 let resultsDiv, loadingDiv;
 let aiFeedbackTab, codeOutputTab, aiFeedbackContent, codeOutputContent;
+let disclaimerBtn, contactBtn, disclaimerModal, contactModal;
+let closeDisclaimerModal, closeContactModal, contactForm;
 
 // Challenge data
 let challengesData = [];
@@ -993,6 +995,120 @@ function switchTab(tabName) {
     }
 }
 
+// Footer modal functions
+function showDisclaimerModal() {
+    if (disclaimerModal) {
+        disclaimerModal.style.display = 'flex';
+    }
+}
+
+function hideDisclaimerModal() {
+    if (disclaimerModal) {
+        disclaimerModal.style.display = 'none';
+    }
+}
+
+function showContactModal() {
+    if (contactModal) {
+        contactModal.style.display = 'flex';
+        // Clear any previous messages
+        hideContactError();
+        hideContactSuccess();
+        // Reset form
+        if (contactForm) {
+            contactForm.reset();
+        }
+    }
+}
+
+function hideContactModal() {
+    if (contactModal) {
+        contactModal.style.display = 'none';
+    }
+}
+
+function showContactError(message) {
+    const errorDiv = document.getElementById('contact-error');
+    if (errorDiv) {
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block';
+    }
+}
+
+function hideContactError() {
+    const errorDiv = document.getElementById('contact-error');
+    if (errorDiv) {
+        errorDiv.style.display = 'none';
+    }
+}
+
+function showContactSuccess(message) {
+    const successDiv = document.getElementById('contact-success');
+    if (successDiv) {
+        successDiv.innerHTML = `<strong>✅ Success:</strong> ${message}`;
+        successDiv.style.display = 'block';
+    }
+}
+
+function hideContactSuccess() {
+    const successDiv = document.getElementById('contact-success');
+    if (successDiv) {
+        successDiv.style.display = 'none';
+    }
+}
+
+async function handleContactForm(e) {
+    e.preventDefault();
+    
+    const name = document.getElementById('contact-name').value.trim();
+    const email = document.getElementById('contact-email').value.trim();
+    const subject = document.getElementById('contact-subject').value.trim();
+    const message = document.getElementById('contact-message').value.trim();
+    
+    if (!name || !email || !subject || !message) {
+        showContactError('Please fill in all fields.');
+        return;
+    }
+    
+    hideContactError();
+    hideContactSuccess();
+    
+    const submitBtn = document.getElementById('contact-submit');
+    const originalText = submitBtn.textContent;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sending...';
+    
+    try {
+        const response = await fetch('/api/contact', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                name: name,
+                email: email,
+                subject: subject,
+                message: message
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showContactSuccess('Your message has been sent successfully! We\'ll get back to you soon.');
+            contactForm.reset();
+        } else {
+            showContactError(data.error || 'Failed to send message. Please try again.');
+        }
+    } catch (error) {
+        showContactError('Network error. Please try again later.');
+        console.error('Contact form error:', error);
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+    }
+}
+
 // Initialize with default language and load challenges
 document.addEventListener('DOMContentLoaded', async function() {
     // Initialize authentication system first
@@ -1024,6 +1140,15 @@ document.addEventListener('DOMContentLoaded', async function() {
     codeOutputTab = document.getElementById('code-output-tab');
     aiFeedbackContent = document.getElementById('ai-feedback-content');
     codeOutputContent = document.getElementById('code-output-content');
+    
+    // Initialize footer elements
+    disclaimerBtn = document.getElementById('disclaimer-btn');
+    contactBtn = document.getElementById('contact-btn');
+    disclaimerModal = document.getElementById('disclaimer-modal');
+    contactModal = document.getElementById('contact-modal');
+    closeDisclaimerModal = document.getElementById('close-disclaimer-modal');
+    closeContactModal = document.getElementById('close-contact-modal');
+    contactForm = document.getElementById('contact-form');
     
     // Add event listeners
     analyzeBtn.addEventListener('click', analyzeCode);
@@ -1078,6 +1203,50 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     if (codeOutputTab) {
         codeOutputTab.addEventListener('click', () => switchTab('code-output'));
+    }
+    
+    // Add footer event listeners
+    if (disclaimerBtn) {
+        disclaimerBtn.addEventListener('click', showDisclaimerModal);
+    }
+    
+    if (contactBtn) {
+        contactBtn.addEventListener('click', showContactModal);
+    }
+    
+    if (closeDisclaimerModal) {
+        closeDisclaimerModal.addEventListener('click', hideDisclaimerModal);
+    }
+    
+    if (closeContactModal) {
+        closeContactModal.addEventListener('click', hideContactModal);
+    }
+    
+    if (contactForm) {
+        contactForm.addEventListener('submit', handleContactForm);
+        
+        // Add cancel button handler
+        const contactCancel = document.getElementById('contact-cancel');
+        if (contactCancel) {
+            contactCancel.addEventListener('click', hideContactModal);
+        }
+    }
+    
+    // Close modals on outside click
+    if (disclaimerModal) {
+        disclaimerModal.addEventListener('click', (e) => {
+            if (e.target === disclaimerModal) {
+                hideDisclaimerModal();
+            }
+        });
+    }
+    
+    if (contactModal) {
+        contactModal.addEventListener('click', (e) => {
+            if (e.target === contactModal) {
+                hideContactModal();
+            }
+        });
     }
     
     // Add language change handler

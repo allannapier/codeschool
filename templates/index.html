@@ -183,6 +183,20 @@
         </div>
     </main>
 
+    <!-- Footer -->
+    <footer class="main-footer">
+        <div class="footer-content">
+            <div class="footer-links">
+                <button id="disclaimer-btn" class="footer-link">Disclaimer</button>
+                <span class="footer-separator">|</span>
+                <button id="contact-btn" class="footer-link">Contact Us</button>
+            </div>
+            <div class="footer-text">
+                <p>&copy; 2024 Codebotiks. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
     <!-- Authentication Modal -->
     <div id="auth-modal" class="modal" style="display: none;">
         <div class="modal-content">
@@ -232,6 +246,72 @@
                     <h3>Completed Challenges</h3>
                     <div id="completed-challenges"></div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Disclaimer Modal -->
+    <div id="disclaimer-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Disclaimer</h2>
+                <button class="close-btn" id="close-disclaimer-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="disclaimer-content">
+                    <h3>Website Disclaimer</h3>
+                    <p><strong>Educational Purpose:</strong> This website is provided for educational purposes only. The content, tools, and services are designed to help users learn programming concepts and improve their coding skills.</p>
+                    
+                    <h3>Code Usage and AI Training</h3>
+                    <p><strong>Important Notice:</strong> Any code submitted, analyzed, or processed through this website may be used by OpenAI for training their AI models. By using our services, you consent to this usage. This arrangement allows us to receive free API credits from OpenAI, which helps us keep our educational platform free for all users.</p>
+                    
+                    <h3>No Warranty</h3>
+                    <p>The information and services provided on this website are on an "as is" basis. We make no warranties, expressed or implied, and hereby disclaim all other warranties including implied warranties of merchantability, fitness for a particular purpose, or non-infringement.</p>
+                    
+                    <h3>Limitation of Liability</h3>
+                    <p>In no event shall Codebotiks be liable for any damages arising from the use or inability to use this website or its services.</p>
+                    
+                    <h3>Privacy</h3>
+                    <p>Please do not submit any personal, confidential, or proprietary information through our code analysis tools. Any code submitted should be considered public for learning purposes.</p>
+                    
+                    <p><em>By continuing to use this website, you acknowledge that you have read, understood, and agree to this disclaimer.</em></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Modal -->
+    <div id="contact-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Contact Us</h2>
+                <button class="close-btn" id="close-contact-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="contact-form">
+                    <div class="form-group">
+                        <label for="contact-name">Name:</label>
+                        <input type="text" id="contact-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="contact-email">Email:</label>
+                        <input type="email" id="contact-email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="contact-subject">Subject:</label>
+                        <input type="text" id="contact-subject" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="contact-message">Message:</label>
+                        <textarea id="contact-message" rows="5" required></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn primary" id="contact-submit">Send Message</button>
+                        <button type="button" class="btn" id="contact-cancel">Cancel</button>
+                    </div>
+                </form>
+                <div id="contact-error" class="error" style="display: none;"></div>
+                <div id="contact-success" class="success" style="display: none;"></div>
             </div>
         </div>
     </div>

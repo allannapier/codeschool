@@ -6,6 +6,9 @@ import json
 from dotenv import load_dotenv
 import jwt
 from functools import wraps
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 load_dotenv()
 
@@ -218,6 +221,73 @@ def submit_challenge():
         
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+@app.route('/api/contact', methods=['POST'])
+def contact():
+    try:
+        data = request.get_json()
+        name = data.get('name', '').strip()
+        email = data.get('email', '').strip()
+        subject = data.get('subject', '').strip()
+        message = data.get('message', '').strip()
+        
+        if not all([name, email, subject, message]):
+            return jsonify({'error': 'All fields are required'}), 400
+        
+        # Email configuration (using environment variables)
+        smtp_server = os.getenv('SMTP_SERVER', 'smtp.gmail.com')
+        smtp_port = int(os.getenv('SMTP_PORT', '587'))
+        smtp_username = os.getenv('SMTP_USERNAME', '')
+        smtp_password = os.getenv('SMTP_PASSWORD', '')
+        
+        if not smtp_username or not smtp_password:
+            return jsonify({'error': 'Email service not configured'}), 500
+        
+        # Create email message
+        msg = MIMEMultipart()
+        msg['From'] = smtp_username
+        msg['To'] = 'allan@codebotiks.com'
+        msg['Subject'] = f'Codebotiks Contact Form: {subject}'
+        
+        # Email body
+        body = f"""
+New contact form submission from Codebotiks:
+
+Name: {name}
+Email: {email}
+Subject: {subject}
+
+Message:
+{message}
+
+---
+This email was sent from the Codebotiks contact form.
+Reply to: {email}
+        """
+        
+        msg.attach(MIMEText(body, 'plain'))
+        
+        # Send email
+        try:
+            server = smtplib.SMTP(smtp_server, smtp_port)
+            server.starttls()
+            server.login(smtp_username, smtp_password)
+            text = msg.as_string()
+            server.sendmail(smtp_username, 'allan@codebotiks.com', text)
+            server.quit()
+            
+            return jsonify({
+                'success': True,
+                'message': 'Contact form submitted successfully'
+            })
+            
+        except Exception as email_error:
+            print(f"Email sending error: {str(email_error)}")
+            return jsonify({'error': 'Failed to send email. Please try again later.'}), 500
+        
+    except Exception as e:
+        print(f"Contact form error: {str(e)}")
+        return jsonify({'error': 'Server error. Please try again later.'}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)

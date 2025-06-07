@@ -1114,6 +1114,110 @@ body {
     color: #dc2626;
 }
 
+/* Footer Styles */
+.main-footer {
+    background: var(--surface-color);
+    border-top: 1px solid var(--border-color);
+    padding: 1.5rem 0;
+    margin-top: 2rem;
+}
+
+.footer-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+    text-align: center;
+}
+
+.footer-links {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.footer-link {
+    background: none;
+    border: none;
+    color: var(--primary-color);
+    font-size: 0.9rem;
+    cursor: pointer;
+    text-decoration: underline;
+    transition: color 0.2s ease;
+}
+
+.footer-link:hover {
+    color: var(--primary-hover);
+}
+
+.footer-separator {
+    color: var(--text-muted);
+}
+
+.footer-text {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+.footer-text p {
+    margin: 0;
+}
+
+/* Disclaimer Modal Styles */
+.disclaimer-content {
+    max-height: 60vh;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+}
+
+.disclaimer-content h3 {
+    color: var(--primary-color);
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 1.5rem 0 0.75rem 0;
+}
+
+.disclaimer-content h3:first-child {
+    margin-top: 0;
+}
+
+.disclaimer-content p {
+    line-height: 1.6;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+}
+
+.disclaimer-content p:last-child {
+    font-style: italic;
+    background: var(--background-color);
+    padding: 1rem;
+    border-radius: 6px;
+    border-left: 4px solid var(--primary-color);
+    margin-top: 1.5rem;
+}
+
+/* Contact Form Styles */
+.form-group textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 0.95rem;
+    background: var(--surface-color);
+    color: var(--text-primary);
+    transition: border-color 0.2s ease;
+    box-sizing: border-box;
+    resize: vertical;
+    font-family: inherit;
+}
+
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
 /* Responsive Design */
 @media (max-width: 1024px) {
     .editor-container {
