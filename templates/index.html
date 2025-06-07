@@ -139,28 +139,6 @@
                 
                 <div id="editor" class="editor"></div>
                 
-                <!-- Code Execution Output -->
-                <div id="execution-output" class="execution-output" style="display: none;">
-                    <div class="output-header">
-                        <h4>🖥️ Execution Output</h4>
-                        <button id="clear-output" class="clear-output-btn" title="Clear output">✕</button>
-                    </div>
-                    <div class="output-content">
-                        <div id="output-stdout" class="output-section">
-                            <div class="output-label">Output:</div>
-                            <pre id="stdout-content" class="output-text"></pre>
-                        </div>
-                        <div id="output-stderr" class="output-section" style="display: none;">
-                            <div class="output-label error-label">Errors:</div>
-                            <pre id="stderr-content" class="output-text error-text"></pre>
-                        </div>
-                        <div id="execution-info" class="execution-info">
-                            <span id="execution-time" class="execution-stat"></span>
-                            <span id="execution-status" class="execution-stat"></span>
-                        </div>
-                    </div>
-                </div>
-                
                 <div class="buttons">
                     <button id="analyze-btn" class="btn primary">Analyze</button>
                     <button id="explain-btn" class="btn secondary">Explain</button>
@@ -170,9 +148,37 @@
             </div>
 
             <div class="results-section">
-                <h3>AI Feedback</h3>
-                <div id="results" class="results">
-                    <p class="placeholder">Enter your code and click "Analyze Code" or "Explain Code" to get AI-powered feedback.</p>
+                <div class="results-header">
+                    <h3>Results</h3>
+                    <div class="tab-buttons">
+                        <button id="ai-feedback-tab" class="tab-btn active">🤖 AI Feedback</button>
+                        <button id="code-output-tab" class="tab-btn">🖥️ Code Output</button>
+                    </div>
+                </div>
+                
+                <div id="ai-feedback-content" class="tab-content active">
+                    <div id="results" class="results">
+                        <p class="placeholder">Enter your code and click "Analyze Code" or "Explain Code" to get AI-powered feedback.</p>
+                    </div>
+                </div>
+                
+                <div id="code-output-content" class="tab-content">
+                    <div class="execution-output-container">
+                        <div class="output-content">
+                            <div id="output-stdout" class="output-section">
+                                <div class="output-label">Output:</div>
+                                <pre id="stdout-content" class="output-text">Click "Run Code" to execute your code and see the output here.</pre>
+                            </div>
+                            <div id="output-stderr" class="output-section" style="display: none;">
+                                <div class="output-label error-label">Errors:</div>
+                                <pre id="stderr-content" class="output-text error-text"></pre>
+                            </div>
+                            <div id="execution-info" class="execution-info" style="display: none;">
+                                <span id="execution-time" class="execution-stat"></span>
+                                <span id="execution-status" class="execution-stat"></span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

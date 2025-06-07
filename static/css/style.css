@@ -369,8 +369,17 @@ body {
     flex-wrap: wrap;
 }
 
-.results-section h3 {
+.results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.results-header h3 {
+    margin: 0;
     color: var(--text-primary);
     font-size: 1.3rem;
     font-weight: 600;
@@ -379,13 +388,63 @@ body {
     gap: 0.5rem;
 }
 
+.tab-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.tab-btn {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: var(--background-color);
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.tab-btn:hover {
+    background: var(--surface-color);
+    border-color: var(--primary-color);
+    color: var(--text-primary);
+}
+
+.tab-btn.active {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+    box-shadow: var(--shadow-sm);
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.execution-output-container {
+    background: var(--surface-color);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    min-height: 400px;
+}
+
+.execution-output-container .output-content {
+    padding: 1.5rem;
+}
+
 .editor-section h3::before {
     content: '💻';
     font-size: 1.2rem;
 }
 
-.results-section h3::before {
-    content: '🤖';
+.results-header h3::before {
+    content: '📊';
     font-size: 1.2rem;
 }
 
@@ -1140,6 +1199,17 @@ body {
     
     .editor-section, .results-section {
         padding: 1.5rem;
+    }
+    
+    .results-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .tab-buttons {
+        width: 100%;
+        justify-content: center;
     }
     
     .editor {

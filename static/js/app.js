@@ -285,7 +285,8 @@ async function executeCode() {
     runBtn.textContent = '⏳ Running...';
 
     try {
-        showExecutionOutput();
+        // Switch to code output tab
+        switchTab('code-output');
         clearExecutionOutput();
         
         const startTime = Date.now();
@@ -349,30 +350,19 @@ function getFileName(language) {
     return extensions[language] || 'main.txt';
 }
 
-function showExecutionOutput() {
-    const outputDiv = document.getElementById('execution-output');
-    if (outputDiv) {
-        outputDiv.style.display = 'block';
-    }
-}
-
-function hideExecutionOutput() {
-    const outputDiv = document.getElementById('execution-output');
-    if (outputDiv) {
-        outputDiv.style.display = 'none';
-    }
-}
 
 function clearExecutionOutput() {
     const stdoutContent = document.getElementById('stdout-content');
     const stderrContent = document.getElementById('stderr-content');
     const stderrSection = document.getElementById('output-stderr');
+    const executionInfo = document.getElementById('execution-info');
     const executionTime = document.getElementById('execution-time');
     const executionStatus = document.getElementById('execution-status');
 
-    if (stdoutContent) stdoutContent.textContent = '';
+    if (stdoutContent) stdoutContent.textContent = 'Running code...';
     if (stderrContent) stderrContent.textContent = '';
     if (stderrSection) stderrSection.style.display = 'none';
+    if (executionInfo) executionInfo.style.display = 'none';
     if (executionTime) executionTime.textContent = '';
     if (executionStatus) executionStatus.textContent = '';
 }
@@ -381,6 +371,7 @@ function displayExecutionResult(result, executionTime) {
     const stdoutContent = document.getElementById('stdout-content');
     const stderrContent = document.getElementById('stderr-content');
     const stderrSection = document.getElementById('output-stderr');
+    const executionInfo = document.getElementById('execution-info');
     const timeElement = document.getElementById('execution-time');
     const statusElement = document.getElementById('execution-status');
 
@@ -400,6 +391,10 @@ function displayExecutionResult(result, executionTime) {
     }
 
     // Display execution info
+    if (executionInfo) {
+        executionInfo.style.display = 'flex';
+    }
+    
     if (timeElement) {
         timeElement.textContent = `⏱️ ${executionTime}ms`;
     }
@@ -420,6 +415,7 @@ function displayExecutionError(errorMessage) {
     const stdoutContent = document.getElementById('stdout-content');
     const stderrContent = document.getElementById('stderr-content');
     const stderrSection = document.getElementById('output-stderr');
+    const executionInfo = document.getElementById('execution-info');
     const statusElement = document.getElementById('execution-status');
 
     if (stdoutContent) {
@@ -432,6 +428,10 @@ function displayExecutionError(errorMessage) {
 
     if (stderrSection) {
         stderrSection.style.display = 'block';
+    }
+
+    if (executionInfo) {
+        executionInfo.style.display = 'flex';
     }
 
     if (statusElement) {
@@ -546,6 +546,7 @@ let languageSelect, skillLevelSelect, challengesSelect;
 let menuChallengesSelect, menuSkillLevelSelect, menuSubmitChallengeBtn, menuProgressBtn;
 let menuToggle, navMenu;
 let resultsDiv, loadingDiv;
+let aiFeedbackTab, codeOutputTab, aiFeedbackContent, codeOutputContent;
 
 // Challenge data
 let challengesData = [];
@@ -583,8 +584,10 @@ async function analyzeCode() {
         const data = await response.json();
 
         if (data.success) {
+            switchTab('ai-feedback');
             showResults('📊 Code Analysis', data.analysis);
         } else {
+            switchTab('ai-feedback');
             showError(data.error || 'Failed to analyze code');
         }
     } catch (error) {
@@ -626,8 +629,10 @@ async function explainCode() {
         const data = await response.json();
 
         if (data.success) {
+            switchTab('ai-feedback');
             showResults('📚 Code Explanation', data.explanation);
         } else {
+            switchTab('ai-feedback');
             showError(data.error || 'Failed to explain code');
         }
     } catch (error) {
@@ -893,13 +898,14 @@ async function submitChallenge() {
         const data = await response.json();
 
         if (data.success) {
+            switchTab('ai-feedback');
             showResults('🎯 Challenge Evaluation', data.evaluation);
             
             // Save progress if user is logged in and challenge was successful
             if (window.authSystem && window.authSystem.isLoggedIn()) {
                 const evaluation = data.evaluation.toLowerCase();
                 if (evaluation.includes('✅ pass') || evaluation.includes('pass')) {
-                    const challengeIndex = challengesSelect.value;
+                    const challengeIndex = challengesSelect ? challengesSelect.value : menuChallengesSelect.value;
                     const progressSaved = await window.authSystem.saveProgress(
                         challengeIndex, 
                         currentChallenge.title, 
@@ -912,6 +918,7 @@ async function submitChallenge() {
                 }
             }
         } else {
+            switchTab('ai-feedback');
             showError(data.error || 'Failed to evaluate challenge');
         }
     } catch (error) {
@@ -977,6 +984,21 @@ function syncSkillLevel() {
     }
 }
 
+// Tab switching functionality
+function switchTab(tabName) {
+    // Update tab buttons
+    if (aiFeedbackTab && codeOutputTab) {
+        aiFeedbackTab.classList.toggle('active', tabName === 'ai-feedback');
+        codeOutputTab.classList.toggle('active', tabName === 'code-output');
+    }
+    
+    // Update tab content
+    if (aiFeedbackContent && codeOutputContent) {
+        aiFeedbackContent.classList.toggle('active', tabName === 'ai-feedback');
+        codeOutputContent.classList.toggle('active', tabName === 'code-output');
+    }
+}
+
 // Initialize with default language and load challenges
 document.addEventListener('DOMContentLoaded', async function() {
     // Initialize authentication system first
@@ -1002,6 +1024,12 @@ document.addEventListener('DOMContentLoaded', async function() {
     menuSkillLevelSelect = document.getElementById('menu-skill-level');
     menuSubmitChallengeBtn = document.getElementById('menu-submit-challenge');
     menuProgressBtn = document.getElementById('menu-progress');
+    
+    // Initialize tab elements
+    aiFeedbackTab = document.getElementById('ai-feedback-tab');
+    codeOutputTab = document.getElementById('code-output-tab');
+    aiFeedbackContent = document.getElementById('ai-feedback-content');
+    codeOutputContent = document.getElementById('code-output-content');
     
     // Add event listeners
     analyzeBtn.addEventListener('click', analyzeCode);
@@ -1047,6 +1075,15 @@ document.addEventListener('DOMContentLoaded', async function() {
                 document.getElementById('auth-toggle-btn').click();
             }
         });
+    }
+    
+    // Add tab event listeners
+    if (aiFeedbackTab) {
+        aiFeedbackTab.addEventListener('click', () => switchTab('ai-feedback'));
+    }
+    
+    if (codeOutputTab) {
+        codeOutputTab.addEventListener('click', () => switchTab('code-output'));
     }
     
     // Add language change handler
