@@ -27,39 +27,29 @@ def analyze_code():
         if not code.strip():
             return jsonify({'error': 'No code provided'}), 400
         
-        # Enhanced prompt for better analysis
+        # Focused prompt for concise problem-focused analysis
         prompt = f"""
-        You are an expert {language} programmer and code reviewer. Analyze this {language} code for a {skill_level} programmer:
+        Analyze this {language} code for a {skill_level} programmer. Focus only on problems and improvements - if something is good, just acknowledge it briefly.
         
         ```{language}
         {code}
         ```
         
-        Provide a comprehensive analysis including:
+        Return analysis in this format:
         
-        **Code Quality & Structure:**
-        - Overall code quality assessment
-        - Code organization and readability
+        **Issues Found:**
+        - List specific problems, bugs, or errors
+        - If no issues: "✓ No major issues detected"
         
-        **Best Practices:**
-        - Adherence to {language} best practices
-        - Naming conventions
-        - Code structure improvements
+        **Improvements:**
+        - Specific suggestions for better code
+        - If code is good: "✓ Code follows good practices"
         
-        **Potential Issues:**
-        - Logic errors or bugs
-        - Performance considerations
-        - Security concerns (if any)
+        **Key Learning:**
+        - One main concept to focus on (for {skill_level} level)
+        - If advanced: "✓ Demonstrates solid understanding"
         
-        **Suggestions:**
-        - Specific improvements you'd recommend
-        - Alternative approaches or patterns
-        
-        **Learning Points:**
-        - Key concepts demonstrated in the code
-        - Areas for the programmer to study further
-        
-        Tailor your explanations to be appropriate for a {skill_level} level programmer.
+        Be direct and concise. Skip introductory text.
         """
         
         response = openai.ChatCompletion.create(
@@ -90,34 +80,25 @@ def explain_code():
         if not code.strip():
             return jsonify({'error': 'No code provided'}), 400
         
-        # Enhanced prompt for better explanations
+        # Focused prompt for concise explanations
         prompt = f"""
-        You are an expert {language} programming instructor. Explain this {language} code step by step for a {skill_level} level programmer:
+        Explain this {language} code for a {skill_level} level programmer. Be concise and focus on the essential parts.
         
         ```{language}
         {code}
         ```
         
-        Provide a clear, educational explanation that includes:
+        **What it does:**
+        - Brief overview of the code's purpose
         
-        **Code Walkthrough:**
-        - Line-by-line or section-by-section breakdown
-        - What each part does and why
+        **Key parts:**
+        - Explain only the important/complex sections
+        - Skip obvious parts (basic variable assignments, etc.)
         
-        **Concepts Explained:**
-        - Programming concepts used (variables, functions, loops, etc.)
-        - {language}-specific features and syntax
+        **Output:**
+        - What the code produces when run
         
-        **How It Works:**
-        - The flow of execution
-        - How different parts work together
-        - Expected output or behavior
-        
-        **Key Takeaways:**
-        - Important programming principles demonstrated
-        - Vocabulary and terminology to remember
-        
-        Use simple, clear language appropriate for a {skill_level} level programmer. Include examples where helpful.
+        Keep explanations short and {skill_level}-appropriate. Skip introductory phrases.
         """
         
         response = openai.ChatCompletion.create(
