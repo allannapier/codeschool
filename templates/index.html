@@ -6,32 +6,35 @@
     <title>Codebotiks - AI-Powered Code Learning</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <script src="https://unpkg.com/monaco-editor@0.45.0/min/vs/loader.js"></script>
-    <script 
-        src="https://unpkg.com/@supabase/supabase-js@2.38.4/dist/umd/supabase.js"
-        onload="console.log('Supabase script loaded successfully'); console.log('window.supabase:', typeof window.supabase);"
-        onerror="console.error('Failed to load Supabase script from CDN');">
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/umd/supabase.js"></script>
     <script>
-        // Fallback check after script should have loaded
+        // Check if Supabase v1 loaded (it has a different API)
         setTimeout(() => {
-            console.log('Post-load check - window.supabase:', typeof window.supabase);
-            console.log('All window globals containing "supabase":', Object.keys(window).filter(k => k.toLowerCase().includes('supabase')));
+            console.log('Checking Supabase v1 - window.supabase:', typeof window.supabase);
             
-            // If still not loaded, try alternative CDN
-            if (!window.supabase) {
-                console.log('Trying alternative CDN...');
+            if (window.supabase && window.supabase.createClient) {
+                console.log('Supabase v1 loaded successfully');
+                window.dispatchEvent(new CustomEvent('supabaseReady'));
+            } else {
+                console.log('Supabase v1 failed, trying v2 with different approach...');
+                
+                // Try loading v2 as ES module
                 const script = document.createElement('script');
-                script.src = 'https://cdn.skypack.dev/@supabase/supabase-js@2.38.4';
-                script.onload = () => {
-                    console.log('Alternative CDN loaded, window.supabase:', typeof window.supabase);
+                script.type = 'module';
+                script.innerHTML = `
+                    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+                    window.supabase = { createClient };
+                    console.log('Supabase v2 ES module loaded');
+                    window.dispatchEvent(new CustomEvent('supabaseReady'));
+                `;
+                script.onerror = () => {
+                    console.error('All Supabase loading methods failed');
+                    // Dispatch ready anyway so app doesn't hang
                     window.dispatchEvent(new CustomEvent('supabaseReady'));
                 };
-                script.onerror = () => console.error('Alternative CDN also failed');
                 document.head.appendChild(script);
-            } else {
-                window.dispatchEvent(new CustomEvent('supabaseReady'));
             }
-        }, 500);
+        }, 300);
     </script>
 </head>
 <body>
