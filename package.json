@@ -1,0 +1,24 @@
+{
+  "name": "code-tutor",
+  "version": "1.0.0",
+  "description": "AI-powered code learning platform",
+  "main": "app.py",
+  "scripts": {
+    "build": "echo 'No TypeScript compilation needed for this setup'",
+    "dev": "python app.py",
+    "start": "python app.py"
+  },
+  "dependencies": {
+    "monaco-editor": "^0.45.0"
+  },
+  "devDependencies": {},
+  "keywords": [
+    "ai",
+    "code-learning",
+    "python",
+    "javascript",
+    "education"
+  ],
+  "author": "",
+  "license": "MIT"
+}
