@@ -4,6 +4,8 @@ import openai
 import os
 import json
 from dotenv import load_dotenv
+import jwt
+from functools import wraps
 
 load_dotenv()
 
@@ -12,6 +14,22 @@ CORS(app)
 
 # Configure OpenAI
 openai.api_key = os.getenv('OPENAI_API_KEY')
+
+# Optional: Add user context to API calls (requires Supabase JWT verification)
+def get_user_from_token():
+    """Extract user info from Supabase JWT token (optional)"""
+    auth_header = request.headers.get('Authorization')
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return None
+    
+    try:
+        token = auth_header.split(' ')[1]
+        # In production, you'd verify this JWT with Supabase
+        # For now, we'll just decode without verification for user context
+        decoded = jwt.decode(token, options={"verify_signature": False})
+        return decoded.get('sub')  # User ID
+    except:
+        return None
 
 @app.route('/')
 def index():
@@ -140,6 +158,10 @@ def submit_challenge():
         challenge_description = data.get('challenge_description', '')
         language = data.get('language', 'python')
         skill_level = data.get('skill_level', 'beginner')
+        
+        # Optional: Get user context for personalized feedback
+        user_id = get_user_from_token()
+        user_context = f" (User ID: {user_id})" if user_id else ""
         
         if not code.strip():
             return jsonify({'error': 'No code provided'}), 400

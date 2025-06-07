@@ -256,6 +256,24 @@ function showError(message) {
     `;
 }
 
+function showSuccess(message) {
+    // Create a temporary success notification
+    const successDiv = document.createElement('div');
+    successDiv.className = 'success';
+    successDiv.innerHTML = `<strong>✅ Success:</strong> ${message}`;
+    successDiv.style.position = 'fixed';
+    successDiv.style.top = '20px';
+    successDiv.style.right = '20px';
+    successDiv.style.zIndex = '3000';
+    successDiv.style.maxWidth = '300px';
+    
+    document.body.appendChild(successDiv);
+    
+    setTimeout(() => {
+        successDiv.remove();
+    }, 3000);
+}
+
 function showLoading(show) {
     if (show) {
         loadingDiv.classList.add('active');
@@ -300,7 +318,7 @@ async function loadChallenges() {
         challengesData = data.challenges || [];
         console.log('Parsed challenges:', challengesData.length, 'challenges found');
         
-        populateChallengesDropdown();
+        await populateChallengesDropdown();
     } catch (error) {
         console.error('Failed to load challenges:', error);
         // Show error in dropdown
@@ -308,7 +326,7 @@ async function loadChallenges() {
     }
 }
 
-function populateChallengesDropdown() {
+async function populateChallengesDropdown() {
     console.log('Populating challenges dropdown...');
     console.log('challengesData:', challengesData);
     
@@ -318,6 +336,12 @@ function populateChallengesDropdown() {
     if (!challengesData || challengesData.length === 0) {
         challengesSelect.innerHTML = '<option value="">No challenges available</option>';
         return;
+    }
+    
+    // Get user progress if logged in
+    let userProgress = [];
+    if (window.authSystem && window.authSystem.isLoggedIn()) {
+        userProgress = await window.authSystem.getUserProgress();
     }
     
     // Group challenges by level
@@ -346,7 +370,21 @@ function populateChallengesDropdown() {
             challenges.forEach(challenge => {
                 const option = document.createElement('option');
                 option.value = challenge.index;
-                option.textContent = challenge.title;
+                
+                // Check if challenge is completed
+                const isCompleted = userProgress.some(p => 
+                    p.challenge_id === challenge.index.toString() && p.status === 'completed'
+                );
+                
+                option.textContent = isCompleted 
+                    ? `✅ ${challenge.title}` 
+                    : challenge.title;
+                
+                if (isCompleted) {
+                    option.style.color = '#16a34a';
+                    option.style.fontWeight = '600';
+                }
+                
                 optgroup.appendChild(option);
             });
             
@@ -356,6 +394,9 @@ function populateChallengesDropdown() {
     
     console.log('Dropdown populated with', challengesSelect.children.length - 1, 'challenge groups');
 }
+
+// Expose function globally for auth system
+window.populateChallengesDropdown = populateChallengesDropdown;
 
 function selectChallenge() {
     const selectedIndex = challengesSelect.value;
@@ -434,6 +475,23 @@ async function submitChallenge() {
 
         if (data.success) {
             showResults('🎯 Challenge Evaluation', data.evaluation);
+            
+            // Save progress if user is logged in and challenge was successful
+            if (window.authSystem && window.authSystem.isLoggedIn()) {
+                const evaluation = data.evaluation.toLowerCase();
+                if (evaluation.includes('✅ pass') || evaluation.includes('pass')) {
+                    const challengeIndex = challengesSelect.value;
+                    const progressSaved = await window.authSystem.saveProgress(
+                        challengeIndex, 
+                        currentChallenge.title, 
+                        'completed'
+                    );
+                    
+                    if (progressSaved) {
+                        showSuccess('Progress saved! 🎉');
+                    }
+                }
+            }
         } else {
             showError(data.error || 'Failed to evaluate challenge');
         }
@@ -454,8 +512,13 @@ function disableButtons(disable) {
 }
 
 // Initialize with default language and load challenges
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     console.log('DOM loaded');
+    
+    // Initialize authentication system first
+    if (window.authSystem) {
+        await window.authSystem.initAuth();
+    }
     
     // Initialize DOM elements
     analyzeBtn = document.getElementById('analyze-btn');

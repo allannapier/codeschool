@@ -6,6 +6,7 @@
     <title>Codebotiks - AI-Powered Code Learning</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <script src="https://unpkg.com/monaco-editor@0.45.0/min/vs/loader.js"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 </head>
 <body>
     <header class="main-header">
@@ -14,8 +15,17 @@
                 <h1>Code<span class="logo-accent">botiks</span></h1>
                 <span class="beta-tag">BETA</span>
             </div>
-            <div class="tagline">
-                <span>AI-Powered Code Learning Platform</span>
+            <div class="user-section">
+                <div class="tagline">
+                    <span>AI-Powered Code Learning Platform</span>
+                </div>
+                <div class="auth-buttons">
+                    <button id="login-btn" class="btn btn-outline">Login</button>
+                    <div id="user-menu" class="user-menu" style="display: none;">
+                        <span id="user-email" class="user-email"></span>
+                        <button id="logout-btn" class="btn btn-outline">Logout</button>
+                    </div>
+                </div>
             </div>
         </div>
     </header>
@@ -78,6 +88,34 @@
         </div>
     </main>
 
+    <!-- Authentication Modal -->
+    <div id="auth-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="auth-title">Login to Track Progress</h2>
+                <button class="close-btn" id="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="auth-form">
+                    <div class="form-group">
+                        <label for="email">Email:</label>
+                        <input type="email" id="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password:</label>
+                        <input type="password" id="password" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn primary" id="auth-submit">Login</button>
+                        <button type="button" class="btn secondary" id="toggle-auth">Need an account? Sign up</button>
+                    </div>
+                </form>
+                <div id="auth-error" class="error" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>
 </html>
