@@ -29,7 +29,8 @@ let isLoginMode = true;
 
 // DOM elements for auth
 let authModal, authForm, authTitle, authSubmit, toggleAuth, closeModal;
-let loginBtn, userMenu, userEmailSpan, logoutBtn, authError;
+let authToggleBtn, userEmailSpan, progressBtn, authError;
+let progressModal, closeProgressModal;
 
 // Initialize authentication system
 async function initAuth() {
@@ -115,32 +116,40 @@ async function initAuth() {
     authSubmit = document.getElementById('auth-submit');
     toggleAuth = document.getElementById('toggle-auth');
     closeModal = document.getElementById('close-modal');
-    loginBtn = document.getElementById('login-btn');
-    userMenu = document.getElementById('user-menu');
+    authToggleBtn = document.getElementById('auth-toggle-btn');
     userEmailSpan = document.getElementById('user-email');
-    logoutBtn = document.getElementById('logout-btn');
+    progressBtn = document.getElementById('progress-btn');
     authError = document.getElementById('auth-error');
+    progressModal = document.getElementById('progress-modal');
+    closeProgressModal = document.getElementById('close-progress-modal');
 
-    // Ensure login button is visible when auth is working
-    if (loginBtn) {
-        console.log('Login button found, making it visible');
-        loginBtn.style.display = 'inline-flex';
-        console.log('Login button display style:', loginBtn.style.display);
+    // Ensure auth toggle button is visible when auth is working
+    if (authToggleBtn) {
+        console.log('Auth toggle button found, making it visible');
+        authToggleBtn.style.display = 'inline-flex';
+        console.log('Auth toggle button display style:', authToggleBtn.style.display);
     } else {
-        console.error('Login button not found in DOM');
+        console.error('Auth toggle button not found in DOM');
     }
 
     // Add event listeners
-    loginBtn.addEventListener('click', showAuthModal);
+    authToggleBtn.addEventListener('click', handleAuthToggle);
     closeModal.addEventListener('click', hideAuthModal);
     authForm.addEventListener('submit', handleAuth);
     toggleAuth.addEventListener('click', toggleAuthMode);
-    logoutBtn.addEventListener('click', handleLogout);
+    progressBtn.addEventListener('click', showProgressModal);
+    closeProgressModal.addEventListener('click', hideProgressModal);
 
     // Close modal on outside click
     authModal.addEventListener('click', (e) => {
         if (e.target === authModal) {
             hideAuthModal();
+        }
+    });
+    
+    progressModal.addEventListener('click', (e) => {
+        if (e.target === progressModal) {
+            hideProgressModal();
         }
     });
 
@@ -206,12 +215,26 @@ function updateAuthModalUI() {
 
 function updateAuthUI() {
     if (currentUser) {
-        loginBtn.style.display = 'none';
-        userMenu.style.display = 'flex';
+        // User is logged in - show email, logout button, and progress button
+        authToggleBtn.textContent = 'Logout';
         userEmailSpan.textContent = currentUser.email;
+        userEmailSpan.style.display = 'inline';
+        progressBtn.style.display = 'inline-flex';
     } else {
-        loginBtn.style.display = 'inline-flex';
-        userMenu.style.display = 'none';
+        // User is not logged in - show login button only
+        authToggleBtn.textContent = 'Login';
+        userEmailSpan.style.display = 'none';
+        progressBtn.style.display = 'none';
+    }
+}
+
+function handleAuthToggle() {
+    if (currentUser) {
+        // User is logged in, so logout
+        handleLogout();
+    } else {
+        // User is not logged in, so show login modal
+        showAuthModal();
     }
 }
 
@@ -293,6 +316,54 @@ function hideAuthError() {
 function showSuccess(message) {
     // You can implement a success notification here
     console.log('Success:', message);
+}
+
+async function showProgressModal() {
+    if (!currentUser) {
+        showAuthModal();
+        return;
+    }
+    
+    progressModal.style.display = 'flex';
+    await loadUserProgress();
+}
+
+function hideProgressModal() {
+    progressModal.style.display = 'none';
+}
+
+async function loadUserProgress() {
+    try {
+        const userProgress = await getUserProgress();
+        const completedCount = userProgress.length;
+        
+        // Update stats
+        document.getElementById('completed-count').textContent = completedCount;
+        
+        // Display completed challenges
+        const completedContainer = document.getElementById('completed-challenges');
+        if (completedCount === 0) {
+            completedContainer.innerHTML = '<p class="placeholder">No challenges completed yet. Start coding to track your progress!</p>';
+        } else {
+            const challengesData = window.getChallengesData ? window.getChallengesData() : [];
+            
+            completedContainer.innerHTML = userProgress.map(progress => {
+                // Find the challenge details from challengesData
+                const challenge = challengesData.find(c => c.title === progress.challenge_title);
+                const level = challenge ? challenge.level : 'unknown';
+                
+                return `
+                    <div class="completed-challenge">
+                        <span class="challenge-title">✅ ${progress.challenge_title}</span>
+                        <span class="challenge-level ${level}">${level}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+    } catch (error) {
+        console.error('Error loading user progress:', error);
+        document.getElementById('completed-challenges').innerHTML = '<p class="error">Failed to load progress data.</p>';
+    }
 }
 
 // Progress tracking functions

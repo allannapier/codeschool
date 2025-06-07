@@ -383,6 +383,7 @@ async function populateChallengesDropdown() {
 
 // Expose function globally for auth system
 window.populateChallengesDropdown = populateChallengesDropdown;
+window.getChallengesData = () => challengesData;
 
 function selectChallenge() {
     const selectedIndex = challengesSelect.value;

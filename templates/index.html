@@ -49,11 +49,9 @@
                     <span>AI-Powered Code Learning Platform</span>
                 </div>
                 <div class="auth-buttons">
-                    <button id="login-btn" class="btn btn-outline">Login</button>
-                    <div id="user-menu" class="user-menu" style="display: none;">
-                        <span id="user-email" class="user-email"></span>
-                        <button id="logout-btn" class="btn btn-outline">Logout</button>
-                    </div>
+                    <span id="user-email" class="user-email" style="display: none;"></span>
+                    <button id="auth-toggle-btn" class="btn btn-outline">Login</button>
+                    <button id="progress-btn" class="btn btn-outline" style="display: none;">Progress</button>
                 </div>
             </div>
         </div>
@@ -140,6 +138,32 @@
                     </div>
                 </form>
                 <div id="auth-error" class="error" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress Modal -->
+    <div id="progress-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Your Progress</h2>
+                <button class="close-btn" id="close-progress-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="progress-stats" class="progress-stats">
+                    <div class="stat-item">
+                        <span class="stat-number" id="completed-count">0</span>
+                        <span class="stat-label">Challenges Completed</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="total-count">44</span>
+                        <span class="stat-label">Total Challenges</span>
+                    </div>
+                </div>
+                <div id="progress-list" class="progress-list">
+                    <h3>Completed Challenges</h3>
+                    <div id="completed-challenges"></div>
+                </div>
             </div>
         </div>
     </div>
