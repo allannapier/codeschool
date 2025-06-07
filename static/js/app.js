@@ -126,7 +126,6 @@ function initializeEditorToolbar() {
     const minimapToggleBtn = document.getElementById('minimap-toggle');
     const wrapToggleBtn = document.getElementById('wrap-toggle');
     const runCodeBtn = document.getElementById('run-code');
-    const formatCodeBtn = document.getElementById('format-code');
     const foldAllBtn = document.getElementById('fold-all');
     const unfoldAllBtn = document.getElementById('unfold-all');
     
@@ -173,12 +172,6 @@ function initializeEditorToolbar() {
         executeCode();
     });
     
-    // Format code
-    formatCodeBtn.addEventListener('click', () => {
-        if (editor) {
-            editor.trigger('editor', 'editor.action.formatDocument');
-        }
-    });
     
     
     // Fold all
