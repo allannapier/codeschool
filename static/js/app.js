@@ -304,19 +304,14 @@ document.addEventListener('keydown', function(e) {
 // Load challenges from API
 async function loadChallenges() {
     try {
-        console.log('Loading challenges...');
         const response = await fetch('/api/challenges');
-        console.log('Response status:', response.status);
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         
         const data = await response.json();
-        console.log('Challenges data:', data);
-        
         challengesData = data.challenges || [];
-        console.log('Parsed challenges:', challengesData.length, 'challenges found');
         
         await populateChallengesDropdown();
     } catch (error) {
@@ -327,9 +322,6 @@ async function loadChallenges() {
 }
 
 async function populateChallengesDropdown() {
-    console.log('Populating challenges dropdown...');
-    console.log('challengesData:', challengesData);
-    
     // Clear existing options except the first one
     challengesSelect.innerHTML = '<option value="">Select a Challenge</option>';
     
@@ -352,17 +344,13 @@ async function populateChallengesDropdown() {
     };
     
     challengesData.forEach((challenge, index) => {
-        console.log(`Processing challenge ${index}:`, challenge.title, challenge.level);
         if (groupedChallenges[challenge.level]) {
             groupedChallenges[challenge.level].push({ ...challenge, index });
         }
     });
     
-    console.log('Grouped challenges:', groupedChallenges);
-    
     // Add optgroups for each level
     Object.entries(groupedChallenges).forEach(([level, challenges]) => {
-        console.log(`Adding ${level} group with ${challenges.length} challenges`);
         if (challenges.length > 0) {
             const optgroup = document.createElement('optgroup');
             optgroup.label = level.charAt(0).toUpperCase() + level.slice(1);
@@ -391,8 +379,6 @@ async function populateChallengesDropdown() {
             challengesSelect.appendChild(optgroup);
         }
     });
-    
-    console.log('Dropdown populated with', challengesSelect.children.length - 1, 'challenge groups');
 }
 
 // Expose function globally for auth system
@@ -513,8 +499,6 @@ function disableButtons(disable) {
 
 // Initialize with default language and load challenges
 document.addEventListener('DOMContentLoaded', async function() {
-    console.log('DOM loaded');
-    
     // Initialize authentication system first
     if (window.authSystem) {
         await window.authSystem.initAuth();
@@ -530,8 +514,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     challengesSelect = document.getElementById('challenges');
     resultsDiv = document.getElementById('results');
     loadingDiv = document.getElementById('loading');
-    
-    console.log('challengesSelect element:', challengesSelect);
     
     // Add event listeners
     analyzeBtn.addEventListener('click', analyzeCode);
