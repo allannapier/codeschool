@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 import openai
 import os
+import json
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -112,6 +113,75 @@ def explain_code():
         
         return jsonify({
             'explanation': response.choices[0].message.content.strip(),
+            'success': True
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/challenges', methods=['GET'])
+def get_challenges():
+    try:
+        with open('challenges.json', 'r') as file:
+            challenges = json.load(file)
+        return jsonify(challenges)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/submit-challenge', methods=['POST'])
+def submit_challenge():
+    try:
+        data = request.get_json()
+        code = data.get('code', '')
+        challenge_title = data.get('challenge_title', '')
+        challenge_description = data.get('challenge_description', '')
+        language = data.get('language', 'python')
+        skill_level = data.get('skill_level', 'beginner')
+        
+        if not code.strip():
+            return jsonify({'error': 'No code provided'}), 400
+        
+        if not challenge_title or not challenge_description:
+            return jsonify({'error': 'Challenge details missing'}), 400
+        
+        # Challenge evaluation prompt
+        prompt = f"""
+        Evaluate this {language} code submission for the challenge: "{challenge_title}"
+        
+        **Challenge Requirements:**
+        {challenge_description}
+        
+        **Submitted Code:**
+        ```{language}
+        {code}
+        ```
+        
+        Assess if the code meets the challenge requirements. Be encouraging and supportive.
+        
+        **Result:** 
+        - "✅ PASS" if requirements are met
+        - "❌ NEEDS WORK" if requirements are not fully met
+        
+        **Feedback:**
+        - What the code does well
+        - What requirements are missing (if any)
+        - Specific suggestions for improvement
+        - Encouragement for the learner
+        
+        Keep feedback supportive and constructive for a {skill_level} level programmer.
+        """
+        
+        response = openai.ChatCompletion.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=500,
+            temperature=0.5
+        )
+        
+        return jsonify({
+            'evaluation': response.choices[0].message.content.strip(),
             'success': True
         })
         

@@ -143,15 +143,23 @@ func main() {
 const analyzeBtn = document.getElementById('analyze-btn');
 const explainBtn = document.getElementById('explain-btn');
 const clearBtn = document.getElementById('clear-btn');
+const submitChallengeBtn = document.getElementById('submit-challenge-btn');
 const languageSelect = document.getElementById('language');
 const skillLevelSelect = document.getElementById('skill-level');
+const challengesSelect = document.getElementById('challenges');
 const resultsDiv = document.getElementById('results');
 const loadingDiv = document.getElementById('loading');
+
+// Challenge data
+let challengesData = [];
+let currentChallenge = null;
 
 // Event listeners
 analyzeBtn.addEventListener('click', analyzeCode);
 explainBtn.addEventListener('click', explainCode);
 clearBtn.addEventListener('click', clearEditor);
+submitChallengeBtn.addEventListener('click', submitChallenge);
+challengesSelect.addEventListener('change', selectChallenge);
 
 async function analyzeCode() {
     const code = editor.getValue().trim();
@@ -302,8 +310,151 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
-// Initialize with default language
+// Load challenges from API
+async function loadChallenges() {
+    try {
+        const response = await fetch('/api/challenges');
+        const data = await response.json();
+        challengesData = data.challenges;
+        populateChallengesDropdown();
+    } catch (error) {
+        console.error('Failed to load challenges:', error);
+    }
+}
+
+function populateChallengesDropdown() {
+    // Clear existing options except the first one
+    challengesSelect.innerHTML = '<option value="">Select a Challenge</option>';
+    
+    // Group challenges by level
+    const groupedChallenges = {
+        beginner: [],
+        intermediate: [],
+        advanced: []
+    };
+    
+    challengesData.forEach((challenge, index) => {
+        groupedChallenges[challenge.level].push({ ...challenge, index });
+    });
+    
+    // Add optgroups for each level
+    Object.entries(groupedChallenges).forEach(([level, challenges]) => {
+        if (challenges.length > 0) {
+            const optgroup = document.createElement('optgroup');
+            optgroup.label = level.charAt(0).toUpperCase() + level.slice(1);
+            
+            challenges.forEach(challenge => {
+                const option = document.createElement('option');
+                option.value = challenge.index;
+                option.textContent = challenge.title;
+                optgroup.appendChild(option);
+            });
+            
+            challengesSelect.appendChild(optgroup);
+        }
+    });
+}
+
+function selectChallenge() {
+    const selectedIndex = challengesSelect.value;
+    
+    if (selectedIndex === '') {
+        currentChallenge = null;
+        submitChallengeBtn.style.display = 'none';
+        resultsDiv.innerHTML = '<p class="placeholder">Enter your code and click "Analyze Code" or "Explain Code" to get AI-powered feedback.</p>';
+        return;
+    }
+    
+    currentChallenge = challengesData[selectedIndex];
+    submitChallengeBtn.style.display = 'inline-block';
+    
+    // Display challenge details in results section
+    showChallengeDetails(currentChallenge);
+}
+
+function showChallengeDetails(challenge) {
+    const levelEmoji = {
+        beginner: '🟢',
+        intermediate: '🟡',
+        advanced: '🔴'
+    };
+    
+    resultsDiv.innerHTML = `
+        <div class="challenge-details">
+            <h4>${levelEmoji[challenge.level]} ${challenge.title}</h4>
+            <div class="challenge-level">Level: ${challenge.level.charAt(0).toUpperCase() + challenge.level.slice(1)}</div>
+            <div class="challenge-description">
+                <h5>Challenge Description:</h5>
+                <p>${challenge.description}</p>
+            </div>
+            <div class="challenge-hint">
+                <p><strong>💡 Tip:</strong> Write your solution in the code editor above and click "Submit Challenge" when ready!</p>
+            </div>
+        </div>
+    `;
+}
+
+async function submitChallenge() {
+    const code = editor.getValue().trim();
+    
+    if (!code) {
+        showError('Please write some code for the challenge.');
+        return;
+    }
+    
+    if (!currentChallenge) {
+        showError('Please select a challenge first.');
+        return;
+    }
+
+    const language = languageSelect.value;
+    const skillLevel = skillLevelSelect.value;
+
+    showLoading(true);
+    disableButtons(true);
+
+    try {
+        const response = await fetch('/api/submit-challenge', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                code: code,
+                challenge_title: currentChallenge.title,
+                challenge_description: currentChallenge.description,
+                language: language,
+                skill_level: skillLevel
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            showResults('🎯 Challenge Evaluation', data.evaluation);
+        } else {
+            showError(data.error || 'Failed to evaluate challenge');
+        }
+    } catch (error) {
+        showError('Network error. Please try again.');
+        console.error('Challenge submission error:', error);
+    } finally {
+        showLoading(false);
+        disableButtons(false);
+    }
+}
+
+function disableButtons(disable) {
+    analyzeBtn.disabled = disable;
+    explainBtn.disabled = disable;
+    clearBtn.disabled = disable;
+    submitChallengeBtn.disabled = disable;
+}
+
+// Initialize with default language and load challenges
 document.addEventListener('DOMContentLoaded', function() {
     // Set default sample code
     setSampleCode('python');
+    // Load challenges
+    loadChallenges();
 });
