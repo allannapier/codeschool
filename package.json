@@ -1,22 +1,26 @@
 {
-  "name": "code-tutor",
+  "name": "language-tutor",
   "version": "1.0.0",
-  "description": "AI-powered code learning platform",
+  "description": "AI-powered language learning platform through natural conversation",
   "main": "app.py",
   "scripts": {
     "build": "echo 'No TypeScript compilation needed for this setup'",
     "dev": "python app.py",
     "start": "python app.py"
   },
-  "dependencies": {
-    "monaco-editor": "^0.45.0"
-  },
+  "dependencies": {},
   "devDependencies": {},
   "keywords": [
     "ai",
-    "code-learning",
-    "python",
-    "javascript",
+    "language-learning",
+    "conversation",
+    "spanish",
+    "french",
+    "german",
+    "italian",
+    "portuguese",
+    "mandarin",
+    "japanese",
     "education"
   ],
   "author": "",

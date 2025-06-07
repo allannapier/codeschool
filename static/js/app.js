@@ -1,187 +1,269 @@
-// Initialize Monaco Editor
-let editor;
-
-require.config({ paths: { vs: 'https://unpkg.com/monaco-editor@0.45.0/min/vs' } });
-require(['vs/editor/editor.main'], function () {
-    editor = monaco.editor.create(document.getElementById('editor'), {
-        value: `# Welcome to Code Tutor!
-# Write your Python code here and get AI-powered feedback
-
-def greet(name):
-    """A simple greeting function"""
-    return f"Hello, {name}!"
-
-# Try calling the function
-result = greet("World")
-print(result)`,
-        language: 'python',
-        theme: 'vs-light',
-        automaticLayout: true,
-        fontSize: 14,
-        minimap: { enabled: false },
-        scrollBeyondLastLine: false,
-        wordWrap: 'on'
-    });
-
-    // Update editor language when dropdown changes
-    document.getElementById('language').addEventListener('change', function() {
-        const language = this.value;
-        monaco.editor.setModelLanguage(editor.getModel(), language);
-        
-        // Set sample code based on language
-        if (language === 'javascript') {
-            editor.setValue(`// Welcome to Code Tutor!
-// Write your JavaScript code here and get AI-powered feedback
-
-function greet(name) {
-    // A simple greeting function
-    return \`Hello, \${name}!\`;
-}
-
-// Try calling the function
-const result = greet("World");
-console.log(result);`);
-        } else {
-            editor.setValue(`# Welcome to Code Tutor!
-# Write your Python code here and get AI-powered feedback
-
-def greet(name):
-    """A simple greeting function"""
-    return f"Hello, {name}!"
-
-# Try calling the function
-result = greet("World")
-print(result)`);
-        }
-    });
-});
+// Language Learning App
+let sessionStartTime = Date.now();
+let messageCount = 0;
+let conversationHistory = [];
 
 // DOM elements
-const analyzeBtn = document.getElementById('analyze-btn');
-const explainBtn = document.getElementById('explain-btn');
-const clearBtn = document.getElementById('clear-btn');
 const languageSelect = document.getElementById('language');
 const skillLevelSelect = document.getElementById('skill-level');
-const resultsDiv = document.getElementById('results');
+const lessonModeSelect = document.getElementById('lesson-mode');
+const chatMessages = document.getElementById('chat-messages');
+const userInput = document.getElementById('user-input');
+const sendBtn = document.getElementById('send-btn');
+const helpBtn = document.getElementById('help-btn');
+const addGoalBtn = document.getElementById('add-goal-btn');
+const goalsList = document.getElementById('goals-list');
+const sessionTimeEl = document.getElementById('session-time');
+const messageCountEl = document.getElementById('message-count');
+const grammarFeedback = document.getElementById('grammar-feedback');
+const vocabularyFeedback = document.getElementById('vocabulary-feedback');
 const loadingDiv = document.getElementById('loading');
 
+// Learning goals data
+let learningGoals = [
+    { id: 1, text: "Master basic greetings and introductions", progress: 60 },
+    { id: 2, text: "Learn present tense verbs", progress: 30 },
+    { id: 3, text: "Build vocabulary for daily activities", progress: 45 }
+];
+
+// Language-specific greetings
+const languageGreetings = {
+    spanish: "¡Hola! I'm your Spanish tutor. Let's start with a simple conversation. How are you today?",
+    french: "Bonjour! I'm your French tutor. Let's begin with a friendly conversation. How are you today?",
+    german: "Hallo! I'm your German tutor. Let's start with a simple conversation. How are you today?",
+    italian: "Ciao! I'm your Italian tutor. Let's begin with a pleasant conversation. How are you today?",
+    portuguese: "Olá! I'm your Portuguese tutor. Let's start with a simple conversation. How are you today?",
+    mandarin: "你好! I'm your Mandarin tutor. Let's begin with a simple conversation. How are you today?",
+    japanese: "こんにちは! I'm your Japanese tutor. Let's start with a simple conversation. How are you today?"
+};
+
 // Event listeners
-analyzeBtn.addEventListener('click', analyzeCode);
-explainBtn.addEventListener('click', explainCode);
-clearBtn.addEventListener('click', clearEditor);
-
-async function analyzeCode() {
-    const code = editor.getValue().trim();
-    
-    if (!code) {
-        showError('Please enter some code to analyze.');
-        return;
+sendBtn.addEventListener('click', sendMessage);
+helpBtn.addEventListener('click', requestHelp);
+addGoalBtn.addEventListener('click', addLearningGoal);
+languageSelect.addEventListener('change', updateLanguage);
+userInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
     }
+});
 
-    const language = languageSelect.value;
-    const skillLevel = skillLevelSelect.value;
+// Initialize app
+document.addEventListener('DOMContentLoaded', function() {
+    updateLanguage();
+    renderGoals();
+    startTimer();
+});
 
+function updateLanguage() {
+    const selectedLanguage = languageSelect.value;
+    const greeting = languageGreetings[selectedLanguage];
+    
+    // Clear chat and add new greeting
+    chatMessages.innerHTML = '';
+    addMessage('tutor', greeting);
+    
+    // Update placeholder text
+    const languageNames = {
+        spanish: 'Spanish',
+        french: 'French', 
+        german: 'German',
+        italian: 'Italian',
+        portuguese: 'Portuguese',
+        mandarin: 'Mandarin',
+        japanese: 'Japanese'
+    };
+    
+    userInput.placeholder = `Type your response in ${languageNames[selectedLanguage]}...`;
+    
+    // Reset conversation history
+    conversationHistory = [];
+    messageCount = 0;
+    updateMessageCount();
+}
+
+async function sendMessage() {
+    const message = userInput.value.trim();
+    if (!message) return;
+
+    // Add user message to chat
+    addMessage('user', message);
+    userInput.value = '';
+    
+    // Update counters
+    messageCount++;
+    updateMessageCount();
+    
+    // Add to conversation history
+    conversationHistory.push({ role: 'user', content: message });
+
+    // Show loading
     showLoading(true);
-    disableButtons(true);
+    disableInput(true);
 
     try {
-        const response = await fetch('/api/analyze', {
+        const response = await fetch('/api/chat', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                code: code,
-                language: language,
-                skill_level: skillLevel
+                message: message,
+                language: languageSelect.value,
+                skill_level: skillLevelSelect.value,
+                lesson_mode: lessonModeSelect.value,
+                conversation_history: conversationHistory
             })
         });
 
         const data = await response.json();
 
         if (data.success) {
-            showResults('Code Analysis', data.analysis);
+            // Add tutor response
+            addMessage('tutor', data.response);
+            conversationHistory.push({ role: 'assistant', content: data.response });
+            
+            // Update feedback panels
+            if (data.feedback) {
+                updateFeedback(data.feedback);
+            }
+            
+            // Update goals progress if provided
+            if (data.goals_progress) {
+                updateGoalsProgress(data.goals_progress);
+            }
         } else {
-            showError(data.error || 'Failed to analyze code');
+            showError(data.error || 'Failed to send message');
         }
     } catch (error) {
         showError('Network error. Please try again.');
-        console.error('Analysis error:', error);
+        console.error('Chat error:', error);
     } finally {
         showLoading(false);
-        disableButtons(false);
+        disableInput(false);
+        userInput.focus();
     }
 }
 
-async function explainCode() {
-    const code = editor.getValue().trim();
-    
-    if (!code) {
-        showError('Please enter some code to explain.');
-        return;
-    }
-
-    const language = languageSelect.value;
+async function requestHelp() {
+    const currentLanguage = languageSelect.value;
     const skillLevel = skillLevelSelect.value;
-
+    
     showLoading(true);
-    disableButtons(true);
+    disableInput(true);
 
     try {
-        const response = await fetch('/api/explain', {
+        const response = await fetch('/api/help', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                code: code,
-                language: language,
-                skill_level: skillLevel
+                language: currentLanguage,
+                skill_level: skillLevel,
+                conversation_history: conversationHistory
             })
         });
 
         const data = await response.json();
 
         if (data.success) {
-            showResults('Code Explanation', data.explanation);
+            addMessage('tutor', data.help_message, 'help');
         } else {
-            showError(data.error || 'Failed to explain code');
+            showError(data.error || 'Failed to get help');
         }
     } catch (error) {
         showError('Network error. Please try again.');
-        console.error('Explanation error:', error);
+        console.error('Help error:', error);
     } finally {
         showLoading(false);
-        disableButtons(false);
+        disableInput(false);
     }
 }
 
-function clearEditor() {
-    const language = languageSelect.value;
+function addMessage(sender, content, type = 'normal') {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${sender}`;
     
-    if (language === 'javascript') {
-        editor.setValue('// Write your JavaScript code here...\n\n');
-    } else {
-        editor.setValue('# Write your Python code here...\n\n');
+    const messageContent = document.createElement('div');
+    messageContent.className = 'message-content';
+    if (type === 'help') {
+        messageContent.style.background = '#ffa726';
+        messageContent.style.color = 'white';
     }
     
-    resultsDiv.innerHTML = '<p class="placeholder">Enter your code and click "Analyze Code" or "Explain Code" to get AI-powered feedback.</p>';
+    const messageText = document.createElement('p');
+    messageText.textContent = content;
+    
+    messageContent.appendChild(messageText);
+    messageDiv.appendChild(messageContent);
+    chatMessages.appendChild(messageDiv);
+    
+    // Scroll to bottom
+    chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
-function showResults(title, content) {
-    resultsDiv.innerHTML = `
-        <h4>${title}</h4>
-        <div class="content">${content}</div>
-    `;
-    resultsDiv.scrollTop = 0;
+function updateFeedback(feedback) {
+    if (feedback.grammar) {
+        grammarFeedback.innerHTML = `<div class="feedback-text">${feedback.grammar}</div>`;
+    }
+    
+    if (feedback.vocabulary) {
+        vocabularyFeedback.innerHTML = `<div class="feedback-text">${feedback.vocabulary}</div>`;
+    }
 }
 
-function showError(message) {
-    resultsDiv.innerHTML = `
-        <div class="error">
-            <strong>Error:</strong> ${message}
-        </div>
-    `;
+function updateGoalsProgress(progressUpdates) {
+    progressUpdates.forEach(update => {
+        const goal = learningGoals.find(g => g.id === update.id);
+        if (goal) {
+            goal.progress = Math.min(100, goal.progress + update.increment);
+        }
+    });
+    renderGoals();
+}
+
+function renderGoals() {
+    goalsList.innerHTML = '';
+    
+    learningGoals.forEach(goal => {
+        const goalDiv = document.createElement('div');
+        goalDiv.className = 'goal-item';
+        
+        goalDiv.innerHTML = `
+            <span class="goal-text">${goal.text}</span>
+            <div class="goal-progress">
+                <div class="progress-bar" style="width: ${goal.progress}%"></div>
+            </div>
+        `;
+        
+        goalsList.appendChild(goalDiv);
+    });
+}
+
+function addLearningGoal() {
+    const goalText = prompt('Enter a new learning goal:');
+    if (goalText && goalText.trim()) {
+        const newGoal = {
+            id: Date.now(),
+            text: goalText.trim(),
+            progress: 0
+        };
+        learningGoals.push(newGoal);
+        renderGoals();
+    }
+}
+
+function startTimer() {
+    setInterval(() => {
+        const elapsed = Math.floor((Date.now() - sessionStartTime) / 60000);
+        sessionTimeEl.textContent = `${elapsed} min`;
+    }, 1000);
+}
+
+function updateMessageCount() {
+    messageCountEl.textContent = messageCount.toString();
 }
 
 function showLoading(show) {
@@ -192,21 +274,18 @@ function showLoading(show) {
     }
 }
 
-function disableButtons(disable) {
-    analyzeBtn.disabled = disable;
-    explainBtn.disabled = disable;
-    clearBtn.disabled = disable;
+function disableInput(disable) {
+    sendBtn.disabled = disable;
+    helpBtn.disabled = disable;
+    userInput.disabled = disable;
 }
 
-// Keyboard shortcuts
-document.addEventListener('keydown', function(e) {
-    if (e.ctrlKey || e.metaKey) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            analyzeCode();
-        } else if (e.key === 'e') {
-            e.preventDefault();
-            explainCode();
-        }
-    }
+function showError(message) {
+    addMessage('tutor', `Error: ${message}`, 'error');
+}
+
+// Auto-resize textarea
+userInput.addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = Math.min(this.scrollHeight, 150) + 'px';
 });

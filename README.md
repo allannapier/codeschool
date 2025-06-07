@@ -1,13 +1,15 @@
-# Code Tutor
+# Language Tutor
 
-An AI-powered code learning platform that helps users improve their programming skills through intelligent feedback and explanations.
+An AI-powered language learning platform that helps users improve their language skills through natural conversation and intelligent feedback.
 
 ## Features
 
-- Support for Python and JavaScript
-- Three skill levels: Beginner, Intermediate, Advanced
-- AI-powered code analysis and explanations
-- Monaco Editor for code editing
+- Support for 7 languages: Spanish, French, German, Italian, Portuguese, Mandarin Chinese, Japanese
+- Three proficiency levels: Beginner (A1-A2), Intermediate (B1-B2), Advanced (C1-C2)
+- Two learning modes: Free Conversation and Structured Lessons
+- Real-time grammar and vocabulary feedback
+- Personalized learning goals with progress tracking
+- Session tracking with time and message counts
 - No user accounts required - anonymous usage
 
 ## Setup
@@ -40,24 +42,27 @@ An AI-powered code learning platform that helps users improve their programming 
 
 ## Usage
 
-1. Select your programming language (Python or JavaScript)
-2. Choose your skill level
-3. Write or paste your code in the Monaco editor
-4. Click "Analyze Code" for feedback and suggestions
-5. Click "Explain Code" for step-by-step explanations
+1. Select your target language (Spanish, French, German, etc.)
+2. Choose your proficiency level
+3. Select learning mode (Free Conversation or Structured Lesson)
+4. Start chatting with your AI tutor in the target language
+5. Get real-time feedback on grammar and vocabulary
+6. Track your progress with personalized learning goals
+7. Use "Need Help?" button for conversation assistance
 
 ## Keyboard Shortcuts
 
-- `Ctrl/Cmd + Enter`: Analyze code
-- `Ctrl/Cmd + E`: Explain code
+- `Enter`: Send message
+- `Shift + Enter`: New line in message
 
 ## Tech Stack
 
 - **Backend**: Flask (Python)
 - **Frontend**: Vanilla JavaScript, HTML/CSS
-- **Code Editor**: Monaco Editor
-- **AI**: OpenAI API (GPT-3.5)
+- **AI**: OpenAI API (GPT-3.5-Turbo-Instruct)
 - **Hosting**: Vercel
+- **Real-time Features**: Session tracking, progress monitoring
+- **Responsive Design**: Mobile-friendly interface
 
 ## License
 
