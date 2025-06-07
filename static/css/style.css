@@ -31,17 +31,59 @@ body {
     min-height: 100vh;
 }
 
-header {
+.main-header {
+    background: #334155;
+    color: white;
+    padding: 1rem 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.header-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.logo h1 {
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin: 0;
+    color: white;
+}
+
+.logo-accent {
+    color: #3b82f6;
+}
+
+.beta-tag {
+    background: rgba(59, 130, 246, 0.2);
+    color: #3b82f6;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+}
+
+.hero {
     background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
     color: white;
-    padding: 3rem 0;
+    padding: 4rem 0;
     text-align: center;
-    box-shadow: var(--shadow-lg);
     position: relative;
     overflow: hidden;
 }
 
-header::before {
+.hero::before {
     content: '';
     position: absolute;
     top: 0;
@@ -52,20 +94,26 @@ header::before {
     background-size: cover;
 }
 
-header h1 {
-    font-size: 3rem;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
+.hero-content {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
     position: relative;
     z-index: 1;
 }
 
-header p {
+.hero h2 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.hero p {
     font-size: 1.2rem;
     opacity: 0.9;
     font-weight: 300;
-    position: relative;
-    z-index: 1;
+    max-width: 600px;
+    margin: 0 auto;
 }
 
 .container {
@@ -374,6 +422,22 @@ header p {
         padding: 0 1rem;
     }
     
+    .header-content {
+        padding: 0 1rem;
+    }
+    
+    .logo h1 {
+        font-size: 1.5rem;
+    }
+    
+    .hero h2 {
+        font-size: 2rem;
+    }
+    
+    .hero p {
+        font-size: 1.1rem;
+    }
+    
     .controls {
         flex-direction: column;
         gap: 1.5rem;
@@ -386,14 +450,6 @@ header p {
     
     .buttons {
         justify-content: center;
-    }
-    
-    header h1 {
-        font-size: 2.5rem;
-    }
-    
-    header p {
-        font-size: 1.1rem;
     }
     
     .editor-section, .results-section {
@@ -410,12 +466,25 @@ header p {
 }
 
 @media (max-width: 480px) {
-    header {
-        padding: 2rem 0;
+    .logo h1 {
+        font-size: 1.25rem;
     }
     
-    header h1 {
-        font-size: 2rem;
+    .beta-tag {
+        font-size: 0.6rem;
+        padding: 0.2rem 0.4rem;
+    }
+    
+    .hero {
+        padding: 3rem 0;
+    }
+    
+    .hero h2 {
+        font-size: 1.75rem;
+    }
+    
+    .hero p {
+        font-size: 1rem;
     }
     
     .btn {
