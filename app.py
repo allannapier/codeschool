@@ -63,7 +63,7 @@ def analyze_code():
         """
         
         response = openai.Completion.create(
-            engine="gpt-3.5-turbo-instruct",
+            engine="gpt-4.1",
             prompt=prompt,
             max_tokens=700,
             temperature=0.7
