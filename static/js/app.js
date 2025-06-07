@@ -29,27 +29,8 @@ print(result)`,
         }
     });
 
-    // Update editor language when dropdown changes
-    document.getElementById('language').addEventListener('change', function() {
-        const language = this.value;
-        let monacoLang = language;
-        
-        // Map our language values to Monaco language IDs
-        const languageMap = {
-            'python': 'python',
-            'javascript': 'javascript',
-            'typescript': 'typescript', 
-            'java': 'java',
-            'cpp': 'cpp',
-            'go': 'go'
-        };
-        
-        monacoLang = languageMap[language] || 'python';
-        monaco.editor.setModelLanguage(editor.getModel(), monacoLang);
-        
-        // Set sample code based on language
-        setSampleCode(language);
-    });
+    // Set initial sample code
+    setSampleCode('python');
 });
 
 function setSampleCode(language) {
@@ -136,7 +117,10 @@ func main() {
 }`
     };
     
-    editor.setValue(sampleCodes[language] || sampleCodes.python);
+    // Only set value if editor is ready
+    if (editor && editor.setValue) {
+        editor.setValue(sampleCodes[language] || sampleCodes.python);
+    }
 }
 
 // DOM elements - will be initialized on DOM load
@@ -493,8 +477,35 @@ document.addEventListener('DOMContentLoaded', function() {
     submitChallengeBtn.addEventListener('click', submitChallenge);
     challengesSelect.addEventListener('change', selectChallenge);
     
-    // Set default sample code
-    setSampleCode('python');
+    // Add language change handler
+    languageSelect.addEventListener('change', function() {
+        const language = this.value;
+        let monacoLang = language;
+        
+        // Map our language values to Monaco language IDs
+        const languageMap = {
+            'python': 'python',
+            'javascript': 'javascript',
+            'typescript': 'typescript', 
+            'java': 'java',
+            'cpp': 'cpp',
+            'go': 'go'
+        };
+        
+        monacoLang = languageMap[language] || 'python';
+        if (editor && editor.getModel) {
+            monaco.editor.setModelLanguage(editor.getModel(), monacoLang);
+        }
+        
+        // Set sample code based on language
+        setSampleCode(language);
+    });
+    
     // Load challenges
     loadChallenges();
+    
+    // Set default sample code only if editor is ready, otherwise it will be set by Monaco callback
+    if (editor && editor.setValue) {
+        setSampleCode('python');
+    }
 });
