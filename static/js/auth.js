@@ -118,7 +118,6 @@ async function initAuth() {
     closeModal = document.getElementById('close-modal');
     authToggleBtn = document.getElementById('auth-toggle-btn');
     userEmailSpan = document.getElementById('user-email');
-    progressBtn = document.getElementById('progress-btn');
     authError = document.getElementById('auth-error');
     progressModal = document.getElementById('progress-modal');
     closeProgressModal = document.getElementById('close-progress-modal');
@@ -137,7 +136,6 @@ async function initAuth() {
     closeModal.addEventListener('click', hideAuthModal);
     authForm.addEventListener('submit', handleAuth);
     toggleAuth.addEventListener('click', toggleAuthMode);
-    progressBtn.addEventListener('click', showProgressModal);
     closeProgressModal.addEventListener('click', hideProgressModal);
 
     // Close modal on outside click
@@ -215,16 +213,14 @@ function updateAuthModalUI() {
 
 function updateAuthUI() {
     if (currentUser) {
-        // User is logged in - show email, logout button, and progress button
+        // User is logged in - show email and logout button
         authToggleBtn.textContent = 'Logout';
         userEmailSpan.textContent = currentUser.email;
         userEmailSpan.style.display = 'inline';
-        progressBtn.style.display = 'inline-flex';
     } else {
         // User is not logged in - show login button only
         authToggleBtn.textContent = 'Login';
         userEmailSpan.style.display = 'none';
-        progressBtn.style.display = 'none';
     }
 }
 
@@ -416,5 +412,6 @@ window.authSystem = {
     saveProgress,
     getUserProgress,
     getCurrentUser: () => currentUser,
-    isLoggedIn: () => !!currentUser
+    isLoggedIn: () => !!currentUser,
+    showProgressModal
 };

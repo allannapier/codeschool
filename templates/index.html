@@ -48,10 +48,47 @@
                 <div class="tagline">
                     <span>AI-Powered Code Learning Platform</span>
                 </div>
-                <div class="auth-buttons">
+                <div class="header-actions">
                     <span id="user-email" class="user-email" style="display: none;"></span>
                     <button id="auth-toggle-btn" class="btn btn-outline">Login</button>
-                    <button id="progress-btn" class="btn btn-outline" style="display: none;">Progress</button>
+                    <button id="menu-toggle" class="menu-toggle">
+                        <span class="hamburger-line"></span>
+                        <span class="hamburger-line"></span>
+                        <span class="hamburger-line"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Navigation Menu -->
+        <div id="nav-menu" class="nav-menu">
+            <div class="nav-content">
+                <div class="nav-section">
+                    <h3>Challenges</h3>
+                    <div class="menu-control-group">
+                        <label for="menu-challenges">Select Challenge:</label>
+                        <select id="menu-challenges">
+                            <option value="">Choose a Challenge</option>
+                        </select>
+                    </div>
+                    <button id="menu-submit-challenge" class="menu-btn" style="display: none;">Submit Challenge</button>
+                </div>
+                
+                <div class="nav-section">
+                    <h3>Progress</h3>
+                    <button id="menu-progress" class="menu-btn">View Progress</button>
+                </div>
+                
+                <div class="nav-section">
+                    <h3>Settings</h3>
+                    <div class="menu-control-group">
+                        <label for="menu-skill-level">Skill Level:</label>
+                        <select id="menu-skill-level">
+                            <option value="beginner">Beginner</option>
+                            <option value="intermediate">Intermediate</option>
+                            <option value="advanced">Advanced</option>
+                        </select>
+                    </div>
                 </div>
             </div>
         </div>
@@ -72,22 +109,6 @@
                                 <option value="java">Java</option>
                                 <option value="cpp">C++</option>
                                 <option value="go">Go</option>
-                            </select>
-                        </div>
-                        
-                        <div class="control-group">
-                            <label for="skill-level">Skill Level:</label>
-                            <select id="skill-level">
-                                <option value="beginner">Beginner</option>
-                                <option value="intermediate">Intermediate</option>
-                                <option value="advanced">Advanced</option>
-                            </select>
-                        </div>
-
-                        <div class="control-group">
-                            <label for="challenges">Challenges:</label>
-                            <select id="challenges">
-                                <option value="">Select a Challenge</option>
                             </select>
                         </div>
                     </div>

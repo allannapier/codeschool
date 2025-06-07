@@ -444,191 +444,52 @@ function setSampleCode(language) {
     const sampleCodes = {
         python: `# Welcome to Codebotiks!
 # Write your Python code here and get AI-powered feedback
-# Try using the toolbar to change themes, font size, and other editor features!
+# Try the Run Code button to execute your code!
 
-def calculate_fibonacci(n):
-    """
-    Calculate the nth Fibonacci number using dynamic programming.
-    This function demonstrates code folding, syntax highlighting, and bracket matching.
-    """
-    if n <= 1:
-        return n
-    
-    # Initialize base cases
-    fib_sequence = [0, 1]
-    
-    # Calculate fibonacci numbers iteratively
-    for i in range(2, n + 1):
-        next_fib = fib_sequence[i-1] + fib_sequence[i-2]
-        fib_sequence.append(next_fib)
-    
-    return fib_sequence[n]
+def greet(name):
+    """A simple greeting function"""
+    return f"Hello, {name}!"
 
-# Example usage with nested function calls
-def main():
-    """Main function to demonstrate the Fibonacci calculator"""
-    numbers_to_calculate = [5, 10, 15, 20]
-    
-    print("Fibonacci Calculator Results:")
-    print("-" * 30)
-    
-    for num in numbers_to_calculate:
-        result = calculate_fibonacci(num)
-        print(f"F({num}) = {result}")
-
-# Call the main function
-if __name__ == "__main__":
-    main()`,
+# Call the function and print the result
+message = greet("World")
+print(message)
+print("Welcome to Python programming!")`,
         
         javascript: `// Welcome to Codebotiks!
 // Write your JavaScript code here and get AI-powered feedback
-// Try the toolbar features: themes, font size, minimap, and code folding!
+// Try the Run Code button to execute your code!
 
-class FibonacciCalculator {
-    /**
-     * A class to demonstrate JavaScript features including:
-     * - Class syntax and methods
-     * - Arrow functions
-     * - Template literals
-     * - Array methods and destructuring
-     */
-    constructor() {
-        this.cache = new Map();
-    }
-
-    // Memoized Fibonacci calculation
-    calculate(n) {
-        if (this.cache.has(n)) {
-            return this.cache.get(n);
-        }
-
-        let result;
-        if (n <= 1) {
-            result = n;
-        } else {
-            result = this.calculate(n - 1) + this.calculate(n - 2);
-        }
-
-        this.cache.set(n, result);
-        return result;
-    }
-
-    // Calculate multiple Fibonacci numbers
-    calculateMultiple(numbers) {
-        return numbers.map(num => ({
-            input: num,
-            fibonacci: this.calculate(num),
-            timeCalculated: new Date().toISOString()
-        }));
-    }
+function greet(name) {
+    return \`Hello, \${name}!\`;
 }
 
-// Example usage with modern JavaScript features
-const fibCalculator = new FibonacciCalculator();
-const numbersToCalculate = [5, 10, 15, 20, 25];
-
-console.log("🧮 Fibonacci Calculator Results:");
-console.log("=" .repeat(40));
-
-const results = fibCalculator.calculateMultiple(numbersToCalculate);
-
-// Destructuring and template literals
-results.forEach(({ input, fibonacci, timeCalculated }) => {
-    console.log(\`F(\${input}) = \${fibonacci} (calculated at \${timeCalculated})\`);
-});`,
+// Call the function and log the result
+const message = greet("World");
+console.log(message);
+console.log("Welcome to JavaScript programming!");`,
 
         typescript: `// Welcome to Codebotiks!
 // Write your TypeScript code here and get AI-powered feedback
-// Explore advanced TypeScript features with the enhanced editor!
+// Try the Run Code button to execute your code!
 
-// Interface and type definitions
-interface FibonacciResult {
-    input: number;
-    fibonacci: number;
-    timeCalculated: string;
-    cached: boolean;
+function greet(name: string): string {
+    return \`Hello, \${name}!\`;
 }
 
-type NumberArray = number[];
-type FibonacciCache = Map<number, number>;
-
-// Generic utility type
-type CalculationMetrics<T> = {
-    data: T;
-    executionTime: number;
-    cacheHits: number;
-};
-
-class TypedFibonacciCalculator {
-    private cache: FibonacciCache = new Map();
-    private cacheHits: number = 0;
-
-    /**
-     * Calculate Fibonacci number with full type safety
-     * @param n - The position in the Fibonacci sequence
-     * @returns The calculated Fibonacci number
-     */
-    public calculate(n: number): number {
-        if (this.cache.has(n)) {
-            this.cacheHits++;
-            return this.cache.get(n)!;
-        }
-
-        const result: number = n <= 1 ? n : 
-            this.calculate(n - 1) + this.calculate(n - 2);
-
-        this.cache.set(n, result);
-        return result;
-    }
-
-    /**
-     * Calculate multiple Fibonacci numbers with detailed results
-     */
-    public calculateMultiple(numbers: NumberArray): CalculationMetrics<FibonacciResult[]> {
-        const startTime = performance.now();
-        const initialCacheHits = this.cacheHits;
-
-        const results: FibonacciResult[] = numbers.map((num: number) => ({
-            input: num,
-            fibonacci: this.calculate(num),
-            timeCalculated: new Date().toISOString(),
-            cached: this.cache.has(num)
-        }));
-
-        const endTime = performance.now();
-
-        return {
-            data: results,
-            executionTime: endTime - startTime,
-            cacheHits: this.cacheHits - initialCacheHits
-        };
-    }
-}
-
-// Usage with strong typing
-const calculator = new TypedFibonacciCalculator();
-const numbers: NumberArray = [5, 10, 15, 20, 25, 30];
-
-const metrics = calculator.calculateMultiple(numbers);
-
-console.log("📊 TypeScript Fibonacci Analysis");
-console.log("================================");
-console.log(\`Execution time: \${metrics.executionTime.toFixed(2)}ms\`);
-console.log(\`Cache hits: \${metrics.cacheHits}\`);
-console.log("\\nResults:");
-
-metrics.data.forEach((result: FibonacciResult) => {
-    const cacheStatus = result.cached ? "📋" : "🆕";
-    console.log(\`\${cacheStatus} F(\${result.input}) = \${result.fibonacci}\`);
-});`,
+// Call the function with type safety
+const message: string = greet("World");
+console.log(message);
+console.log("Welcome to TypeScript programming!");`,
 
         java: `// Welcome to Codebotiks!
 // Write your Java code here and get AI-powered feedback
+// Try the Run Code button to execute your code!
 
-public class HelloWorld {
+public class Main {
     public static void main(String[] args) {
-        String result = greet("World");
-        System.out.println(result);
+        String message = greet("World");
+        System.out.println(message);
+        System.out.println("Welcome to Java programming!");
     }
     
     public static String greet(String name) {
@@ -638,6 +499,7 @@ public class HelloWorld {
 
         cpp: `// Welcome to Codebotiks!
 // Write your C++ code here and get AI-powered feedback
+// Try the Run Code button to execute your code!
 
 #include <iostream>
 #include <string>
@@ -647,13 +509,15 @@ std::string greet(const std::string& name) {
 }
 
 int main() {
-    std::string result = greet("World");
-    std::cout << result << std::endl;
+    std::string message = greet("World");
+    std::cout << message << std::endl;
+    std::cout << "Welcome to C++ programming!" << std::endl;
     return 0;
 }`,
 
         go: `// Welcome to Codebotiks!
 // Write your Go code here and get AI-powered feedback
+// Try the Run Code button to execute your code!
 
 package main
 
@@ -664,8 +528,9 @@ func greet(name string) string {
 }
 
 func main() {
-    result := greet("World")
-    fmt.Println(result)
+    message := greet("World")
+    fmt.Println(message)
+    fmt.Println("Welcome to Go programming!")
 }`
     };
     
@@ -678,6 +543,8 @@ func main() {
 // DOM elements - will be initialized on DOM load
 let analyzeBtn, explainBtn, clearBtn, submitChallengeBtn;
 let languageSelect, skillLevelSelect, challengesSelect;
+let menuChallengesSelect, menuSkillLevelSelect, menuSubmitChallengeBtn, menuProgressBtn;
+let menuToggle, navMenu;
 let resultsDiv, loadingDiv;
 
 // Challenge data
@@ -874,63 +741,69 @@ async function loadChallenges() {
 }
 
 async function populateChallengesDropdown() {
-    // Clear existing options except the first one
-    challengesSelect.innerHTML = '<option value="">Select a Challenge</option>';
+    // Populate both the old challenges dropdown (if it exists) and the menu challenges dropdown
+    const dropdowns = [challengesSelect, menuChallengesSelect].filter(Boolean);
     
-    if (!challengesData || challengesData.length === 0) {
-        challengesSelect.innerHTML = '<option value="">No challenges available</option>';
-        return;
-    }
-    
-    // Get user progress if logged in
-    let userProgress = [];
-    if (window.authSystem && window.authSystem.isLoggedIn()) {
-        userProgress = await window.authSystem.getUserProgress();
-    }
-    
-    // Group challenges by level
-    const groupedChallenges = {
-        beginner: [],
-        intermediate: [],
-        advanced: []
-    };
-    
-    challengesData.forEach((challenge, index) => {
-        if (groupedChallenges[challenge.level]) {
-            groupedChallenges[challenge.level].push({ ...challenge, index });
+    for (const dropdown of dropdowns) {
+        // Clear existing options except the first one
+        const defaultText = dropdown === menuChallengesSelect ? 'Choose a Challenge' : 'Select a Challenge';
+        dropdown.innerHTML = `<option value="">${defaultText}</option>`;
+        
+        if (!challengesData || challengesData.length === 0) {
+            dropdown.innerHTML = '<option value="">No challenges available</option>';
+            continue;
         }
-    });
-    
-    // Add optgroups for each level
-    Object.entries(groupedChallenges).forEach(([level, challenges]) => {
-        if (challenges.length > 0) {
-            const optgroup = document.createElement('optgroup');
-            optgroup.label = level.charAt(0).toUpperCase() + level.slice(1);
-            
-            challenges.forEach(challenge => {
-                const option = document.createElement('option');
-                option.value = challenge.index;
-                
-                // Check if challenge is completed
-                const isCompleted = userProgress.some(p => 
-                    p.challenge_id === challenge.index.toString() && p.status === 'completed'
-                );
-                
-                option.textContent = isCompleted 
-                    ? `✅ ${challenge.title}` 
-                    : challenge.title;
-                
-                if (isCompleted) {
-                    option.style.color = '#16a34a';
-                    option.style.fontWeight = '600';
-                }
-                
-                optgroup.appendChild(option);
-            });
-            
-            challengesSelect.appendChild(optgroup);
+        
+        // Get user progress if logged in
+        let userProgress = [];
+        if (window.authSystem && window.authSystem.isLoggedIn()) {
+            userProgress = await window.authSystem.getUserProgress();
         }
-    });
+        
+        // Group challenges by level
+        const groupedChallenges = {
+            beginner: [],
+            intermediate: [],
+            advanced: []
+        };
+        
+        challengesData.forEach((challenge, index) => {
+            if (groupedChallenges[challenge.level]) {
+                groupedChallenges[challenge.level].push({ ...challenge, index });
+            }
+        });
+        
+        // Add optgroups for each level
+        Object.entries(groupedChallenges).forEach(([level, challenges]) => {
+            if (challenges.length > 0) {
+                const optgroup = document.createElement('optgroup');
+                optgroup.label = level.charAt(0).toUpperCase() + level.slice(1);
+                
+                challenges.forEach(challenge => {
+                    const option = document.createElement('option');
+                    option.value = challenge.index;
+                    
+                    // Check if challenge is completed
+                    const isCompleted = userProgress.some(p => 
+                        p.challenge_id === challenge.index.toString() && p.status === 'completed'
+                    );
+                    
+                    option.textContent = isCompleted 
+                        ? `✅ ${challenge.title}` 
+                        : challenge.title;
+                    
+                    if (isCompleted) {
+                        option.style.color = '#16a34a';
+                        option.style.fontWeight = '600';
+                    }
+                    
+                    optgroup.appendChild(option);
+                });
+                
+                dropdown.appendChild(optgroup);
+            }
+        });
+    }
 }
 
 // Expose function globally for auth system
@@ -1050,6 +923,53 @@ function disableButtons(disable) {
     submitChallengeBtn.disabled = disable;
 }
 
+// Menu functionality
+function toggleMenu() {
+    menuToggle.classList.toggle('active');
+    navMenu.classList.toggle('active');
+    
+    // Sync skill level when opening menu
+    if (navMenu.classList.contains('active') && menuSkillLevelSelect && skillLevelSelect) {
+        menuSkillLevelSelect.value = skillLevelSelect.value;
+    }
+}
+
+function closeMenu() {
+    menuToggle.classList.remove('active');
+    navMenu.classList.remove('active');
+}
+
+function selectMenuChallenge() {
+    const selectedIndex = menuChallengesSelect.value;
+    
+    if (selectedIndex === '') {
+        currentChallenge = null;
+        menuSubmitChallengeBtn.style.display = 'none';
+        submitChallengeBtn.style.display = 'none';
+        resultsDiv.innerHTML = '<p class="placeholder">Enter your code and click "Analyze Code" or "Explain Code" to get AI-powered feedback.</p>';
+        return;
+    }
+    
+    currentChallenge = challengesData[selectedIndex];
+    menuSubmitChallengeBtn.style.display = 'block';
+    submitChallengeBtn.style.display = 'inline-flex';
+    
+    // Display challenge details in results section
+    showChallengeDetails(currentChallenge);
+    
+    // Sync the old challenges dropdown if it exists
+    if (challengesSelect) {
+        challengesSelect.value = selectedIndex;
+    }
+}
+
+function syncSkillLevel() {
+    // Sync the skill level between menu and main form
+    if (skillLevelSelect && menuSkillLevelSelect) {
+        skillLevelSelect.value = menuSkillLevelSelect.value;
+    }
+}
+
 // Initialize with default language and load challenges
 document.addEventListener('DOMContentLoaded', async function() {
     // Initialize authentication system first
@@ -1068,12 +988,59 @@ document.addEventListener('DOMContentLoaded', async function() {
     resultsDiv = document.getElementById('results');
     loadingDiv = document.getElementById('loading');
     
+    // Initialize menu elements
+    menuToggle = document.getElementById('menu-toggle');
+    navMenu = document.getElementById('nav-menu');
+    menuChallengesSelect = document.getElementById('menu-challenges');
+    menuSkillLevelSelect = document.getElementById('menu-skill-level');
+    menuSubmitChallengeBtn = document.getElementById('menu-submit-challenge');
+    menuProgressBtn = document.getElementById('menu-progress');
+    
     // Add event listeners
     analyzeBtn.addEventListener('click', analyzeCode);
     explainBtn.addEventListener('click', explainCode);
     clearBtn.addEventListener('click', clearEditor);
     submitChallengeBtn.addEventListener('click', submitChallenge);
-    challengesSelect.addEventListener('change', selectChallenge);
+    if (challengesSelect) challengesSelect.addEventListener('change', selectChallenge);
+    
+    // Add menu event listeners
+    if (menuToggle) {
+        menuToggle.addEventListener('click', toggleMenu);
+    }
+    
+    if (navMenu) {
+        navMenu.addEventListener('click', (e) => {
+            if (e.target === navMenu) {
+                closeMenu();
+            }
+        });
+    }
+    
+    if (menuChallengesSelect) {
+        menuChallengesSelect.addEventListener('change', selectMenuChallenge);
+    }
+    
+    if (menuSkillLevelSelect) {
+        menuSkillLevelSelect.addEventListener('change', syncSkillLevel);
+    }
+    
+    if (menuSubmitChallengeBtn) {
+        menuSubmitChallengeBtn.addEventListener('click', () => {
+            closeMenu();
+            submitChallenge();
+        });
+    }
+    
+    if (menuProgressBtn) {
+        menuProgressBtn.addEventListener('click', () => {
+            closeMenu();
+            if (window.authSystem && window.authSystem.isLoggedIn()) {
+                window.authSystem.showProgressModal();
+            } else {
+                document.getElementById('auth-toggle-btn').click();
+            }
+        });
+    }
     
     // Add language change handler
     languageSelect.addEventListener('change', function() {

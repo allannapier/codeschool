@@ -88,10 +88,10 @@ body {
     letter-spacing: 0.025em;
 }
 
-.auth-buttons {
+.header-actions {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.75rem;
 }
 
 .btn-outline {
@@ -121,6 +121,175 @@ body {
 .user-email {
     color: rgba(255, 255, 255, 0.9);
     font-size: 0.85rem;
+}
+
+/* Hamburger Menu Styles */
+.menu-toggle {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    width: 2rem;
+    height: 2rem;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    z-index: 10;
+    transition: transform 0.3s ease;
+}
+
+.menu-toggle:hover {
+    transform: scale(1.1);
+}
+
+.hamburger-line {
+    width: 100%;
+    height: 3px;
+    background-color: white;
+    border-radius: 2px;
+    transition: all 0.3s ease;
+    transform-origin: center;
+}
+
+.menu-toggle.active .hamburger-line:nth-child(1) {
+    transform: rotate(45deg) translate(6px, 6px);
+}
+
+.menu-toggle.active .hamburger-line:nth-child(2) {
+    opacity: 0;
+}
+
+.menu-toggle.active .hamburger-line:nth-child(3) {
+    transform: rotate(-45deg) translate(6px, -6px);
+}
+
+/* Navigation Menu */
+.nav-menu {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 1500;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(8px);
+}
+
+.nav-menu.active {
+    display: flex;
+}
+
+.nav-content {
+    background: var(--surface-color);
+    border-radius: 16px;
+    padding: 2rem;
+    max-width: 500px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--border-color);
+}
+
+.nav-section {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.nav-section:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.nav-section h3 {
+    color: var(--primary-color);
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.nav-section h3::before {
+    font-size: 1.1rem;
+}
+
+.nav-section:nth-child(1) h3::before {
+    content: '🎯';
+}
+
+.nav-section:nth-child(2) h3::before {
+    content: '📊';
+}
+
+.nav-section:nth-child(3) h3::before {
+    content: '⚙️';
+}
+
+.menu-control-group {
+    margin-bottom: 1rem;
+}
+
+.menu-control-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+}
+
+.menu-control-group select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    background: var(--surface-color);
+    color: var(--text-primary);
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.menu-control-group select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.menu-control-group select:hover {
+    border-color: var(--primary-hover);
+}
+
+.menu-btn {
+    width: 100%;
+    padding: 0.875rem 1.25rem;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-sm);
+}
+
+.menu-btn:hover {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.menu-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
 }
 
 
@@ -918,6 +1087,12 @@ body {
         align-items: center;
     }
     
+    .header-actions {
+        flex-direction: row;
+        gap: 1rem;
+        align-items: center;
+    }
+    
     .logo h1 {
         font-size: 1.5rem;
     }
@@ -1049,5 +1224,20 @@ body {
     .results {
         min-height: 300px;
         padding: 1rem;
+    }
+    
+    .nav-content {
+        padding: 1.5rem;
+        max-height: 85vh;
+    }
+    
+    .nav-section {
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+    }
+    
+    .menu-toggle {
+        width: 1.75rem;
+        height: 1.75rem;
     }
 }
