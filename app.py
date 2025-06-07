@@ -222,6 +222,70 @@ def submit_challenge():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+def send_email(to_email, subject, body, reply_to=None):
+    """
+    Generic email sending function with debugging
+    """
+    try:
+        # Email configuration (using environment variables)
+        smtp_server = os.getenv('SMTP_SERVER', 'smtp.gmail.com')
+        smtp_port = int(os.getenv('SMTP_PORT', '587'))
+        smtp_username = os.getenv('SMTP_USERNAME', '')
+        smtp_password = os.getenv('SMTP_PASSWORD', '')
+        
+        print(f"DEBUG: SMTP Config - Server: {smtp_server}, Port: {smtp_port}")
+        print(f"DEBUG: Username configured: {'Yes' if smtp_username else 'No'}")
+        print(f"DEBUG: Password configured: {'Yes' if smtp_password else 'No'}")
+        
+        if not smtp_username or not smtp_password:
+            print("ERROR: SMTP credentials not configured in environment variables")
+            return False, "Email service not configured. Please set SMTP_USERNAME and SMTP_PASSWORD environment variables."
+        
+        # Create email message
+        msg = MIMEMultipart()
+        msg['From'] = smtp_username
+        msg['To'] = to_email
+        msg['Subject'] = subject
+        
+        if reply_to:
+            msg['Reply-To'] = reply_to
+        
+        msg.attach(MIMEText(body, 'plain'))
+        
+        # Send email with detailed debugging
+        print(f"DEBUG: Attempting to connect to {smtp_server}:{smtp_port}")
+        server = smtplib.SMTP(smtp_server, smtp_port)
+        server.set_debuglevel(1)  # Enable debug output
+        
+        print("DEBUG: Starting TLS...")
+        server.starttls()
+        
+        print("DEBUG: Attempting login...")
+        server.login(smtp_username, smtp_password)
+        
+        print(f"DEBUG: Sending email to {to_email}...")
+        text = msg.as_string()
+        server.sendmail(smtp_username, to_email, text)
+        server.quit()
+        
+        print("DEBUG: Email sent successfully!")
+        return True, "Email sent successfully"
+        
+    except smtplib.SMTPAuthenticationError as e:
+        error_msg = f"SMTP Authentication failed: {str(e)}"
+        print(f"ERROR: {error_msg}")
+        return False, "Email authentication failed. Please check email credentials."
+        
+    except smtplib.SMTPException as e:
+        error_msg = f"SMTP Error: {str(e)}"
+        print(f"ERROR: {error_msg}")
+        return False, "Email service error. Please try again later."
+        
+    except Exception as e:
+        error_msg = f"Email sending error: {str(e)}"
+        print(f"ERROR: {error_msg}")
+        return False, "Failed to send email. Please try again later."
+
 @app.route('/api/contact', methods=['POST'])
 def contact():
     try:
@@ -233,21 +297,6 @@ def contact():
         
         if not all([name, email, subject, message]):
             return jsonify({'error': 'All fields are required'}), 400
-        
-        # Email configuration (using environment variables)
-        smtp_server = os.getenv('SMTP_SERVER', 'smtp.gmail.com')
-        smtp_port = int(os.getenv('SMTP_PORT', '587'))
-        smtp_username = os.getenv('SMTP_USERNAME', '')
-        smtp_password = os.getenv('SMTP_PASSWORD', '')
-        
-        if not smtp_username or not smtp_password:
-            return jsonify({'error': 'Email service not configured'}), 500
-        
-        # Create email message
-        msg = MIMEMultipart()
-        msg['From'] = smtp_username
-        msg['To'] = 'allan@codebotiks.com'
-        msg['Subject'] = f'Codebotiks Contact Form: {subject}'
         
         # Email body
         body = f"""
@@ -265,29 +314,75 @@ This email was sent from the Codebotiks contact form.
 Reply to: {email}
         """
         
-        msg.attach(MIMEText(body, 'plain'))
-        
         # Send email
-        try:
-            server = smtplib.SMTP(smtp_server, smtp_port)
-            server.starttls()
-            server.login(smtp_username, smtp_password)
-            text = msg.as_string()
-            server.sendmail(smtp_username, 'allan@codebotiks.com', text)
-            server.quit()
-            
+        success, error_message = send_email(
+            to_email='allan@codebotiks.com',
+            subject=f'Codebotiks Contact Form: {subject}',
+            body=body,
+            reply_to=email
+        )
+        
+        if success:
             return jsonify({
                 'success': True,
                 'message': 'Contact form submitted successfully'
             })
-            
-        except Exception as email_error:
-            print(f"Email sending error: {str(email_error)}")
-            return jsonify({'error': 'Failed to send email. Please try again later.'}), 500
+        else:
+            return jsonify({'error': error_message}), 500
         
     except Exception as e:
         print(f"Contact form error: {str(e)}")
         return jsonify({'error': 'Server error. Please try again later.'}), 500
+
+@app.route('/api/debug-config', methods=['GET'])
+def debug_config():
+    """
+    Debug endpoint to check environment variable configuration
+    """
+    try:
+        config_status = {
+            'openai_key': 'Set' if os.getenv('OPENAI_API_KEY') else 'Missing',
+            'supabase_url': 'Set' if os.getenv('SUPABASE_URL') else 'Missing',
+            'supabase_key': 'Set' if os.getenv('SUPABASE_ANON_KEY') else 'Missing',
+            'smtp_server': os.getenv('SMTP_SERVER', 'Not set (defaults to smtp.gmail.com)'),
+            'smtp_port': os.getenv('SMTP_PORT', 'Not set (defaults to 587)'),
+            'smtp_username': 'Set' if os.getenv('SMTP_USERNAME') else 'Missing',
+            'smtp_password': 'Set' if os.getenv('SMTP_PASSWORD') else 'Missing'
+        }
+        
+        return jsonify({
+            'config_status': config_status,
+            'env_file_exists': os.path.exists('.env'),
+            'message': 'Configuration debug information'
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'error': str(e)
+        }), 500
+
+@app.route('/api/test-email', methods=['GET'])
+def test_email():
+    """
+    Test endpoint to debug email configuration
+    """
+    try:
+        success, message = send_email(
+            to_email='allan@codebotiks.com',
+            subject='Codebotiks Email Test',
+            body='This is a test email to verify the email configuration is working.'
+        )
+        
+        return jsonify({
+            'success': success,
+            'message': message
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
