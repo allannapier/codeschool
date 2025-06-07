@@ -3,117 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Language Tutor - AI-Powered Language Learning</title>
+    <title>Codebotiks - AI-Powered Code Learning</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://unpkg.com/monaco-editor@0.45.0/min/vs/loader.js"></script>
 </head>
 <body>
     <header>
-        <h1>Language Tutor</h1>
-        <p>AI-powered language learning through natural conversation</p>
+        <h1>Codebotiks</h1>
+        <p>AI-powered code learning platform</p>
     </header>
 
     <main class="container">
         <div class="controls">
             <div class="control-group">
-                <label for="language">Learning Language:</label>
+                <label for="language">Programming Language:</label>
                 <select id="language">
-                    <option value="spanish">Spanish</option>
-                    <option value="french">French</option>
-                    <option value="german">German</option>
-                    <option value="italian">Italian</option>
-                    <option value="portuguese">Portuguese</option>
-                    <option value="mandarin">Mandarin Chinese</option>
-                    <option value="japanese">Japanese</option>
+                    <option value="python">Python</option>
+                    <option value="javascript">JavaScript</option>
+                    <option value="typescript">TypeScript</option>
+                    <option value="java">Java</option>
+                    <option value="cpp">C++</option>
+                    <option value="go">Go</option>
                 </select>
             </div>
             
             <div class="control-group">
-                <label for="skill-level">Proficiency Level:</label>
+                <label for="skill-level">Skill Level:</label>
                 <select id="skill-level">
-                    <option value="beginner">Beginner (A1-A2)</option>
-                    <option value="intermediate">Intermediate (B1-B2)</option>
-                    <option value="advanced">Advanced (C1-C2)</option>
-                </select>
-            </div>
-
-            <div class="control-group">
-                <label for="lesson-mode">Learning Mode:</label>
-                <select id="lesson-mode">
-                    <option value="conversation">Free Conversation</option>
-                    <option value="structured">Structured Lesson</option>
+                    <option value="beginner">Beginner</option>
+                    <option value="intermediate">Intermediate</option>
+                    <option value="advanced">Advanced</option>
                 </select>
             </div>
         </div>
 
-        <div class="main-interface">
-            <div class="conversation-section">
-                <div class="goals-panel">
-                    <h3>Learning Goals</h3>
-                    <div id="goals-list" class="goals-list">
-                        <div class="goal-item">
-                            <span class="goal-text">Master basic greetings and introductions</span>
-                            <div class="goal-progress"><div class="progress-bar" style="width: 60%"></div></div>
-                        </div>
-                    </div>
-                    <button id="add-goal-btn" class="btn small">+ Add Goal</button>
-                </div>
-
-                <div class="chat-container">
-                    <h3>Conversation</h3>
-                    <div id="chat-messages" class="chat-messages">
-                        <div class="message tutor">
-                            <div class="message-content">
-                                <p>¡Hola! I'm your Spanish tutor. Let's start with a simple conversation. How are you today?</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="chat-input">
-                        <textarea id="user-input" placeholder="Type your response in Spanish..." rows="3"></textarea>
-                        <div class="input-buttons">
-                            <button id="send-btn" class="btn primary">Send</button>
-                            <button id="help-btn" class="btn secondary">Need Help?</button>
-                        </div>
-                    </div>
+        <div class="editor-container">
+            <div class="editor-section">
+                <h3>Code Editor</h3>
+                <div id="editor" class="editor"></div>
+                <div class="buttons">
+                    <button id="analyze-btn" class="btn primary">Analyze Code</button>
+                    <button id="explain-btn" class="btn secondary">Explain Code</button>
+                    <button id="clear-btn" class="btn">Clear</button>
                 </div>
             </div>
 
-            <div class="feedback-section">
-                <h3>Real-time Feedback</h3>
-                <div id="feedback-panel" class="feedback-panel">
-                    <div class="feedback-item">
-                        <h4>Grammar</h4>
-                        <div id="grammar-feedback" class="feedback-content">
-                            <p class="placeholder">Grammar analysis will appear here...</p>
-                        </div>
-                    </div>
-                    <div class="feedback-item">
-                        <h4>Vocabulary</h4>
-                        <div id="vocabulary-feedback" class="feedback-content">
-                            <p class="placeholder">Vocabulary suggestions will appear here...</p>
-                        </div>
-                    </div>
-                    <div class="feedback-item">
-                        <h4>Progress</h4>
-                        <div id="progress-feedback" class="feedback-content">
-                            <div class="progress-stats">
-                                <div class="stat">
-                                    <span class="stat-label">Session Time</span>
-                                    <span class="stat-value" id="session-time">0 min</span>
-                                </div>
-                                <div class="stat">
-                                    <span class="stat-label">Messages</span>
-                                    <span class="stat-value" id="message-count">0</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+            <div class="results-section">
+                <h3>AI Feedback</h3>
+                <div id="results" class="results">
+                    <p class="placeholder">Enter your code and click "Analyze Code" or "Explain Code" to get AI-powered feedback.</p>
                 </div>
             </div>
         </div>
 
         <div class="loading" id="loading">
             <div class="spinner"></div>
-            <p>Processing your message...</p>
+            <p>Analyzing your code...</p>
         </div>
     </main>
 

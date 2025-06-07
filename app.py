@@ -2,7 +2,6 @@ from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 import openai
 import os
-import json
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -17,185 +16,122 @@ openai.api_key = os.getenv('OPENAI_API_KEY')
 def index():
     return render_template('index.html')
 
-@app.route('/api/chat', methods=['POST'])
-def chat():
+@app.route('/api/analyze', methods=['POST'])
+def analyze_code():
     try:
         data = request.get_json()
-        message = data.get('message', '')
-        language = data.get('language', 'spanish')
+        code = data.get('code', '')
+        language = data.get('language', 'python')
         skill_level = data.get('skill_level', 'beginner')
-        lesson_mode = data.get('lesson_mode', 'conversation')
-        conversation_history = data.get('conversation_history', [])
         
-        if not message.strip():
-            return jsonify({'error': 'No message provided'}), 400
+        if not code.strip():
+            return jsonify({'error': 'No code provided'}), 400
         
-        # Build conversation context
-        context_messages = []
-        for msg in conversation_history[-10:]:  # Keep last 10 messages for context
-            context_messages.append(f"{msg['role']}: {msg['content']}")
+        # Enhanced prompt for better analysis
+        prompt = f"""
+        You are an expert {language} programmer and code reviewer. Analyze this {language} code for a {skill_level} programmer:
         
-        context = "\n".join(context_messages) if context_messages else "Starting new conversation"
+        ```{language}
+        {code}
+        ```
         
-        # Create prompt based on language and skill level
-        language_names = {
-            'spanish': 'Spanish', 'french': 'French', 'german': 'German',
-            'italian': 'Italian', 'portuguese': 'Portuguese', 
-            'mandarin': 'Mandarin Chinese', 'japanese': 'Japanese'
-        }
+        Provide a comprehensive analysis including:
         
-        target_language = language_names.get(language, 'Spanish')
+        **Code Quality & Structure:**
+        - Overall code quality assessment
+        - Code organization and readability
         
-        if lesson_mode == 'conversation':
-            prompt = f"""You are a helpful {target_language} language tutor having a natural conversation with a {skill_level} level student. 
-
-Your role:
-- Respond naturally in {target_language} appropriate for {skill_level} level
-- Keep responses conversational and encouraging
-- Gently correct mistakes when they occur
-- Ask follow-up questions to continue the conversation
-- Use vocabulary and grammar appropriate for {skill_level} level
-
-Conversation context:
-{context}
-
-Student's latest message: {message}
-
-Respond naturally in {target_language}. Keep your response to 2-3 sentences maximum."""
-        else:
-            prompt = f"""You are a structured {target_language} language tutor providing a focused lesson for a {skill_level} level student.
-
-Your role:
-- Provide structured teaching in {target_language}
-- Explain grammar concepts when relevant
-- Give specific exercises or practice suggestions
-- Be encouraging but educational
-
-Conversation context:
-{context}
-
-Student's message: {message}
-
-Provide a structured response in {target_language} with brief explanations in English when needed for {skill_level} level understanding."""
-
+        **Best Practices:**
+        - Adherence to {language} best practices
+        - Naming conventions
+        - Code structure improvements
+        
+        **Potential Issues:**
+        - Logic errors or bugs
+        - Performance considerations
+        - Security concerns (if any)
+        
+        **Suggestions:**
+        - Specific improvements you'd recommend
+        - Alternative approaches or patterns
+        
+        **Learning Points:**
+        - Key concepts demonstrated in the code
+        - Areas for the programmer to study further
+        
+        Tailor your explanations to be appropriate for a {skill_level} level programmer.
+        """
+        
         response = openai.Completion.create(
             engine="gpt-3.5-turbo-instruct",
             prompt=prompt,
-            max_tokens=200,
+            max_tokens=700,
             temperature=0.7
         )
         
-        tutor_response = response.choices[0].text.strip()
-        
-        # Generate feedback
-        feedback = generate_feedback(message, language, skill_level)
-        
-        # Generate goals progress (simple simulation)
-        goals_progress = []
-        if len(message.split()) > 5:  # Longer messages contribute to vocabulary goal
-            goals_progress.append({"id": 3, "increment": 2})
-        if any(word in message.lower() for word in ['hola', 'bonjour', 'hello', 'hi']):
-            goals_progress.append({"id": 1, "increment": 5})
-        
         return jsonify({
-            'success': True,
-            'response': tutor_response,
-            'feedback': feedback,
-            'goals_progress': goals_progress
+            'analysis': response.choices[0].text.strip(),
+            'success': True
         })
         
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/help', methods=['POST'])
-def help_user():
+@app.route('/api/explain', methods=['POST'])
+def explain_code():
     try:
         data = request.get_json()
-        language = data.get('language', 'spanish')
+        code = data.get('code', '')
+        language = data.get('language', 'python')
         skill_level = data.get('skill_level', 'beginner')
-        conversation_history = data.get('conversation_history', [])
         
-        # Get recent context
-        recent_messages = conversation_history[-3:] if conversation_history else []
-        context = "\n".join([f"{msg['role']}: {msg['content']}" for msg in recent_messages])
+        if not code.strip():
+            return jsonify({'error': 'No code provided'}), 400
         
-        language_names = {
-            'spanish': 'Spanish', 'french': 'French', 'german': 'German',
-            'italian': 'Italian', 'portuguese': 'Portuguese', 
-            'mandarin': 'Mandarin Chinese', 'japanese': 'Japanese'
-        }
+        # Enhanced prompt for better explanations
+        prompt = f"""
+        You are an expert {language} programming instructor. Explain this {language} code step by step for a {skill_level} level programmer:
         
-        target_language = language_names.get(language, 'Spanish')
+        ```{language}
+        {code}
+        ```
         
-        prompt = f"""You are a helpful {target_language} tutor. The student needs help continuing the conversation.
-
-Recent conversation:
-{context}
-
-Provide helpful suggestions in English for a {skill_level} level student learning {target_language}:
-1. What they might say next
-2. Useful vocabulary for this context
-3. A simple grammar tip if relevant
-
-Keep your help concise and encouraging (2-3 sentences)."""
-
+        Provide a clear, educational explanation that includes:
+        
+        **Code Walkthrough:**
+        - Line-by-line or section-by-section breakdown
+        - What each part does and why
+        
+        **Concepts Explained:**
+        - Programming concepts used (variables, functions, loops, etc.)
+        - {language}-specific features and syntax
+        
+        **How It Works:**
+        - The flow of execution
+        - How different parts work together
+        - Expected output or behavior
+        
+        **Key Takeaways:**
+        - Important programming principles demonstrated
+        - Vocabulary and terminology to remember
+        
+        Use simple, clear language appropriate for a {skill_level} level programmer. Include examples where helpful.
+        """
+        
         response = openai.Completion.create(
             engine="gpt-3.5-turbo-instruct",
             prompt=prompt,
-            max_tokens=150,
+            max_tokens=600,
             temperature=0.5
         )
         
         return jsonify({
-            'success': True,
-            'help_message': response.choices[0].text.strip()
+            'explanation': response.choices[0].text.strip(),
+            'success': True
         })
         
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
-def generate_feedback(message, language, skill_level):
-    """Generate grammar and vocabulary feedback"""
-    try:
-        # Grammar feedback
-        grammar_prompt = f"""Analyze this {language} text for grammar issues appropriate for {skill_level} level:
-        
-        "{message}"
-        
-        Provide very brief feedback (1-2 sentences) about grammar. If grammar is good, give encouragement. If there are issues, suggest gentle corrections."""
-        
-        grammar_response = openai.Completion.create(
-            engine="gpt-3.5-turbo-instruct",
-            prompt=grammar_prompt,
-            max_tokens=80,
-            temperature=0.3
-        )
-        
-        # Vocabulary feedback
-        vocab_prompt = f"""Analyze this {language} text for vocabulary usage at {skill_level} level:
-        
-        "{message}"
-        
-        Provide very brief feedback (1-2 sentences) about vocabulary. Suggest alternative words or praise good word choices."""
-        
-        vocab_response = openai.Completion.create(
-            engine="gpt-3.5-turbo-instruct",
-            prompt=vocab_prompt,
-            max_tokens=80,
-            temperature=0.3
-        )
-        
-        return {
-            'grammar': grammar_response.choices[0].text.strip(),
-            'vocabulary': vocab_response.choices[0].text.strip()
-        }
-        
-    except Exception as e:
-        print(f"Feedback generation error: {e}")
-        return {
-            'grammar': 'Keep practicing! Your effort is great.',
-            'vocabulary': 'Good vocabulary usage!'
-        }
 
 if __name__ == '__main__':
     app.run(debug=True)
