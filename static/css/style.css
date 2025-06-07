@@ -203,15 +203,17 @@ body {
 }
 
 .btn {
-    padding: 0.875rem 1.75rem;
+    padding: 0.75rem 1.25rem;
     border: none;
     border-radius: 8px;
-    font-size: 1rem;
+    font-size: 0.9rem;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
     position: relative;
     overflow: hidden;
+    white-space: nowrap;
+    min-width: auto;
 }
 
 .btn::before {
@@ -560,8 +562,8 @@ body {
     }
     
     .btn {
-        padding: 0.75rem 1.25rem;
-        font-size: 0.9rem;
+        padding: 0.65rem 1rem;
+        font-size: 0.85rem;
     }
     
     .editor {
