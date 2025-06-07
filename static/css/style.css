@@ -292,6 +292,138 @@ body {
     border-radius: 4px;
 }
 
+.toolbar-btn-run {
+    background: var(--success-color) !important;
+    color: white !important;
+    border-color: var(--success-color) !important;
+    font-weight: 600;
+}
+
+.toolbar-btn-run:hover {
+    background: #15803d !important;
+    border-color: #15803d !important;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.toolbar-btn-run:disabled {
+    background: var(--text-muted) !important;
+    border-color: var(--text-muted) !important;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+/* Execution Output Styles */
+.execution-output {
+    margin: 1rem 0;
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: var(--shadow-sm);
+}
+
+.output-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--background-color);
+    border-radius: 8px 8px 0 0;
+}
+
+.output-header h4 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.clear-output-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.clear-output-btn:hover {
+    background: var(--error-color);
+    color: white;
+}
+
+.output-content {
+    padding: 1rem;
+}
+
+.output-section {
+    margin-bottom: 1rem;
+}
+
+.output-section:last-child {
+    margin-bottom: 0;
+}
+
+.output-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.error-label {
+    color: var(--error-color);
+}
+
+.output-text {
+    background: #1e1e1e;
+    color: #d4d4d4;
+    padding: 1rem;
+    border-radius: 6px;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin: 0;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    border: 1px solid var(--border-color);
+    min-height: 2rem;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.error-text {
+    background: #2d1b1b;
+    color: #f87171;
+    border-color: var(--error-color);
+}
+
+.execution-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border-color);
+    margin-top: 1rem;
+}
+
+.execution-stat {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.execution-stat.success {
+    color: var(--success-color);
+}
+
+.execution-stat.error {
+    color: var(--error-color);
+}
+
 .editor {
     height: 450px;
     border: 2px solid var(--border-color);
@@ -843,6 +975,30 @@ body {
     
     .results {
         min-height: 350px;
+    }
+    
+    .execution-output {
+        margin: 0.75rem 0;
+    }
+    
+    .output-header {
+        padding: 0.75rem;
+    }
+    
+    .output-content {
+        padding: 0.75rem;
+    }
+    
+    .output-text {
+        font-size: 0.85rem;
+        padding: 0.75rem;
+        max-height: 150px;
+    }
+    
+    .execution-info {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
     }
 }
 

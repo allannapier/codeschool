@@ -96,6 +96,27 @@ print(result)`,
     initializeEditorToolbar();
 });
 
+// Piston API configuration and language mapping
+const PISTON_API_URL = 'https://emkc.org/api/v2/piston';
+
+const LANGUAGE_MAP = {
+    'python': 'python',
+    'javascript': 'javascript',
+    'typescript': 'typescript',
+    'java': 'java',
+    'cpp': 'cpp',
+    'go': 'go'
+};
+
+const LANGUAGE_VERSIONS = {
+    'python': '3.10.0',
+    'javascript': '18.15.0',
+    'typescript': '5.0.3',
+    'java': '15.0.2',
+    'cpp': '10.2.0',
+    'go': '1.16.2'
+};
+
 // Editor toolbar functionality
 function initializeEditorToolbar() {
     const fontDecreaseBtn = document.getElementById('font-decrease');
@@ -104,9 +125,11 @@ function initializeEditorToolbar() {
     const themeToggleBtn = document.getElementById('theme-toggle');
     const minimapToggleBtn = document.getElementById('minimap-toggle');
     const wrapToggleBtn = document.getElementById('wrap-toggle');
+    const runCodeBtn = document.getElementById('run-code');
     const formatCodeBtn = document.getElementById('format-code');
     const foldAllBtn = document.getElementById('fold-all');
     const unfoldAllBtn = document.getElementById('unfold-all');
+    const clearOutputBtn = document.getElementById('clear-output');
     
     // Font size controls
     fontDecreaseBtn.addEventListener('click', () => {
@@ -146,11 +169,21 @@ function initializeEditorToolbar() {
         updateWrapButton();
     });
     
+    // Run code
+    runCodeBtn.addEventListener('click', () => {
+        executeCode();
+    });
+    
     // Format code
     formatCodeBtn.addEventListener('click', () => {
         if (editor) {
             editor.trigger('editor', 'editor.action.formatDocument');
         }
+    });
+    
+    // Clear output
+    clearOutputBtn.addEventListener('click', () => {
+        hideExecutionOutput();
     });
     
     // Fold all
@@ -221,6 +254,189 @@ function updateWrapButton() {
         const isWrapped = editorSettings.wordWrap === 'on';
         wrapToggleBtn.classList.toggle('active', isWrapped);
         wrapToggleBtn.textContent = isWrapped ? '↩️ No Wrap' : '↩️ Wrap';
+    }
+}
+
+// Code execution functions
+async function executeCode() {
+    if (!editor) {
+        showError('Editor not initialized');
+        return;
+    }
+
+    const code = editor.getValue().trim();
+    if (!code) {
+        showError('Please enter some code to execute');
+        return;
+    }
+
+    const language = languageSelect.value;
+    const pistonLanguage = LANGUAGE_MAP[language];
+    const languageVersion = LANGUAGE_VERSIONS[language];
+
+    if (!pistonLanguage) {
+        showError(`Language "${language}" is not supported for execution`);
+        return;
+    }
+
+    // Update run button state
+    const runBtn = document.getElementById('run-code');
+    runBtn.disabled = true;
+    runBtn.textContent = '⏳ Running...';
+
+    try {
+        showExecutionOutput();
+        clearExecutionOutput();
+        
+        const startTime = Date.now();
+        const result = await callPistonAPI(pistonLanguage, languageVersion, code);
+        const executionTime = Date.now() - startTime;
+        
+        displayExecutionResult(result, executionTime);
+        
+    } catch (error) {
+        console.error('Code execution error:', error);
+        displayExecutionError(error.message || 'Failed to execute code');
+    } finally {
+        // Restore run button
+        runBtn.disabled = false;
+        runBtn.textContent = '▶️ Run Code';
+    }
+}
+
+async function callPistonAPI(language, version, code) {
+    const payload = {
+        language: language,
+        version: version,
+        files: [
+            {
+                name: getFileName(language),
+                content: code
+            }
+        ],
+        stdin: "",
+        args: [],
+        compile_timeout: 10000,
+        run_timeout: 3000,
+        compile_memory_limit: -1,
+        run_memory_limit: -1
+    };
+
+    const response = await fetch(`${PISTON_API_URL}/execute`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+}
+
+function getFileName(language) {
+    const extensions = {
+        'python': 'main.py',
+        'javascript': 'main.js',
+        'typescript': 'main.ts',
+        'java': 'Main.java',
+        'cpp': 'main.cpp',
+        'go': 'main.go'
+    };
+    return extensions[language] || 'main.txt';
+}
+
+function showExecutionOutput() {
+    const outputDiv = document.getElementById('execution-output');
+    if (outputDiv) {
+        outputDiv.style.display = 'block';
+    }
+}
+
+function hideExecutionOutput() {
+    const outputDiv = document.getElementById('execution-output');
+    if (outputDiv) {
+        outputDiv.style.display = 'none';
+    }
+}
+
+function clearExecutionOutput() {
+    const stdoutContent = document.getElementById('stdout-content');
+    const stderrContent = document.getElementById('stderr-content');
+    const stderrSection = document.getElementById('output-stderr');
+    const executionTime = document.getElementById('execution-time');
+    const executionStatus = document.getElementById('execution-status');
+
+    if (stdoutContent) stdoutContent.textContent = '';
+    if (stderrContent) stderrContent.textContent = '';
+    if (stderrSection) stderrSection.style.display = 'none';
+    if (executionTime) executionTime.textContent = '';
+    if (executionStatus) executionStatus.textContent = '';
+}
+
+function displayExecutionResult(result, executionTime) {
+    const stdoutContent = document.getElementById('stdout-content');
+    const stderrContent = document.getElementById('stderr-content');
+    const stderrSection = document.getElementById('output-stderr');
+    const timeElement = document.getElementById('execution-time');
+    const statusElement = document.getElementById('execution-status');
+
+    // Display stdout
+    if (stdoutContent) {
+        stdoutContent.textContent = result.run.stdout || '(no output)';
+    }
+
+    // Display stderr if present
+    if (result.run.stderr && result.run.stderr.trim()) {
+        if (stderrContent) {
+            stderrContent.textContent = result.run.stderr;
+        }
+        if (stderrSection) {
+            stderrSection.style.display = 'block';
+        }
+    }
+
+    // Display execution info
+    if (timeElement) {
+        timeElement.textContent = `⏱️ ${executionTime}ms`;
+    }
+
+    if (statusElement) {
+        const exitCode = result.run.code;
+        if (exitCode === 0) {
+            statusElement.textContent = '✅ Success';
+            statusElement.className = 'execution-stat success';
+        } else {
+            statusElement.textContent = `❌ Exit code: ${exitCode}`;
+            statusElement.className = 'execution-stat error';
+        }
+    }
+}
+
+function displayExecutionError(errorMessage) {
+    const stdoutContent = document.getElementById('stdout-content');
+    const stderrContent = document.getElementById('stderr-content');
+    const stderrSection = document.getElementById('output-stderr');
+    const statusElement = document.getElementById('execution-status');
+
+    if (stdoutContent) {
+        stdoutContent.textContent = '(execution failed)';
+    }
+
+    if (stderrContent) {
+        stderrContent.textContent = errorMessage;
+    }
+
+    if (stderrSection) {
+        stderrSection.style.display = 'block';
+    }
+
+    if (statusElement) {
+        statusElement.textContent = '❌ Execution Error';
+        statusElement.className = 'execution-stat error';
     }
 }
 
