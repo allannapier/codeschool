@@ -2,10 +2,26 @@
 const SUPABASE_URL = window.SUPABASE_CONFIG?.url || '';
 const SUPABASE_ANON_KEY = window.SUPABASE_CONFIG?.anonKey || '';
 
+console.log('Auth.js loaded - checking Supabase availability:');
+console.log('window.supabase:', typeof window.supabase);
+console.log('SUPABASE_CONFIG:', window.SUPABASE_CONFIG);
+
 // Initialize Supabase client
-const supabase = (window.supabase && SUPABASE_URL && SUPABASE_ANON_KEY) 
-    ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) 
-    : null;
+let supabase = null;
+try {
+    if (window.supabase && SUPABASE_URL && SUPABASE_ANON_KEY) {
+        console.log('Attempting to create Supabase client...');
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        console.log('Supabase client created:', !!supabase);
+    } else {
+        console.log('Supabase requirements not met:');
+        console.log('- window.supabase available:', !!window.supabase);
+        console.log('- URL present:', !!SUPABASE_URL);
+        console.log('- Key present:', !!SUPABASE_ANON_KEY);
+    }
+} catch (error) {
+    console.error('Error creating Supabase client:', error);
+}
 
 // Authentication state
 let currentUser = null;
@@ -17,11 +33,36 @@ let loginBtn, userMenu, userEmailSpan, logoutBtn, authError;
 
 // Initialize authentication system
 async function initAuth() {
+    // Re-check Supabase availability at initialization time
+    console.log('InitAuth called - re-checking Supabase...');
+    console.log('window.supabase at init:', typeof window.supabase);
+    
+    // Try to create Supabase client again if it wasn't created earlier
+    if (!supabase && SUPABASE_URL && SUPABASE_ANON_KEY) {
+        try {
+            console.log('Available Supabase objects:', Object.keys(window).filter(key => key.toLowerCase().includes('supabase')));
+            
+            // Try different ways Supabase might be exposed
+            const supabaseLib = window.supabase || window.Supabase || (window.supabase && window.supabase.supabase);
+            
+            if (supabaseLib && supabaseLib.createClient) {
+                console.log('Creating Supabase client in initAuth...');
+                supabase = supabaseLib.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                console.log('Supabase client created in initAuth:', !!supabase);
+            } else {
+                console.log('Supabase createClient not found. Available methods:', supabaseLib ? Object.keys(supabaseLib) : 'supabaseLib is null');
+            }
+        } catch (error) {
+            console.error('Error creating Supabase client in initAuth:', error);
+        }
+    }
+    
     // Check if Supabase is available and configured
     if (!supabase || !SUPABASE_URL || !SUPABASE_ANON_KEY) {
         console.warn('Supabase not configured. Authentication features disabled.');
         console.log('Supabase URL:', SUPABASE_URL ? 'Present' : 'Missing');
         console.log('Supabase Key:', SUPABASE_ANON_KEY ? 'Present' : 'Missing');
+        console.log('Supabase client:', !!supabase);
         // Hide auth UI elements
         const loginBtn = document.getElementById('login-btn');
         if (loginBtn) loginBtn.style.display = 'none';
