@@ -139,27 +139,16 @@ func main() {
     editor.setValue(sampleCodes[language] || sampleCodes.python);
 }
 
-// DOM elements
-const analyzeBtn = document.getElementById('analyze-btn');
-const explainBtn = document.getElementById('explain-btn');
-const clearBtn = document.getElementById('clear-btn');
-const submitChallengeBtn = document.getElementById('submit-challenge-btn');
-const languageSelect = document.getElementById('language');
-const skillLevelSelect = document.getElementById('skill-level');
-const challengesSelect = document.getElementById('challenges');
-const resultsDiv = document.getElementById('results');
-const loadingDiv = document.getElementById('loading');
+// DOM elements - will be initialized on DOM load
+let analyzeBtn, explainBtn, clearBtn, submitChallengeBtn;
+let languageSelect, skillLevelSelect, challengesSelect;
+let resultsDiv, loadingDiv;
 
 // Challenge data
 let challengesData = [];
 let currentChallenge = null;
 
-// Event listeners
-analyzeBtn.addEventListener('click', analyzeCode);
-explainBtn.addEventListener('click', explainCode);
-clearBtn.addEventListener('click', clearEditor);
-submitChallengeBtn.addEventListener('click', submitChallenge);
-challengesSelect.addEventListener('change', selectChallenge);
+// Event listeners will be added in DOMContentLoaded
 
 async function analyzeCode() {
     const code = editor.getValue().trim();
@@ -313,18 +302,39 @@ document.addEventListener('keydown', function(e) {
 // Load challenges from API
 async function loadChallenges() {
     try {
+        console.log('Loading challenges...');
         const response = await fetch('/api/challenges');
+        console.log('Response status:', response.status);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const data = await response.json();
-        challengesData = data.challenges;
+        console.log('Challenges data:', data);
+        
+        challengesData = data.challenges || [];
+        console.log('Parsed challenges:', challengesData.length, 'challenges found');
+        
         populateChallengesDropdown();
     } catch (error) {
         console.error('Failed to load challenges:', error);
+        // Show error in dropdown
+        challengesSelect.innerHTML = '<option value="">Error loading challenges</option>';
     }
 }
 
 function populateChallengesDropdown() {
+    console.log('Populating challenges dropdown...');
+    console.log('challengesData:', challengesData);
+    
     // Clear existing options except the first one
     challengesSelect.innerHTML = '<option value="">Select a Challenge</option>';
+    
+    if (!challengesData || challengesData.length === 0) {
+        challengesSelect.innerHTML = '<option value="">No challenges available</option>';
+        return;
+    }
     
     // Group challenges by level
     const groupedChallenges = {
@@ -334,11 +344,17 @@ function populateChallengesDropdown() {
     };
     
     challengesData.forEach((challenge, index) => {
-        groupedChallenges[challenge.level].push({ ...challenge, index });
+        console.log(`Processing challenge ${index}:`, challenge.title, challenge.level);
+        if (groupedChallenges[challenge.level]) {
+            groupedChallenges[challenge.level].push({ ...challenge, index });
+        }
     });
+    
+    console.log('Grouped challenges:', groupedChallenges);
     
     // Add optgroups for each level
     Object.entries(groupedChallenges).forEach(([level, challenges]) => {
+        console.log(`Adding ${level} group with ${challenges.length} challenges`);
         if (challenges.length > 0) {
             const optgroup = document.createElement('optgroup');
             optgroup.label = level.charAt(0).toUpperCase() + level.slice(1);
@@ -353,6 +369,8 @@ function populateChallengesDropdown() {
             challengesSelect.appendChild(optgroup);
         }
     });
+    
+    console.log('Dropdown populated with', challengesSelect.children.length - 1, 'challenge groups');
 }
 
 function selectChallenge() {
@@ -453,6 +471,28 @@ function disableButtons(disable) {
 
 // Initialize with default language and load challenges
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded');
+    
+    // Initialize DOM elements
+    analyzeBtn = document.getElementById('analyze-btn');
+    explainBtn = document.getElementById('explain-btn');
+    clearBtn = document.getElementById('clear-btn');
+    submitChallengeBtn = document.getElementById('submit-challenge-btn');
+    languageSelect = document.getElementById('language');
+    skillLevelSelect = document.getElementById('skill-level');
+    challengesSelect = document.getElementById('challenges');
+    resultsDiv = document.getElementById('results');
+    loadingDiv = document.getElementById('loading');
+    
+    console.log('challengesSelect element:', challengesSelect);
+    
+    // Add event listeners
+    analyzeBtn.addEventListener('click', analyzeCode);
+    explainBtn.addEventListener('click', explainCode);
+    clearBtn.addEventListener('click', clearEditor);
+    submitChallengeBtn.addEventListener('click', submitChallenge);
+    challengesSelect.addEventListener('change', selectChallenge);
+    
     // Set default sample code
     setSampleCode('python');
     // Load challenges

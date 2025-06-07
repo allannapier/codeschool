@@ -122,10 +122,13 @@ def explain_code():
 @app.route('/api/challenges', methods=['GET'])
 def get_challenges():
     try:
+        print("Challenges API called")  # Debug log
         with open('challenges.json', 'r') as file:
             challenges = json.load(file)
+        print(f"Loaded {len(challenges['challenges'])} challenges")  # Debug log
         return jsonify(challenges)
     except Exception as e:
+        print(f"Error loading challenges: {str(e)}")  # Debug log
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/submit-challenge', methods=['POST'])
