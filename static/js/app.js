@@ -1,5 +1,11 @@
 // Initialize Monaco Editor
 let editor;
+let editorSettings = {
+    fontSize: 14,
+    theme: 'vs-light',
+    minimapEnabled: false,
+    wordWrap: 'on'
+};
 
 require.config({ paths: { vs: 'https://unpkg.com/monaco-editor@0.45.0/min/vs' } });
 require(['vs/editor/editor.main'], function () {
@@ -15,60 +21,390 @@ def greet(name):
 result = greet("World")
 print(result)`,
         language: 'python',
-        theme: 'vs-light',
+        theme: editorSettings.theme,
         automaticLayout: true,
-        fontSize: 14,
-        minimap: { enabled: false },
+        fontSize: editorSettings.fontSize,
+        minimap: { 
+            enabled: editorSettings.minimapEnabled,
+            side: 'right',
+            showSlider: 'mouseover',
+            renderCharacters: true,
+            maxColumn: 120
+        },
         scrollBeyondLastLine: false,
-        wordWrap: 'on',
+        wordWrap: editorSettings.wordWrap,
         lineNumbers: 'on',
+        lineNumbersMinChars: 3,
+        renderLineHighlight: 'all',
+        renderWhitespace: 'selection',
         roundedSelection: false,
+        cursorBlinking: 'blink',
+        cursorStyle: 'line',
+        folding: true,
+        foldingStrategy: 'auto',
+        foldingHighlight: true,
+        showFoldingControls: 'mouseover',
+        matchBrackets: 'always',
+        bracketPairColorization: {
+            enabled: true
+        },
+        autoIndent: 'full',
+        formatOnPaste: true,
+        formatOnType: true,
+        suggest: {
+            showMethods: true,
+            showFunctions: true,
+            showConstructors: true,
+            showFields: true,
+            showVariables: true,
+            showClasses: true,
+            showStructs: true,
+            showInterfaces: true,
+            showModules: true,
+            showProperties: true,
+            showEvents: true,
+            showOperators: true,
+            showUnits: true,
+            showValues: true,
+            showConstants: true,
+            showEnums: true,
+            showEnumMembers: true,
+            showKeywords: true,
+            showWords: true,
+            showColors: true,
+            showFiles: true,
+            showReferences: true,
+            showFolders: true,
+            showTypeParameters: true,
+            showSnippets: true
+        },
         scrollbar: {
             vertical: 'auto',
-            horizontal: 'auto'
+            horizontal: 'auto',
+            useShadows: false,
+            verticalHasArrows: true,
+            horizontalHasArrows: true,
+            verticalScrollbarSize: 14,
+            horizontalScrollbarSize: 14
         }
     });
 
     // Set initial sample code
     setSampleCode('python');
+    
+    // Initialize editor toolbar
+    initializeEditorToolbar();
 });
+
+// Editor toolbar functionality
+function initializeEditorToolbar() {
+    const fontDecreaseBtn = document.getElementById('font-decrease');
+    const fontIncreaseBtn = document.getElementById('font-increase');
+    const fontSizeDisplay = document.getElementById('font-size-display');
+    const themeToggleBtn = document.getElementById('theme-toggle');
+    const minimapToggleBtn = document.getElementById('minimap-toggle');
+    const wrapToggleBtn = document.getElementById('wrap-toggle');
+    const formatCodeBtn = document.getElementById('format-code');
+    const foldAllBtn = document.getElementById('fold-all');
+    const unfoldAllBtn = document.getElementById('unfold-all');
+    
+    // Font size controls
+    fontDecreaseBtn.addEventListener('click', () => {
+        if (editorSettings.fontSize > 8) {
+            editorSettings.fontSize -= 1;
+            updateEditorSettings();
+            updateFontSizeDisplay();
+        }
+    });
+    
+    fontIncreaseBtn.addEventListener('click', () => {
+        if (editorSettings.fontSize < 32) {
+            editorSettings.fontSize += 1;
+            updateEditorSettings();
+            updateFontSizeDisplay();
+        }
+    });
+    
+    // Theme toggle
+    themeToggleBtn.addEventListener('click', () => {
+        editorSettings.theme = editorSettings.theme === 'vs-light' ? 'vs-dark' : 'vs-light';
+        updateEditorSettings();
+        updateThemeButton();
+    });
+    
+    // Minimap toggle
+    minimapToggleBtn.addEventListener('click', () => {
+        editorSettings.minimapEnabled = !editorSettings.minimapEnabled;
+        updateEditorSettings();
+        updateMinimapButton();
+    });
+    
+    // Word wrap toggle
+    wrapToggleBtn.addEventListener('click', () => {
+        editorSettings.wordWrap = editorSettings.wordWrap === 'on' ? 'off' : 'on';
+        updateEditorSettings();
+        updateWrapButton();
+    });
+    
+    // Format code
+    formatCodeBtn.addEventListener('click', () => {
+        if (editor) {
+            editor.trigger('editor', 'editor.action.formatDocument');
+        }
+    });
+    
+    // Fold all
+    foldAllBtn.addEventListener('click', () => {
+        if (editor) {
+            editor.trigger('editor', 'editor.foldAll');
+        }
+    });
+    
+    // Unfold all
+    unfoldAllBtn.addEventListener('click', () => {
+        if (editor) {
+            editor.trigger('editor', 'editor.unfoldAll');
+        }
+    });
+    
+    // Initialize button states
+    updateFontSizeDisplay();
+    updateThemeButton();
+    updateMinimapButton();
+    updateWrapButton();
+}
+
+function updateEditorSettings() {
+    if (editor) {
+        editor.updateOptions({
+            fontSize: editorSettings.fontSize,
+            theme: editorSettings.theme,
+            minimap: { 
+                enabled: editorSettings.minimapEnabled,
+                side: 'right',
+                showSlider: 'mouseover',
+                renderCharacters: true,
+                maxColumn: 120
+            },
+            wordWrap: editorSettings.wordWrap
+        });
+    }
+}
+
+function updateFontSizeDisplay() {
+    const fontSizeDisplay = document.getElementById('font-size-display');
+    if (fontSizeDisplay) {
+        fontSizeDisplay.textContent = `${editorSettings.fontSize}px`;
+    }
+}
+
+function updateThemeButton() {
+    const themeToggleBtn = document.getElementById('theme-toggle');
+    if (themeToggleBtn) {
+        const isDark = editorSettings.theme === 'vs-dark';
+        themeToggleBtn.textContent = isDark ? '☀️ Light' : '🌙 Dark';
+        themeToggleBtn.classList.toggle('active', isDark);
+    }
+}
+
+function updateMinimapButton() {
+    const minimapToggleBtn = document.getElementById('minimap-toggle');
+    if (minimapToggleBtn) {
+        minimapToggleBtn.classList.toggle('active', editorSettings.minimapEnabled);
+        minimapToggleBtn.textContent = editorSettings.minimapEnabled ? '🗺️ Hide Map' : '🗺️ Show Map';
+    }
+}
+
+function updateWrapButton() {
+    const wrapToggleBtn = document.getElementById('wrap-toggle');
+    if (wrapToggleBtn) {
+        const isWrapped = editorSettings.wordWrap === 'on';
+        wrapToggleBtn.classList.toggle('active', isWrapped);
+        wrapToggleBtn.textContent = isWrapped ? '↩️ No Wrap' : '↩️ Wrap';
+    }
+}
 
 function setSampleCode(language) {
     const sampleCodes = {
         python: `# Welcome to Codebotiks!
 # Write your Python code here and get AI-powered feedback
+# Try using the toolbar to change themes, font size, and other editor features!
 
-def greet(name):
-    """A simple greeting function"""
-    return f"Hello, {name}!"
+def calculate_fibonacci(n):
+    """
+    Calculate the nth Fibonacci number using dynamic programming.
+    This function demonstrates code folding, syntax highlighting, and bracket matching.
+    """
+    if n <= 1:
+        return n
+    
+    # Initialize base cases
+    fib_sequence = [0, 1]
+    
+    # Calculate fibonacci numbers iteratively
+    for i in range(2, n + 1):
+        next_fib = fib_sequence[i-1] + fib_sequence[i-2]
+        fib_sequence.append(next_fib)
+    
+    return fib_sequence[n]
 
-# Try calling the function
-result = greet("World")
-print(result)`,
+# Example usage with nested function calls
+def main():
+    """Main function to demonstrate the Fibonacci calculator"""
+    numbers_to_calculate = [5, 10, 15, 20]
+    
+    print("Fibonacci Calculator Results:")
+    print("-" * 30)
+    
+    for num in numbers_to_calculate:
+        result = calculate_fibonacci(num)
+        print(f"F({num}) = {result}")
+
+# Call the main function
+if __name__ == "__main__":
+    main()`,
         
         javascript: `// Welcome to Codebotiks!
 // Write your JavaScript code here and get AI-powered feedback
+// Try the toolbar features: themes, font size, minimap, and code folding!
 
-function greet(name) {
-    // A simple greeting function
-    return \`Hello, \${name}!\`;
+class FibonacciCalculator {
+    /**
+     * A class to demonstrate JavaScript features including:
+     * - Class syntax and methods
+     * - Arrow functions
+     * - Template literals
+     * - Array methods and destructuring
+     */
+    constructor() {
+        this.cache = new Map();
+    }
+
+    // Memoized Fibonacci calculation
+    calculate(n) {
+        if (this.cache.has(n)) {
+            return this.cache.get(n);
+        }
+
+        let result;
+        if (n <= 1) {
+            result = n;
+        } else {
+            result = this.calculate(n - 1) + this.calculate(n - 2);
+        }
+
+        this.cache.set(n, result);
+        return result;
+    }
+
+    // Calculate multiple Fibonacci numbers
+    calculateMultiple(numbers) {
+        return numbers.map(num => ({
+            input: num,
+            fibonacci: this.calculate(num),
+            timeCalculated: new Date().toISOString()
+        }));
+    }
 }
 
-// Try calling the function
-const result = greet("World");
-console.log(result);`,
+// Example usage with modern JavaScript features
+const fibCalculator = new FibonacciCalculator();
+const numbersToCalculate = [5, 10, 15, 20, 25];
+
+console.log("🧮 Fibonacci Calculator Results:");
+console.log("=" .repeat(40));
+
+const results = fibCalculator.calculateMultiple(numbersToCalculate);
+
+// Destructuring and template literals
+results.forEach(({ input, fibonacci, timeCalculated }) => {
+    console.log(\`F(\${input}) = \${fibonacci} (calculated at \${timeCalculated})\`);
+});`,
 
         typescript: `// Welcome to Codebotiks!
 // Write your TypeScript code here and get AI-powered feedback
+// Explore advanced TypeScript features with the enhanced editor!
 
-function greet(name: string): string {
-    // A simple greeting function with type annotations
-    return \`Hello, \${name}!\`;
+// Interface and type definitions
+interface FibonacciResult {
+    input: number;
+    fibonacci: number;
+    timeCalculated: string;
+    cached: boolean;
 }
 
-// Try calling the function
-const result: string = greet("World");
-console.log(result);`,
+type NumberArray = number[];
+type FibonacciCache = Map<number, number>;
+
+// Generic utility type
+type CalculationMetrics<T> = {
+    data: T;
+    executionTime: number;
+    cacheHits: number;
+};
+
+class TypedFibonacciCalculator {
+    private cache: FibonacciCache = new Map();
+    private cacheHits: number = 0;
+
+    /**
+     * Calculate Fibonacci number with full type safety
+     * @param n - The position in the Fibonacci sequence
+     * @returns The calculated Fibonacci number
+     */
+    public calculate(n: number): number {
+        if (this.cache.has(n)) {
+            this.cacheHits++;
+            return this.cache.get(n)!;
+        }
+
+        const result: number = n <= 1 ? n : 
+            this.calculate(n - 1) + this.calculate(n - 2);
+
+        this.cache.set(n, result);
+        return result;
+    }
+
+    /**
+     * Calculate multiple Fibonacci numbers with detailed results
+     */
+    public calculateMultiple(numbers: NumberArray): CalculationMetrics<FibonacciResult[]> {
+        const startTime = performance.now();
+        const initialCacheHits = this.cacheHits;
+
+        const results: FibonacciResult[] = numbers.map((num: number) => ({
+            input: num,
+            fibonacci: this.calculate(num),
+            timeCalculated: new Date().toISOString(),
+            cached: this.cache.has(num)
+        }));
+
+        const endTime = performance.now();
+
+        return {
+            data: results,
+            executionTime: endTime - startTime,
+            cacheHits: this.cacheHits - initialCacheHits
+        };
+    }
+}
+
+// Usage with strong typing
+const calculator = new TypedFibonacciCalculator();
+const numbers: NumberArray = [5, 10, 15, 20, 25, 30];
+
+const metrics = calculator.calculateMultiple(numbers);
+
+console.log("📊 TypeScript Fibonacci Analysis");
+console.log("================================");
+console.log(\`Execution time: \${metrics.executionTime.toFixed(2)}ms\`);
+console.log(\`Cache hits: \${metrics.cacheHits}\`);
+console.log("\\nResults:");
+
+metrics.data.forEach((result: FibonacciResult) => {
+    const cacheStatus = result.cached ? "📋" : "🆕";
+    console.log(\`\${cacheStatus} F(\${result.input}) = \${result.fibonacci}\`);
+});`,
 
         java: `// Welcome to Codebotiks!
 // Write your Java code here and get AI-powered feedback

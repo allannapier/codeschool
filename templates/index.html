@@ -92,6 +92,29 @@
                         </div>
                     </div>
                 </div>
+                
+                <!-- Editor Toolbar -->
+                <div class="editor-toolbar">
+                    <div class="toolbar-group">
+                        <label class="toolbar-label">Font Size:</label>
+                        <button id="font-decrease" class="toolbar-btn" title="Decrease font size">A-</button>
+                        <span id="font-size-display" class="font-size-display">14px</span>
+                        <button id="font-increase" class="toolbar-btn" title="Increase font size">A+</button>
+                    </div>
+                    
+                    <div class="toolbar-group">
+                        <button id="theme-toggle" class="toolbar-btn" title="Toggle dark/light theme">🌓 Theme</button>
+                        <button id="minimap-toggle" class="toolbar-btn" title="Toggle minimap">🗺️ Map</button>
+                        <button id="wrap-toggle" class="toolbar-btn" title="Toggle word wrap">↩️ Wrap</button>
+                    </div>
+                    
+                    <div class="toolbar-group">
+                        <button id="format-code" class="toolbar-btn" title="Format code">✨ Format</button>
+                        <button id="fold-all" class="toolbar-btn" title="Fold all code blocks">📁 Fold</button>
+                        <button id="unfold-all" class="toolbar-btn" title="Unfold all code blocks">📂 Unfold</button>
+                    </div>
+                </div>
+                
                 <div id="editor" class="editor"></div>
                 <div class="buttons">
                     <button id="analyze-btn" class="btn primary">Analyze</button>
