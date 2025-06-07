@@ -368,7 +368,7 @@ function selectChallenge() {
     }
     
     currentChallenge = challengesData[selectedIndex];
-    submitChallengeBtn.style.display = 'inline-block';
+    submitChallengeBtn.style.display = 'inline-flex';
     
     // Display challenge details in results section
     showChallengeDetails(currentChallenge);

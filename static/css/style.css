@@ -273,6 +273,15 @@ body {
     box-shadow: var(--shadow-md);
 }
 
+#submit-challenge-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-weight: 600 !important;
+    text-align: center !important;
+    line-height: 1 !important;
+}
+
 .btn:not(.primary):not(.secondary):not(.success) {
     background: var(--border-color);
     color: var(--text-primary);
