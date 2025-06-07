@@ -62,15 +62,17 @@ def analyze_code():
         Tailor your explanations to be appropriate for a {skill_level} level programmer.
         """
         
-        response = openai.Completion.create(
-            engine="gpt-4.1",
-            prompt=prompt,
+        response = openai.ChatCompletion.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "user", "content": prompt}
+            ],
             max_tokens=700,
             temperature=0.7
         )
         
         return jsonify({
-            'analysis': response.choices[0].text.strip(),
+            'analysis': response.choices[0].message.content.strip(),
             'success': True
         })
         
@@ -118,15 +120,17 @@ def explain_code():
         Use simple, clear language appropriate for a {skill_level} level programmer. Include examples where helpful.
         """
         
-        response = openai.Completion.create(
-            engine="gpt-3.5-turbo-instruct",
-            prompt=prompt,
+        response = openai.ChatCompletion.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "user", "content": prompt}
+            ],
             max_tokens=600,
             temperature=0.5
         )
         
         return jsonify({
-            'explanation': response.choices[0].text.strip(),
+            'explanation': response.choices[0].message.content.strip(),
             'success': True
         })
         
