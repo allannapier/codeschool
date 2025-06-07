@@ -811,20 +811,27 @@ window.populateChallengesDropdown = populateChallengesDropdown;
 window.getChallengesData = () => challengesData;
 
 function selectChallenge() {
-    const selectedIndex = challengesSelect.value;
+    const selectedIndex = challengesSelect ? challengesSelect.value : '';
     
     if (selectedIndex === '') {
         currentChallenge = null;
-        submitChallengeBtn.style.display = 'none';
+        if (submitChallengeBtn) submitChallengeBtn.style.display = 'none';
+        if (menuSubmitChallengeBtn) menuSubmitChallengeBtn.style.display = 'none';
         resultsDiv.innerHTML = '<p class="placeholder">Enter your code and click "Analyze Code" or "Explain Code" to get AI-powered feedback.</p>';
         return;
     }
     
     currentChallenge = challengesData[selectedIndex];
-    submitChallengeBtn.style.display = 'inline-flex';
+    if (submitChallengeBtn) submitChallengeBtn.style.display = 'inline-flex';
+    if (menuSubmitChallengeBtn) menuSubmitChallengeBtn.style.display = 'block';
     
     // Display challenge details in results section
     showChallengeDetails(currentChallenge);
+    
+    // Sync the menu challenges dropdown if it exists
+    if (menuChallengesSelect) {
+        menuChallengesSelect.value = selectedIndex;
+    }
 }
 
 function showChallengeDetails(challenge) {
