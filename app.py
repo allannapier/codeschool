@@ -274,6 +274,8 @@ def send_email(to_email, subject, body, reply_to=None):
     except smtplib.SMTPAuthenticationError as e:
         error_msg = f"SMTP Authentication failed: {str(e)}"
         print(f"ERROR: {error_msg}")
+        if "BadCredentials" in str(e):
+            return False, "Gmail authentication failed. Please ensure you're using an App Password (not your regular Gmail password) and that 2-Step Verification is enabled. Visit: https://support.google.com/accounts/answer/185833"
         return False, "Email authentication failed. Please check email credentials."
         
     except smtplib.SMTPException as e:
