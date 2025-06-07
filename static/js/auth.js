@@ -33,23 +33,12 @@ let loginBtn, userMenu, userEmailSpan, logoutBtn, authError;
 
 // Initialize authentication system
 async function initAuth() {
-    // Wait for Supabase to load if it hasn't already
-    if (!window.supabase) {
-        console.log('Waiting for Supabase to load...');
-        await new Promise((resolve) => {
-            if (window.supabase) {
-                resolve();
-            } else {
-                window.addEventListener('supabaseReady', resolve, { once: true });
-                // Fallback timeout
-                setTimeout(resolve, 3000);
-            }
-        });
-    }
+    // Add a small delay to ensure scripts have loaded
+    await new Promise(resolve => setTimeout(resolve, 100));
     
-    // Re-check Supabase availability at initialization time
     console.log('InitAuth called - checking Supabase...');
     console.log('window.supabase at init:', typeof window.supabase);
+    console.log('Available window properties:', Object.keys(window).filter(k => k.toLowerCase().includes('supabase')));
     
     // Try to create Supabase client again if it wasn't created earlier
     if (!supabase && SUPABASE_URL && SUPABASE_ANON_KEY) {
@@ -57,14 +46,30 @@ async function initAuth() {
             console.log('Available Supabase objects:', Object.keys(window).filter(key => key.toLowerCase().includes('supabase')));
             
             // Try different ways Supabase might be exposed
-            const supabaseLib = window.supabase || window.Supabase || (window.supabase && window.supabase.supabase);
+            let supabaseLib = null;
+            
+            // Check various possible global names
+            if (window.supabase) {
+                supabaseLib = window.supabase;
+            } else if (window.Supabase) {
+                supabaseLib = window.Supabase;
+            } else if (window.createClient) {
+                // Some CDNs expose createClient directly
+                supabaseLib = { createClient: window.createClient };
+            }
+            
+            console.log('Found supabaseLib:', !!supabaseLib);
+            console.log('Has createClient:', !!(supabaseLib && supabaseLib.createClient));
             
             if (supabaseLib && supabaseLib.createClient) {
                 console.log('Creating Supabase client in initAuth...');
                 supabase = supabaseLib.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
                 console.log('Supabase client created in initAuth:', !!supabase);
             } else {
-                console.log('Supabase createClient not found. Available methods:', supabaseLib ? Object.keys(supabaseLib) : 'supabaseLib is null');
+                console.log('Supabase createClient not found.');
+                if (supabaseLib) {
+                    console.log('Available methods on supabaseLib:', Object.keys(supabaseLib));
+                }
             }
         } catch (error) {
             console.error('Error creating Supabase client in initAuth:', error);

@@ -6,15 +6,7 @@
     <title>Codebotiks - AI-Powered Code Learning</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <script src="https://unpkg.com/monaco-editor@0.45.0/min/vs/loader.js"></script>
-    <script type="module">
-        // Load Supabase using ES modules
-        import { createClient } from 'https://cdn.skypack.dev/@supabase/supabase-js@2';
-        window.supabase = { createClient };
-        console.log('Supabase loaded via ES modules');
-        
-        // Dispatch a custom event when Supabase is ready
-        window.dispatchEvent(new CustomEvent('supabaseReady'));
-    </script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2.38.4/dist/umd/supabase.js"></script>
 </head>
 <body>
     <header class="main-header">
