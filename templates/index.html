@@ -21,32 +21,33 @@
     </header>
 
     <main class="container">
-        <div class="controls">
-            <div class="control-group">
-                <label for="language">Programming Language:</label>
-                <select id="language">
-                    <option value="python">Python</option>
-                    <option value="javascript">JavaScript</option>
-                    <option value="typescript">TypeScript</option>
-                    <option value="java">Java</option>
-                    <option value="cpp">C++</option>
-                    <option value="go">Go</option>
-                </select>
-            </div>
-            
-            <div class="control-group">
-                <label for="skill-level">Skill Level:</label>
-                <select id="skill-level">
-                    <option value="beginner">Beginner</option>
-                    <option value="intermediate">Intermediate</option>
-                    <option value="advanced">Advanced</option>
-                </select>
-            </div>
-        </div>
-
         <div class="editor-container">
             <div class="editor-section">
-                <h3>Code Editor</h3>
+                <div class="editor-header">
+                    <h3>Code Editor</h3>
+                    <div class="editor-controls">
+                        <div class="control-group">
+                            <label for="language">Language:</label>
+                            <select id="language">
+                                <option value="python">Python</option>
+                                <option value="javascript">JavaScript</option>
+                                <option value="typescript">TypeScript</option>
+                                <option value="java">Java</option>
+                                <option value="cpp">C++</option>
+                                <option value="go">Go</option>
+                            </select>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label for="skill-level">Skill Level:</label>
+                            <select id="skill-level">
+                                <option value="beginner">Beginner</option>
+                                <option value="intermediate">Intermediate</option>
+                                <option value="advanced">Advanced</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
                 <div id="editor" class="editor"></div>
                 <div class="buttons">
                     <button id="analyze-btn" class="btn primary">Analyze Code</button>
