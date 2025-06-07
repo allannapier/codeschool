@@ -1,9 +1,11 @@
-// Supabase configuration - you'll need to replace these with your actual values
-const SUPABASE_URL = 'YOUR_SUPABASE_URL';
-const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+// Get Supabase configuration from injected values
+const SUPABASE_URL = window.SUPABASE_CONFIG?.url || '';
+const SUPABASE_ANON_KEY = window.SUPABASE_CONFIG?.anonKey || '';
 
 // Initialize Supabase client
-const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+const supabase = (window.supabase && SUPABASE_URL && SUPABASE_ANON_KEY) 
+    ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) 
+    : null;
 
 // Authentication state
 let currentUser = null;
@@ -16,13 +18,17 @@ let loginBtn, userMenu, userEmailSpan, logoutBtn, authError;
 // Initialize authentication system
 async function initAuth() {
     // Check if Supabase is available and configured
-    if (!window.supabase || !SUPABASE_URL || SUPABASE_URL === 'YOUR_SUPABASE_URL') {
+    if (!supabase || !SUPABASE_URL || !SUPABASE_ANON_KEY) {
         console.warn('Supabase not configured. Authentication features disabled.');
+        console.log('Supabase URL:', SUPABASE_URL ? 'Present' : 'Missing');
+        console.log('Supabase Key:', SUPABASE_ANON_KEY ? 'Present' : 'Missing');
         // Hide auth UI elements
         const loginBtn = document.getElementById('login-btn');
         if (loginBtn) loginBtn.style.display = 'none';
         return;
     }
+    
+    console.log('Supabase initialized successfully!');
 
     // Get DOM elements
     authModal = document.getElementById('auth-modal');

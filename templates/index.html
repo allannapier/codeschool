@@ -115,6 +115,13 @@
         </div>
     </div>
 
+    <script>
+        // Inject Supabase credentials from server
+        window.SUPABASE_CONFIG = {
+            url: '{{ supabase_url }}',
+            anonKey: '{{ supabase_anon_key }}'
+        };
+    </script>
     <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>

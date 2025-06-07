@@ -33,7 +33,13 @@ def get_user_from_token():
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    # Pass Supabase credentials to frontend
+    supabase_url = os.getenv('SUPABASE_URL', '')
+    supabase_anon_key = os.getenv('SUPABASE_ANON_KEY', '')
+    
+    return render_template('index.html', 
+                         supabase_url=supabase_url,
+                         supabase_anon_key=supabase_anon_key)
 
 @app.route('/api/analyze', methods=['POST'])
 def analyze_code():
