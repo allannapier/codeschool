@@ -4,7 +4,7 @@ const SUPABASE_ANON_KEY = window.SUPABASE_CONFIG?.anonKey || '';
 
 console.log('Auth.js loaded - checking Supabase availability:');
 console.log('window.supabase:', typeof window.supabase);
-console.log('SUPABASE_CONFIG:', window.SUPABASE_CONFIG);
+console.log('SUPABASE_CONFIG available:', !!window.SUPABASE_CONFIG);
 
 // Initialize Supabase client
 let supabase = null;
@@ -33,8 +33,22 @@ let loginBtn, userMenu, userEmailSpan, logoutBtn, authError;
 
 // Initialize authentication system
 async function initAuth() {
+    // Wait for Supabase to load if it hasn't already
+    if (!window.supabase) {
+        console.log('Waiting for Supabase to load...');
+        await new Promise((resolve) => {
+            if (window.supabase) {
+                resolve();
+            } else {
+                window.addEventListener('supabaseReady', resolve, { once: true });
+                // Fallback timeout
+                setTimeout(resolve, 3000);
+            }
+        });
+    }
+    
     // Re-check Supabase availability at initialization time
-    console.log('InitAuth called - re-checking Supabase...');
+    console.log('InitAuth called - checking Supabase...');
     console.log('window.supabase at init:', typeof window.supabase);
     
     // Try to create Supabase client again if it wasn't created earlier
