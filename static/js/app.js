@@ -129,7 +129,6 @@ function initializeEditorToolbar() {
     const formatCodeBtn = document.getElementById('format-code');
     const foldAllBtn = document.getElementById('fold-all');
     const unfoldAllBtn = document.getElementById('unfold-all');
-    const clearOutputBtn = document.getElementById('clear-output');
     
     // Font size controls
     fontDecreaseBtn.addEventListener('click', () => {
@@ -181,10 +180,6 @@ function initializeEditorToolbar() {
         }
     });
     
-    // Clear output
-    clearOutputBtn.addEventListener('click', () => {
-        hideExecutionOutput();
-    });
     
     // Fold all
     foldAllBtn.addEventListener('click', () => {
@@ -562,8 +557,9 @@ async function analyzeCode() {
         return;
     }
 
-    const language = languageSelect.value;
-    const skillLevel = skillLevelSelect.value;
+    const language = languageSelect ? languageSelect.value : 'python';
+    const skillLevel = (skillLevelSelect || menuSkillLevelSelect) ? 
+        (skillLevelSelect ? skillLevelSelect.value : menuSkillLevelSelect.value) : 'beginner';
 
     showLoading(true);
     disableButtons(true);
@@ -607,8 +603,9 @@ async function explainCode() {
         return;
     }
 
-    const language = languageSelect.value;
-    const skillLevel = skillLevelSelect.value;
+    const language = languageSelect ? languageSelect.value : 'python';
+    const skillLevel = (skillLevelSelect || menuSkillLevelSelect) ? 
+        (skillLevelSelect ? skillLevelSelect.value : menuSkillLevelSelect.value) : 'beginner';
 
     showLoading(true);
     disableButtons(true);
@@ -645,7 +642,7 @@ async function explainCode() {
 }
 
 function clearEditor() {
-    const language = languageSelect.value;
+    const language = languageSelect ? languageSelect.value : 'python';
     setSampleCode(language);
     resultsDiv.innerHTML = '<p class="placeholder">Enter your code and click "Analyze Code" or "Explain Code" to get AI-powered feedback.</p>';
 }
@@ -697,6 +694,9 @@ function showSuccess(message) {
         successDiv.remove();
     }, 3000);
 }
+
+// Make showSuccess available globally for auth.js
+window.showSuccess = showSuccess;
 
 function showLoading(show) {
     if (show) {
@@ -874,8 +874,9 @@ async function submitChallenge() {
         return;
     }
 
-    const language = languageSelect.value;
-    const skillLevel = skillLevelSelect.value;
+    const language = languageSelect ? languageSelect.value : 'python';
+    const skillLevel = (skillLevelSelect || menuSkillLevelSelect) ? 
+        (skillLevelSelect ? skillLevelSelect.value : menuSkillLevelSelect.value) : 'beginner';
 
     showLoading(true);
     disableButtons(true);
@@ -1087,28 +1088,30 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
     
     // Add language change handler
-    languageSelect.addEventListener('change', function() {
-        const language = this.value;
-        let monacoLang = language;
-        
-        // Map our language values to Monaco language IDs
-        const languageMap = {
-            'python': 'python',
-            'javascript': 'javascript',
-            'typescript': 'typescript', 
-            'java': 'java',
-            'cpp': 'cpp',
-            'go': 'go'
-        };
-        
-        monacoLang = languageMap[language] || 'python';
-        if (editor && editor.getModel) {
-            monaco.editor.setModelLanguage(editor.getModel(), monacoLang);
-        }
-        
-        // Set sample code based on language
-        setSampleCode(language);
-    });
+    if (languageSelect) {
+        languageSelect.addEventListener('change', function() {
+            const language = this.value;
+            let monacoLang = language;
+            
+            // Map our language values to Monaco language IDs
+            const languageMap = {
+                'python': 'python',
+                'javascript': 'javascript',
+                'typescript': 'typescript', 
+                'java': 'java',
+                'cpp': 'cpp',
+                'go': 'go'
+            };
+            
+            monacoLang = languageMap[language] || 'python';
+            if (editor && editor.getModel) {
+                monaco.editor.setModelLanguage(editor.getModel(), monacoLang);
+            }
+            
+            // Set sample code based on language
+            setSampleCode(language);
+        });
+    }
     
     // Load challenges
     loadChallenges();

@@ -2,22 +2,12 @@
 const SUPABASE_URL = window.SUPABASE_CONFIG?.url || '';
 const SUPABASE_ANON_KEY = window.SUPABASE_CONFIG?.anonKey || '';
 
-console.log('Auth.js loaded - checking Supabase availability:');
-console.log('window.supabase:', typeof window.supabase);
-console.log('SUPABASE_CONFIG available:', !!window.SUPABASE_CONFIG);
 
 // Initialize Supabase client
 let supabase = null;
 try {
     if (window.supabase && SUPABASE_URL && SUPABASE_ANON_KEY) {
-        console.log('Attempting to create Supabase client...');
         supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        console.log('Supabase client created:', !!supabase);
-    } else {
-        console.log('Supabase requirements not met:');
-        console.log('- window.supabase available:', !!window.supabase);
-        console.log('- URL present:', !!SUPABASE_URL);
-        console.log('- Key present:', !!SUPABASE_ANON_KEY);
     }
 } catch (error) {
     console.error('Error creating Supabase client:', error);
@@ -35,35 +25,24 @@ let progressModal, closeProgressModal;
 // Initialize authentication system
 async function initAuth() {
     // Wait for Supabase ready event or timeout
-    console.log('InitAuth called - waiting for Supabase...');
-    
     await new Promise((resolve) => {
         if (window.supabase) {
-            console.log('Supabase already available');
             resolve();
         } else {
-            console.log('Waiting for supabaseReady event...');
             const timeout = setTimeout(() => {
-                console.log('Timeout waiting for Supabase');
                 resolve();
             }, 3000);
             
             window.addEventListener('supabaseReady', () => {
-                console.log('Received supabaseReady event');
                 clearTimeout(timeout);
                 resolve();
             }, { once: true });
         }
     });
     
-    console.log('After wait - window.supabase:', typeof window.supabase);
-    console.log('Available window properties:', Object.keys(window).filter(k => k.toLowerCase().includes('supabase')));
-    
     // Try to create Supabase client again if it wasn't created earlier
     if (!supabase && SUPABASE_URL && SUPABASE_ANON_KEY) {
         try {
-            console.log('Available Supabase objects:', Object.keys(window).filter(key => key.toLowerCase().includes('supabase')));
-            
             // Try different ways Supabase might be exposed
             let supabaseLib = null;
             
@@ -73,22 +52,11 @@ async function initAuth() {
             } else if (window.Supabase) {
                 supabaseLib = window.Supabase;
             } else if (window.createClient) {
-                // Some CDNs expose createClient directly
                 supabaseLib = { createClient: window.createClient };
             }
             
-            console.log('Found supabaseLib:', !!supabaseLib);
-            console.log('Has createClient:', !!(supabaseLib && supabaseLib.createClient));
-            
             if (supabaseLib && supabaseLib.createClient) {
-                console.log('Creating Supabase client in initAuth...');
                 supabase = supabaseLib.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                console.log('Supabase client created in initAuth:', !!supabase);
-            } else {
-                console.log('Supabase createClient not found.');
-                if (supabaseLib) {
-                    console.log('Available methods on supabaseLib:', Object.keys(supabaseLib));
-                }
             }
         } catch (error) {
             console.error('Error creating Supabase client in initAuth:', error);
@@ -98,16 +66,8 @@ async function initAuth() {
     // Check if Supabase is available and configured
     if (!supabase || !SUPABASE_URL || !SUPABASE_ANON_KEY) {
         console.warn('Supabase not configured. Authentication features disabled.');
-        console.log('Supabase URL:', SUPABASE_URL ? 'Present' : 'Missing');
-        console.log('Supabase Key:', SUPABASE_ANON_KEY ? 'Present' : 'Missing');
-        console.log('Supabase client:', !!supabase);
-        // Hide auth UI elements
-        const loginBtn = document.getElementById('login-btn');
-        if (loginBtn) loginBtn.style.display = 'none';
         return;
     }
-    
-    console.log('Supabase initialized successfully!');
 
     // Get DOM elements
     authModal = document.getElementById('auth-modal');
@@ -124,11 +84,7 @@ async function initAuth() {
 
     // Ensure auth toggle button is visible when auth is working
     if (authToggleBtn) {
-        console.log('Auth toggle button found, making it visible');
         authToggleBtn.style.display = 'inline-flex';
-        console.log('Auth toggle button display style:', authToggleBtn.style.display);
-    } else {
-        console.error('Auth toggle button not found in DOM');
     }
 
     // Add event listeners
@@ -310,8 +266,10 @@ function hideAuthError() {
 }
 
 function showSuccess(message) {
-    // You can implement a success notification here
-    console.log('Success:', message);
+    // Show success notification to user
+    if (window.showSuccess) {
+        window.showSuccess(message);
+    }
 }
 
 async function showProgressModal() {
