@@ -1,0 +1,229 @@
+{
+  "challenges": [
+    {
+      "title": "Hello World Variations",
+      "description": "Create a program that displays personalized greetings. Start with 'Hello World', then modify it to display 'Hello [Your Name]', and finally add timestamps to your greeting messages.",
+      "level": "beginner"
+    },
+    {
+      "title": "Basic Calculator",
+      "description": "Build a calculator that performs basic arithmetic operations (addition, subtraction, multiplication, division) on two numbers provided by the user.",
+      "level": "beginner"
+    },
+    {
+      "title": "Temperature Converter",
+      "description": "Create a program that converts temperatures between Celsius and Fahrenheit. The user should be able to input a temperature in one unit and get the converted value.",
+      "level": "beginner"
+    },
+    {
+      "title": "Shape Calculator",
+      "description": "Write a program that calculates the area and perimeter of various shapes (circle, rectangle, triangle) based on user input.",
+      "level": "beginner"
+    },
+    {
+      "title": "Time Converter",
+      "description": "Build a converter that transforms minutes into seconds, hours into minutes, and performs other time unit conversions.",
+      "level": "beginner"
+    },
+    {
+      "title": "FizzBuzz Challenge",
+      "description": "Write a program that prints numbers from 1 to 100. For multiples of 3, print 'Fizz' instead of the number. For multiples of 5, print 'Buzz'. For multiples of both 3 and 5, print 'FizzBuzz'.",
+      "level": "beginner"
+    },
+    {
+      "title": "Even or Odd Checker",
+      "description": "Create a program that determines whether a given number is even or odd. Include input validation to ensure the user enters a valid number.",
+      "level": "beginner"
+    },
+    {
+      "title": "Number Guessing Game",
+      "description": "Build a game where the computer generates a random number between 1 and 100, and the player has to guess it. Provide hints like 'too high' or 'too low' after each guess.",
+      "level": "beginner"
+    },
+    {
+      "title": "Palindrome Checker",
+      "description": "Write a function that checks if a given string is a palindrome (reads the same forwards and backwards). Ignore spaces, punctuation, and case.",
+      "level": "beginner"
+    },
+    {
+      "title": "String Reverser",
+      "description": "Create a program that reverses a given string. Try to implement it both with and without using built-in reverse functions.",
+      "level": "beginner"
+    },
+    {
+      "title": "Vowel Counter",
+      "description": "Build a program that counts the number of vowels (a, e, i, o, u) in a given string. Handle both uppercase and lowercase letters.",
+      "level": "beginner"
+    },
+    {
+      "title": "Word Frequency Counter",
+      "description": "Create a program that analyzes a text and counts how many times each word appears. Display the results sorted by frequency.",
+      "level": "beginner"
+    },
+    {
+      "title": "Star Pyramid Pattern",
+      "description": "Write a program that prints a pyramid pattern made of stars (*). The user should be able to specify the height of the pyramid.",
+      "level": "beginner"
+    },
+    {
+      "title": "Number Triangle",
+      "description": "Create various number patterns in triangle shapes, such as Pascal's triangle or a simple incremental number triangle.",
+      "level": "beginner"
+    },
+    {
+      "title": "Diamond Pattern",
+      "description": "Build a program that prints a diamond shape using asterisks. The size should be configurable based on user input.",
+      "level": "beginner"
+    },
+    {
+      "title": "Find Array Maximum",
+      "description": "Write a function that finds and returns the largest element in an array without using built-in max functions.",
+      "level": "beginner"
+    },
+    {
+      "title": "Array Sum and Average",
+      "description": "Create functions to calculate the sum and average of all elements in an array. Handle empty arrays appropriately.",
+      "level": "beginner"
+    },
+    {
+      "title": "Remove Duplicates",
+      "description": "Write a program that removes duplicate elements from an array while maintaining the original order of elements.",
+      "level": "beginner"
+    },
+    {
+      "title": "Reverse Array In-Place",
+      "description": "Implement a function that reverses an array in-place (without creating a new array). Use two-pointer technique.",
+      "level": "beginner"
+    },
+    {
+      "title": "Bubble Sort Implementation",
+      "description": "Implement the bubble sort algorithm to sort an array of numbers in ascending order. Include optimization to stop early if array becomes sorted.",
+      "level": "intermediate"
+    },
+    {
+      "title": "Selection Sort Algorithm",
+      "description": "Write a selection sort algorithm that finds the minimum element in each iteration and places it at the beginning.",
+      "level": "intermediate"
+    },
+    {
+      "title": "Quick Sort Implementation",
+      "description": "Implement the quick sort algorithm with partition logic. Choose a pivot and recursively sort the subarrays.",
+      "level": "intermediate"
+    },
+    {
+      "title": "Merge Sort Algorithm",
+      "description": "Create a merge sort implementation that divides the array into halves, sorts them recursively, and merges them back.",
+      "level": "intermediate"
+    },
+    {
+      "title": "Binary Search",
+      "description": "Implement binary search algorithm for finding an element in a sorted array. Return the index if found, -1 otherwise.",
+      "level": "intermediate"
+    },
+    {
+      "title": "Linear Search Optimization",
+      "description": "Write an optimized linear search that uses techniques like sentinel search or move-to-front for frequently accessed elements.",
+      "level": "intermediate"
+    },
+    {
+      "title": "Array Rotation",
+      "description": "Create a function that rotates an array by k positions to the left or right. Implement both naive and optimized solutions.",
+      "level": "intermediate"
+    },
+    {
+      "title": "Two Sum Problem",
+      "description": "Given an array of integers and a target sum, find two numbers in the array that add up to the target. Return their indices.",
+      "level": "intermediate"
+    },
+    {
+      "title": "Find Missing Number",
+      "description": "In an array containing n-1 numbers from 1 to n, find the missing number using mathematical approach or XOR operation.",
+      "level": "intermediate"
+    },
+    {
+      "title": "Maximum Subarray Sum",
+      "description": "Implement Kadane's Algorithm to find the contiguous subarray with the largest sum in an array of integers.",
+      "level": "intermediate"
+    },
+    {
+      "title": "Anagram Checker",
+      "description": "Write a function to check if two strings are anagrams of each other (contain the same characters in different order).",
+      "level": "intermediate"
+    },
+    {
+      "title": "Longest Common Substring",
+      "description": "Find the longest substring that appears in both of two given strings. Use dynamic programming for optimal solution.",
+      "level": "intermediate"
+    },
+    {
+      "title": "String Compression",
+      "description": "Implement a string compression algorithm that replaces repeated characters with the character followed by its count (e.g., 'aabbbcc' becomes 'a2b3c2').",
+      "level": "intermediate"
+    },
+    {
+      "title": "Pattern Matching",
+      "description": "Implement a pattern matching algorithm (like KMP or Rabin-Karp) to find all occurrences of a pattern in a text.",
+      "level": "intermediate"
+    },
+    {
+      "title": "Prime Number Generator",
+      "description": "Create an efficient algorithm to generate all prime numbers up to n using the Sieve of Eratosthenes.",
+      "level": "intermediate"
+    },
+    {
+      "title": "Nth Fibonacci Number",
+      "description": "Write a function to find the nth Fibonacci number using both recursive and iterative approaches. Compare their efficiency.",
+      "level": "intermediate"
+    },
+    {
+      "title": "GCD and LCM Calculator",
+      "description": "Implement functions to calculate the Greatest Common Divisor (using Euclidean algorithm) and Least Common Multiple of two numbers.",
+      "level": "intermediate"
+    },
+    {
+      "title": "Roman Numeral Converter",
+      "description": "Build a converter that transforms integers to Roman numerals and vice versa. Handle edge cases and validation.",
+      "level": "intermediate"
+    },
+    {
+      "title": "Stack Implementation",
+      "description": "Implement a stack data structure using arrays with push, pop, peek, and isEmpty operations. Include proper error handling.",
+      "level": "intermediate"
+    },
+    {
+      "title": "Queue Implementation",
+      "description": "Create a queue data structure with enqueue, dequeue, front, and size operations. Handle overflow and underflow conditions.",
+      "level": "intermediate"
+    },
+    {
+      "title": "Linked List Operations",
+      "description": "Implement a singly linked list with operations like insertion, deletion, search, and reversal.",
+      "level": "intermediate"
+    },
+    {
+      "title": "Longest Increasing Subsequence",
+      "description": "Find the length of the longest increasing subsequence in an array using dynamic programming approach.",
+      "level": "advanced"
+    },
+    {
+      "title": "Coin Change Problem",
+      "description": "Given a set of coin denominations and a target amount, find the minimum number of coins needed to make the amount.",
+      "level": "advanced"
+    },
+    {
+      "title": "Edit Distance",
+      "description": "Calculate the minimum number of operations (insert, delete, replace) required to convert one string into another.",
+      "level": "advanced"
+    },
+    {
+      "title": "0/1 Knapsack Problem",
+      "description": "Given items with weights and values, find the maximum value that can be obtained with a weight limit using dynamic programming.",
+      "level": "advanced"
+    },
+    {
+      "title": "Graph BFS Implementation",
+      "description": "Implement Breadth-First Search for graph traversal. Find shortest path in unweighted graphs.",
+      "level": "advanced"
+    }
+  ]
+}
