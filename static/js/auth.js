@@ -43,6 +43,15 @@ async function initAuth() {
     logoutBtn = document.getElementById('logout-btn');
     authError = document.getElementById('auth-error');
 
+    // Ensure login button is visible when auth is working
+    if (loginBtn) {
+        console.log('Login button found, making it visible');
+        loginBtn.style.display = 'inline-flex';
+        console.log('Login button display style:', loginBtn.style.display);
+    } else {
+        console.error('Login button not found in DOM');
+    }
+
     // Add event listeners
     loginBtn.addEventListener('click', showAuthModal);
     closeModal.addEventListener('click', hideAuthModal);
