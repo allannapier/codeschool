@@ -218,6 +218,8 @@ body {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    text-align: center;
+    line-height: 1;
 }
 
 .btn::before {
@@ -569,6 +571,8 @@ body {
         padding: 0.65rem 1rem;
         font-size: 0.85rem;
         height: 2.5rem;
+        font-weight: 600;
+        line-height: 1;
     }
     
     .editor {
