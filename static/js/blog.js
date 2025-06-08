@@ -239,12 +239,21 @@ async function handleContactForm() {
     }
 }
 
+// Provide showSuccess function for auth system
+window.showSuccess = function(message) {
+    console.log('Success:', message);
+    // Simple alert for now - could be enhanced with a toast notification
+    alert(message);
+};
+
 // Initialize blog when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    initBlog();
+document.addEventListener('DOMContentLoaded', async () => {
+    await initBlog();
     
-    // Initialize auth system if available
-    if (window.authSystem && window.authSystem.initAuth) {
-        window.authSystem.initAuth();
-    }
+    // Initialize auth system after blog is fully loaded
+    setTimeout(() => {
+        if (window.authSystem && window.authSystem.initAuth) {
+            window.authSystem.initAuth();
+        }
+    }, 100);
 });
