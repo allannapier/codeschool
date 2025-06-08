@@ -16,6 +16,7 @@ try {
 // Authentication state
 let currentUser = null;
 let isLoginMode = true;
+let userInitiatedLogin = false;
 
 // DOM elements for auth
 let authModal, authForm, authTitle, authSubmit, toggleAuth, closeModal;
@@ -142,7 +143,12 @@ async function initAuth() {
             currentUser = session.user;
             updateAuthUI();
             hideAuthModal();
-            showSuccess('Successfully logged in!');
+            
+            // Only show success message if user actually initiated the login
+            if (userInitiatedLogin) {
+                showSuccess('Successfully logged in!');
+                userInitiatedLogin = false; // Reset flag
+            }
             
             // Refresh challenges dropdown to show progress
             if (window.populateChallengesDropdown) {
@@ -151,7 +157,12 @@ async function initAuth() {
         } else if (event === 'SIGNED_OUT') {
             currentUser = null;
             updateAuthUI();
-            showSuccess('Successfully logged out!');
+            
+            // Only show success message if user actually initiated the logout
+            if (userInitiatedLogin) {
+                showSuccess('Successfully logged out!');
+                userInitiatedLogin = false; // Reset flag
+            }
             
             // Refresh challenges dropdown to hide progress
             if (window.populateChallengesDropdown) {
@@ -231,6 +242,9 @@ async function handleAuth(e) {
     authSubmit.disabled = true;
     authSubmit.textContent = isLoginMode ? 'Logging in...' : 'Creating account...';
     
+    // Set flag to indicate user initiated this action
+    userInitiatedLogin = true;
+    
     try {
         let result;
         
@@ -306,6 +320,9 @@ async function handleAuth(e) {
         } else {
             showAuthError(error.message);
         }
+        
+        // Reset flag on error since auth state change won't fire
+        userInitiatedLogin = false;
     } finally {
         authSubmit.disabled = false;
         updateAuthModalUI();
@@ -313,6 +330,9 @@ async function handleAuth(e) {
 }
 
 async function handleLogout() {
+    // Set flag to indicate user initiated this action
+    userInitiatedLogin = true;
+    
     try {
         let result;
         
@@ -327,6 +347,8 @@ async function handleLogout() {
         const error = result?.error || (result && !result.data ? result : null);
         if (error) throw error;
     } catch (error) {
+        // Reset flag on error since auth state change won't fire
+        userInitiatedLogin = false;
         showError('Failed to logout. Please try again.');
     }
 }

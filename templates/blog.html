@@ -246,7 +246,69 @@
             anonKey: '{{ supabase_anon_key }}'
         };
     </script>
+    <!-- Cookie Consent Banner -->
+    <div id="cookie-banner" class="cookie-banner" style="display: none;">
+        <div class="cookie-content">
+            <div class="cookie-text">
+                <h4>🍪 We use cookies</h4>
+                <p>We use cookies to enhance your experience, provide analytics, and show relevant ads. By continuing to use our site, you consent to our use of cookies.</p>
+            </div>
+            <div class="cookie-actions">
+                <button id="cookie-accept" class="btn primary">Accept All</button>
+                <button id="cookie-essential" class="btn secondary">Essential Only</button>
+                <button id="cookie-settings" class="btn">Settings</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cookie Settings Modal -->
+    <div id="cookie-settings-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🍪 Cookie Settings</h2>
+                <button class="close-btn" id="close-cookie-settings">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="cookie-category">
+                    <div class="cookie-category-header">
+                        <h3>Essential Cookies</h3>
+                        <span class="cookie-required">Required</span>
+                    </div>
+                    <p>These cookies are necessary for the website to function and cannot be disabled. They include authentication, security, and basic functionality.</p>
+                </div>
+                
+                <div class="cookie-category">
+                    <div class="cookie-category-header">
+                        <h3>Analytics Cookies</h3>
+                        <label class="cookie-toggle">
+                            <input type="checkbox" id="analytics-cookies" checked>
+                            <span class="cookie-slider"></span>
+                        </label>
+                    </div>
+                    <p>Help us understand how visitors interact with our website by collecting and reporting information anonymously via Sentry error tracking.</p>
+                </div>
+                
+                <div class="cookie-category">
+                    <div class="cookie-category-header">
+                        <h3>Advertising Cookies</h3>
+                        <label class="cookie-toggle">
+                            <input type="checkbox" id="advertising-cookies" checked>
+                            <span class="cookie-slider"></span>
+                        </label>
+                    </div>
+                    <p>Used to deliver relevant advertisements and track ad performance via Google AdSense.</p>
+                </div>
+                
+                <div class="cookie-actions">
+                    <button id="save-cookie-preferences" class="btn primary">Save Preferences</button>
+                    <button id="accept-all-cookies" class="btn secondary">Accept All</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
     <script src="{{ url_for('static', filename='js/blog.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/cookies.js') }}"></script>
 </body>
 </html>
