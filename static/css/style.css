@@ -1144,7 +1144,7 @@ body {
     color: rgba(255, 255, 255, 0.9);
     font-size: 0.9rem;
     cursor: pointer;
-    text-decoration: underline;
+    text-decoration: none;
     transition: color 0.2s ease;
 }
 
