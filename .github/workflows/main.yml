@@ -1,0 +1,101 @@
+# .github/workflows/claude-debug.yml
+name: Claude Code Debug Test
+
+on:
+  workflow_dispatch:  # Allows manual triggering
+  push:
+    branches: [ main ]  # Remove this if you don't want it to run on every push
+
+jobs:
+  debug-claude:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js (if needed)
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: Install Claude Code (if not already installed)
+      run: |
+        npm install -g @anthropic-ai/claude-code
+        # Or use your preferred installation method
+        
+    - name: Verify Claude Code installation
+      run: |
+        echo "=== Claude Code Version ==="
+        claude-code --version || echo "Failed to get version"
+        echo "=== Which Claude Code ==="
+        which claude-code || echo "claude-code not found in PATH"
+        
+    - name: Check environment variables
+      env:
+        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      run: |
+        echo "=== Environment Check ==="
+        echo "API Key length: ${#ANTHROPIC_API_KEY}"
+        echo "API Key starts with: ${ANTHROPIC_API_KEY:0:8}..."
+        echo "NODE_ENV: $NODE_ENV"
+        echo "PATH: $PATH"
+        
+    - name: Test API connectivity
+      env:
+        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      run: |
+        echo "=== Testing API Connectivity ==="
+        curl -v -H "Authorization: Bearer $ANTHROPIC_API_KEY" \
+             -H "Content-Type: application/json" \
+             -H "anthropic-version: 2023-06-01" \
+             https://api.anthropic.com/v1/messages \
+             -d '{
+               "model": "claude-3-sonnet-20240229",
+               "max_tokens": 10,
+               "messages": [{"role": "user", "content": "Hi"}]
+             }' || echo "API test failed"
+             
+    - name: Test Claude Code with maximum verbosity
+      env:
+        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        DEBUG: '*'
+        NODE_ENV: development
+      run: |
+        echo "=== Running Claude Code Test ==="
+        set -x  # Enable command tracing
+        
+        # Try a simple command with all possible debug flags
+        claude-code --verbose --debug "echo 'Hello World'" 2>&1 | tee claude-output.log
+        
+        echo "Exit code: $?"
+        echo "=== Full Output ==="
+        cat claude-output.log || echo "No log file created"
+        
+    - name: Alternative test - try different command
+      env:
+        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      run: |
+        echo "=== Alternative Test ==="
+        # Try the most basic claude-code command
+        timeout 60 claude-code --help || echo "Help command failed with exit code: $?"
+        
+    - name: Check system resources and limits
+      run: |
+        echo "=== System Info ==="
+        echo "Disk space:"
+        df -h
+        echo "Memory:"
+        free -h
+        echo "Network connectivity:"
+        ping -c 3 api.anthropic.com || echo "Cannot reach Anthropic API"
+        
+    - name: Upload debug logs
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: claude-debug-logs
+        path: |
+          claude-output.log
+          /tmp/claude-*
+        retention-days: 5
