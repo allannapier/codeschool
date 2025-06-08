@@ -455,23 +455,23 @@ body {
 }
 
 /* Expanded layout styles */
-.main-container.expanded {
+.container.expanded {
     transition: all 0.3s ease;
 }
 
-.main-container.expanded .code-section {
+.container.expanded .editor-container {
     flex: 1;
     max-width: none;
 }
 
-.main-container.expanded .results-section {
+.container.expanded .results-section {
     flex: 0 0 60px;
     max-width: 60px;
     min-height: auto;
     transition: all 0.3s ease;
 }
 
-.main-container.expanded .results-section .results-header {
+.container.expanded .results-section .results-header {
     writing-mode: vertical-rl;
     text-orientation: mixed;
     height: 100%;
@@ -483,38 +483,38 @@ body {
     flex-direction: column;
 }
 
-.main-container.expanded .results-section .results-header h3 {
+.container.expanded .results-section .results-header h3 {
     transform: rotate(180deg);
     font-size: 1rem;
     margin: 0;
 }
 
-.main-container.expanded .results-section .results-header-controls {
+.container.expanded .results-section .results-header-controls {
     flex-direction: column;
     gap: 0.5rem;
 }
 
-.main-container.expanded .results-section .tab-buttons {
+.container.expanded .results-section .tab-buttons {
     display: none;
 }
 
-.main-container.expanded .results-section .expand-toggle-btn {
+.container.expanded .results-section .expand-toggle-btn {
     transform: rotate(180deg);
     font-size: 0.9rem;
     padding: 0.4rem;
 }
 
-.main-container.expanded .results-section .tab-content {
+.container.expanded .results-section .tab-content {
     display: none;
 }
 
-.main-container.expanded .results-section:hover {
+.container.expanded .results-section:hover {
     background: var(--background-color);
     cursor: pointer;
 }
 
 /* Ensure Monaco editor resizes properly */
-.main-container.expanded .editor {
+.container.expanded .editor {
     transition: all 0.3s ease;
 }
 

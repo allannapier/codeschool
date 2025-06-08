@@ -996,7 +996,7 @@ function switchTab(tabName) {
 }
 
 function toggleExpandedMode() {
-    const mainContainer = document.querySelector('.main-container');
+    const mainContainer = document.querySelector('.container');
     const expandToggleBtn = document.getElementById('expand-toggle');
     const resultsSection = document.querySelector('.results-section');
     
@@ -1181,7 +1181,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     // Initialize expand toggle
     const expandToggleBtn = document.getElementById('expand-toggle');
-    const mainContainer = document.querySelector('.main-container');
+    const mainContainer = document.querySelector('.container');
     
     console.log('Expand toggle button found:', !!expandToggleBtn);
     console.log('Main container found:', !!mainContainer);
