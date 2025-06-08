@@ -101,6 +101,15 @@ function setupFooterModals() {
             e.preventDefault();
             await handleContactForm();
         });
+        
+        // Handle contact cancel button
+        const contactCancel = document.getElementById('contact-cancel');
+        if (contactCancel) {
+            contactCancel.addEventListener('click', () => {
+                contactModal.style.display = 'none';
+                contactForm.reset();
+            });
+        }
     }
 }
 
@@ -181,7 +190,7 @@ function createBlogPostHTML(post) {
 async function handleContactForm() {
     const form = document.getElementById('contact-form');
     const resultDiv = document.getElementById('contact-result');
-    const submitBtn = form.querySelector('button[type="submit"]');
+    const submitBtn = document.getElementById('contact-submit');
     
     // Get form data
     const formData = new FormData(form);

@@ -99,20 +99,29 @@
     <!-- Disclaimer Modal -->
     <div id="disclaimer-modal" class="modal" style="display: none;">
         <div class="modal-content">
-            <span class="close-modal" id="close-disclaimer-modal">&times;</span>
-            <h2>Disclaimer</h2>
-            <div class="disclaimer-content">
-                <p><strong>Educational Purpose:</strong> Codebotiks is designed for educational purposes to help users learn programming concepts and improve their coding skills.</p>
-                
-                <p><strong>AI-Generated Content:</strong> This platform uses OpenAI's technology to provide code analysis, explanations, and feedback. While we strive for accuracy, AI-generated content may occasionally contain errors or inaccuracies.</p>
-                
-                <p><strong>No Warranty:</strong> The information and feedback provided by Codebotiks is offered "as is" without warranty of any kind. Users should verify important information independently.</p>
-                
-                <p><strong>User Responsibility:</strong> Users are responsible for understanding and following best practices in software development. Always test code thoroughly before using in production environments.</p>
-                
-                <p><strong>Data Usage:</strong> Code submitted to the platform may be processed by OpenAI's services in accordance with their terms of service. Do not submit sensitive, proprietary, or confidential code.</p>
-                
-                <p><strong>Limitation of Liability:</strong> Codebotiks and its creators are not liable for any damages arising from the use of this platform or reliance on its content.</p>
+            <div class="modal-header">
+                <h2>Disclaimer</h2>
+                <button class="close-btn" id="close-disclaimer-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="disclaimer-content">
+                    <h3>Website Disclaimer</h3>
+                    <p><strong>Educational Purpose:</strong> This website is provided for educational purposes only. The content, tools, and services are designed to help users learn programming concepts and improve their coding skills.</p>
+                    
+                    <h3>Code Usage and AI Training</h3>
+                    <p><strong>Important Notice:</strong> Any code submitted, analyzed, or processed through this website may be used by OpenAI for training their AI models. By using our services, you consent to this usage. This arrangement allows us to receive free API credits from OpenAI, which helps us keep our educational platform free for all users.</p>
+                    
+                    <h3>No Warranty</h3>
+                    <p>The information and services provided on this website are on an "as is" basis. We make no warranties, expressed or implied, and hereby disclaim all other warranties including implied warranties of merchantability, fitness for a particular purpose, or non-infringement.</p>
+                    
+                    <h3>Limitation of Liability</h3>
+                    <p>In no event shall Codebotiks be liable for any damages arising from the use or inability to use this website or its services.</p>
+                    
+                    <h3>Privacy</h3>
+                    <p>Please do not submit any personal, confidential, or proprietary information through our code analysis tools. Any code submitted should be considered public for learning purposes.</p>
+                    
+                    <p><em>By continuing to use this website, you acknowledge that you have read, understood, and agree to this disclaimer.</em></p>
+                </div>
             </div>
         </div>
     </div>
@@ -120,69 +129,87 @@
     <!-- Contact Modal -->
     <div id="contact-modal" class="modal" style="display: none;">
         <div class="modal-content">
-            <span class="close-modal" id="close-contact-modal">&times;</span>
-            <h2>Contact Us</h2>
-            <form id="contact-form" class="contact-form">
-                <div class="form-group">
-                    <label for="contact-name">Name:</label>
-                    <input type="text" id="contact-name" name="name" required>
-                </div>
-                <div class="form-group">
-                    <label for="contact-email">Email:</label>
-                    <input type="email" id="contact-email" name="email" required>
-                </div>
-                <div class="form-group">
-                    <label for="contact-subject">Subject:</label>
-                    <input type="text" id="contact-subject" name="subject" required>
-                </div>
-                <div class="form-group">
-                    <label for="contact-message">Message:</label>
-                    <textarea id="contact-message" name="message" rows="5" required></textarea>
-                </div>
-                <button type="submit" class="btn btn-primary">Send Message</button>
-            </form>
-            <div id="contact-result" class="contact-result"></div>
+            <div class="modal-header">
+                <h2>Contact Us</h2>
+                <button class="close-btn" id="close-contact-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="contact-form">
+                    <div class="form-group">
+                        <label for="contact-name">Name:</label>
+                        <input type="text" id="contact-name" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="contact-email">Email:</label>
+                        <input type="email" id="contact-email" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="contact-subject">Subject:</label>
+                        <input type="text" id="contact-subject" name="subject" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="contact-message">Message:</label>
+                        <textarea id="contact-message" name="message" rows="5" required></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn primary" id="contact-submit">Send Message</button>
+                        <button type="button" class="btn" id="contact-cancel">Cancel</button>
+                    </div>
+                </form>
+                <div id="contact-error" class="error" style="display: none;"></div>
+                <div id="contact-result" class="contact-result"></div>
+            </div>
         </div>
     </div>
 
     <!-- Auth Modal -->
     <div id="auth-modal" class="modal" style="display: none;">
         <div class="modal-content">
-            <span class="close-modal" id="close-modal">&times;</span>
-            <h2 id="auth-title">Login to Track Progress</h2>
-            <form id="auth-form">
-                <div class="form-group">
-                    <label for="email">Email:</label>
-                    <input type="email" id="email" required>
-                </div>
-                <div class="form-group">
-                    <label for="password">Password:</label>
-                    <input type="password" id="password" required>
-                </div>
-                <div id="auth-error" class="error-message"></div>
-                <button type="submit" id="auth-submit" class="btn btn-primary">Login</button>
-            </form>
-            <p class="auth-toggle-text">
-                <a href="#" id="toggle-auth">Need an account? Sign up</a>
-            </p>
+            <div class="modal-header">
+                <h2 id="auth-title">Login to Track Progress</h2>
+                <button class="close-btn" id="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="auth-form" method="POST">
+                    <div class="form-group">
+                        <label for="email">Email:</label>
+                        <input type="email" id="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password:</label>
+                        <input type="password" id="password" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn primary" id="auth-submit">Login</button>
+                        <button type="button" class="btn secondary" id="toggle-auth">Need an account? Sign up</button>
+                    </div>
+                </form>
+                <div id="auth-error" class="error" style="display: none;"></div>
+            </div>
         </div>
     </div>
 
     <!-- Progress Modal -->
     <div id="progress-modal" class="modal" style="display: none;">
         <div class="modal-content">
-            <span class="close-modal" id="close-progress-modal">&times;</span>
-            <h2>Your Progress</h2>
-            <div class="progress-stats">
-                <div class="stat">
-                    <span class="stat-number" id="completed-count">0</span>
-                    <span class="stat-label">Challenges Completed</span>
-                </div>
+            <div class="modal-header">
+                <h2>Your Progress</h2>
+                <button class="close-btn" id="close-progress-modal">&times;</button>
             </div>
-            <div class="progress-content">
-                <h3>Completed Challenges</h3>
-                <div id="completed-challenges" class="completed-challenges">
-                    <p class="placeholder">No challenges completed yet. Start coding to track your progress!</p>
+            <div class="modal-body">
+                <div id="progress-stats" class="progress-stats">
+                    <div class="stat-item">
+                        <span class="stat-number" id="completed-count">0</span>
+                        <span class="stat-label">Challenges Completed</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="total-count">44</span>
+                        <span class="stat-label">Total Challenges</span>
+                    </div>
+                </div>
+                <div id="progress-list" class="progress-list">
+                    <h3>Completed Challenges</h3>
+                    <div id="completed-challenges"></div>
                 </div>
             </div>
         </div>
