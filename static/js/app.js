@@ -1019,16 +1019,16 @@ function toggleExpandedMode() {
         const resultsSection = mainContainer.querySelector('.results-section');
         
         if (editorContainer) {
-            // Remove all inline styles - let original CSS handle layout
-            editorContainer.removeAttribute('style');
+            // Clear all inline styles completely
+            editorContainer.style.cssText = '';
         }
         if (editorSection) {
-            // Remove all inline styles
-            editorSection.removeAttribute('style');
+            // Explicitly clear the expanded styles by setting them to empty strings
+            editorSection.style.cssText = '';
         }
         if (resultsSection) {
-            // Remove all inline styles
-            resultsSection.removeAttribute('style');
+            // Clear all inline styles completely
+            resultsSection.style.cssText = '';
             resultsSection.onclick = null;
         }
         
@@ -1039,7 +1039,7 @@ function toggleExpandedMode() {
         }
         
         // Reset main container
-        mainContainer.removeAttribute('style');
+        mainContainer.style.cssText = '';
         
     } else {
         // Expand - completely hide results and make editor full width
