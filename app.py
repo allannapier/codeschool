@@ -56,6 +56,11 @@ def blog():
                          supabase_url=supabase_url,
                          supabase_anon_key=supabase_anon_key)
 
+@app.route('/robots.txt')
+def robots():
+    from flask import send_from_directory
+    return send_from_directory('.', 'robots.txt', mimetype='text/plain')
+
 @app.route('/api/analyze', methods=['POST'])
 def analyze_code():
     try:

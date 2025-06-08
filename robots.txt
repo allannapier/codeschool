@@ -1,0 +1,19 @@
+User-agent: *
+Allow: /
+Allow: /blog
+
+# Allow crawling of static assets
+Allow: /static/
+
+# Disallow API endpoints
+Disallow: /api/
+
+# Allow common bot files
+Allow: /robots.txt
+Allow: /sitemap.xml
+
+# Crawl delay (optional - helps prevent server overload)
+Crawl-delay: 1
+
+# Sitemap location (update when you add sitemap)
+# Sitemap: https://codeschool-lilac.vercel.app/sitemap.xml
