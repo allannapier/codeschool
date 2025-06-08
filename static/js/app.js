@@ -1013,28 +1013,22 @@ function toggleExpandedMode() {
         expandToggleBtn.innerHTML = '↔️';
         expandToggleBtn.title = 'Expand code editor';
         
-        // Reset to original grid layout
+        // Completely reset all inline styles to let original CSS take over
         const editorContainer = mainContainer.querySelector('.editor-container');
         const editorSection = mainContainer.querySelector('.editor-section');
         const resultsSection = mainContainer.querySelector('.results-section');
         
         if (editorContainer) {
-            // Restore original CSS grid layout
-            editorContainer.style.cssText = `
-                display: grid !important;
-                grid-template-columns: 1fr 1fr !important;
-                gap: 2rem !important;
-            `;
+            // Remove all inline styles - let original CSS handle layout
+            editorContainer.removeAttribute('style');
         }
         if (editorSection) {
-            // Reset editor section to normal
-            editorSection.style.cssText = '';
+            // Remove all inline styles
+            editorSection.removeAttribute('style');
         }
         if (resultsSection) {
-            // Show results section again
-            resultsSection.style.cssText = `
-                display: block !important;
-            `;
+            // Remove all inline styles
+            resultsSection.removeAttribute('style');
             resultsSection.onclick = null;
         }
         
@@ -1045,7 +1039,7 @@ function toggleExpandedMode() {
         }
         
         // Reset main container
-        mainContainer.style.cssText = '';
+        mainContainer.removeAttribute('style');
         
     } else {
         // Expand - completely hide results and make editor full width
