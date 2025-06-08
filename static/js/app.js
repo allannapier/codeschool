@@ -1019,13 +1019,22 @@ function toggleExpandedMode() {
         const resultsSection = mainContainer.querySelector('.results-section');
         
         if (editorContainer) {
-            editorContainer.style.cssText = '';
+            // Restore original CSS grid layout
+            editorContainer.style.cssText = `
+                display: grid !important;
+                grid-template-columns: 1fr 1fr !important;
+                gap: 2rem !important;
+            `;
         }
         if (editorSection) {
+            // Reset editor section to normal
             editorSection.style.cssText = '';
         }
         if (resultsSection) {
-            resultsSection.style.cssText = '';
+            // Show results section again
+            resultsSection.style.cssText = `
+                display: block !important;
+            `;
             resultsSection.onclick = null;
         }
         
