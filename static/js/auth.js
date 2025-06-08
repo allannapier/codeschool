@@ -116,22 +116,40 @@ async function initAuth() {
     try {
         let session = null;
         
+        console.log('Attempting to get session...');
+        console.log('LocalStorage supabase keys:', Object.keys(localStorage).filter(key => key.includes('supabase')));
+        
         // Handle both v1 and v2 Supabase API
         if (supabase.auth.getSession) {
             // v2 API
+            console.log('Using v2 getSession API');
             const { data: { session: sessionData } } = await supabase.auth.getSession();
             session = sessionData;
         } else if (supabase.auth.session) {
-            // v1 API
+            // v1 API - session() is a synchronous method
+            console.log('Using v1 session API');
             session = supabase.auth.session();
+        } else if (supabase.auth.user) {
+            // v1 API alternative - check current user
+            console.log('Using v1 user API');
+            const user = supabase.auth.user();
+            if (user) {
+                session = { user: user };
+            }
         } else {
             console.error('Unable to get session from Supabase auth');
+            console.log('Available auth methods:', Object.keys(supabase.auth));
             return;
         }
         
-        if (session) {
+        console.log('Session retrieved:', !!session, session?.user?.email);
+        
+        if (session && session.user) {
             currentUser = session.user;
             updateAuthUI();
+            console.log('User session restored:', currentUser.email);
+        } else {
+            console.log('No active session found');
         }
     } catch (error) {
         console.error('Error getting session:', error);

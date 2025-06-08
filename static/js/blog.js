@@ -254,16 +254,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     const waitForSupabase = () => {
         return new Promise((resolve) => {
             if (window.supabase && window.SUPABASE_CONFIG?.url && window.SUPABASE_CONFIG?.anonKey) {
+                console.log('Supabase already ready');
                 resolve();
             } else {
-                window.addEventListener('supabaseReady', resolve, { once: true });
+                console.log('Waiting for Supabase ready event...');
+                window.addEventListener('supabaseReady', () => {
+                    console.log('Supabase ready event received');
+                    resolve();
+                }, { once: true });
                 // Fallback timeout
-                setTimeout(resolve, 5000);
+                setTimeout(() => {
+                    console.log('Supabase ready timeout reached');
+                    resolve();
+                }, 5000);
             }
         });
     };
     
     await waitForSupabase();
+    
+    // Add additional delay to ensure Supabase client is fully initialized
+    await new Promise(resolve => setTimeout(resolve, 500));
     
     // Initialize auth system after Supabase is ready
     if (window.authSystem && window.authSystem.initAuth) {
