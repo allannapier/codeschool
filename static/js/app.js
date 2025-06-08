@@ -1068,35 +1068,41 @@ function toggleExpandedMode() {
         console.log('Found elements - container:', !!editorContainer, 'editor:', !!editorSection, 'results:', !!resultsSection);
         
         if (editorContainer && editorSection && resultsSection) {
-            // Try overriding the grid completely
-            editorContainer.style.setProperty('display', 'flex', 'important');
-            editorContainer.style.setProperty('gap', '2rem', 'important');
+            // Nuclear option: completely change the layout approach
             
-            // Set explicit widths - be more aggressive
-            editorSection.style.setProperty('flex', '1 1 auto', 'important');
-            editorSection.style.setProperty('min-width', '0', 'important');
-            editorSection.style.setProperty('width', 'auto', 'important');
+            // Make editor take full width
+            editorContainer.style.setProperty('display', 'block', 'important');
+            editorSection.style.setProperty('width', '100%', 'important');
+            editorSection.style.setProperty('background-color', 'lightgreen', 'important');
             
-            resultsSection.style.setProperty('flex', '0 0 60px', 'important');
-            resultsSection.style.setProperty('width', '60px', 'important');
-            resultsSection.style.setProperty('min-width', '60px', 'important');
-            resultsSection.style.setProperty('max-width', '60px', 'important');
-            resultsSection.style.setProperty('flex-shrink', '0', 'important');
-            resultsSection.style.setProperty('flex-grow', '0', 'important');
+            // Hide results section and create a minimal placeholder
+            resultsSection.style.setProperty('display', 'none', 'important');
             
-            // Debug styling - make it very obvious
-            editorSection.style.setProperty('background-color', 'red', 'important');
-            editorSection.style.setProperty('border', '10px solid blue', 'important');
-            resultsSection.style.setProperty('background-color', 'yellow', 'important');
-            resultsSection.style.setProperty('border', '10px solid green', 'important');
+            // Create a small floating toggle button
+            let expandedIndicator = document.getElementById('expanded-indicator');
+            if (!expandedIndicator) {
+                expandedIndicator = document.createElement('div');
+                expandedIndicator.id = 'expanded-indicator';
+                expandedIndicator.innerHTML = '📊 Results (Click to restore)';
+                expandedIndicator.style.cssText = `
+                    position: fixed !important;
+                    top: 50% !important;
+                    right: 10px !important;
+                    background: var(--primary-color) !important;
+                    color: white !important;
+                    padding: 10px !important;
+                    border-radius: 5px !important;
+                    cursor: pointer !important;
+                    z-index: 1000 !important;
+                    writing-mode: vertical-rl !important;
+                    text-orientation: mixed !important;
+                    font-size: 12px !important;
+                `;
+                expandedIndicator.onclick = () => toggleExpandedMode();
+                document.body.appendChild(expandedIndicator);
+            }
             
-            console.log('Applied flexbox layout instead of grid');
-            
-            // Debug - check what actually got applied
-            console.log('Container display after:', getComputedStyle(editorContainer).display);
-            console.log('Editor section flex after:', getComputedStyle(editorSection).flex);
-            console.log('Results section flex after:', getComputedStyle(resultsSection).flex);
-            console.log('Results section width after:', getComputedStyle(resultsSection).width);
+            console.log('Applied nuclear layout change - hidden results, full-width editor');
         }
         
         // Also style the main container for visibility
