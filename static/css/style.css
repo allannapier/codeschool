@@ -461,18 +461,12 @@ body {
 }
 
 /* Expanded layout styles */
-.container.expanded {
+.container.expanded .editor-container {
+    grid-template-columns: 1fr 60px;
     transition: all 0.3s ease;
 }
 
-.container.expanded .editor-container {
-    flex: 1;
-    max-width: none;
-}
-
 .container.expanded .results-section {
-    flex: 0 0 60px;
-    max-width: 60px;
     min-height: auto;
     transition: all 0.3s ease;
 }

@@ -1000,21 +1000,33 @@ function toggleExpandedMode() {
     const expandToggleBtn = document.getElementById('expand-toggle');
     const resultsSection = document.querySelector('.results-section');
     
-    if (!mainContainer || !expandToggleBtn) return;
+    console.log('Toggle clicked!');
+    console.log('Container:', mainContainer);
+    console.log('Results section:', resultsSection);
+    
+    if (!mainContainer || !expandToggleBtn) {
+        console.log('Missing elements - container:', !!mainContainer, 'button:', !!expandToggleBtn);
+        return;
+    }
     
     const isExpanded = mainContainer.classList.contains('expanded');
+    console.log('Currently expanded:', isExpanded);
     
     if (isExpanded) {
         // Collapse - return to normal view
         mainContainer.classList.remove('expanded');
         expandToggleBtn.innerHTML = '↔️';
         expandToggleBtn.title = 'Expand code editor';
+        console.log('Collapsed - removed expanded class');
     } else {
         // Expand - minimize results panel
         mainContainer.classList.add('expanded');
         expandToggleBtn.innerHTML = '↩️';
         expandToggleBtn.title = 'Restore normal view';
+        console.log('Expanded - added expanded class');
     }
+    
+    console.log('Container classes after toggle:', mainContainer.className);
     
     // Trigger Monaco editor resize after transition
     setTimeout(() => {
