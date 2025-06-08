@@ -1007,12 +1007,12 @@ function toggleExpandedMode() {
     if (isExpanded) {
         // Collapse - return to normal view
         mainContainer.classList.remove('expanded');
-        expandToggleBtn.innerHTML = '⬅️';
+        expandToggleBtn.innerHTML = '↔️';
         expandToggleBtn.title = 'Expand code editor';
     } else {
         // Expand - minimize results panel
         mainContainer.classList.add('expanded');
-        expandToggleBtn.innerHTML = '➡️';
+        expandToggleBtn.innerHTML = '↩️';
         expandToggleBtn.title = 'Restore normal view';
     }
     
