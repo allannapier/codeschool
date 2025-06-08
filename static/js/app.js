@@ -1021,27 +1021,40 @@ function toggleExpandedMode() {
         expandToggleBtn.innerHTML = '↔️';
         expandToggleBtn.title = 'Expand code editor';
         
-        // Completely reset all inline styles to let original CSS take over
+        // Nuclear reset approach - completely recreate the layout
         const editorContainer = mainContainer.querySelector('.editor-container');
         const editorSection = mainContainer.querySelector('.editor-section');
         const resultsSection = mainContainer.querySelector('.results-section');
         
-        if (editorContainer) {
-            // Clear all inline styles completely
+        if (editorContainer && editorSection && resultsSection) {
+            console.log('Before reset - editor section styles:', editorSection.style.cssText);
+            console.log('Before reset - results section styles:', resultsSection.style.cssText);
+            
+            // Force layout recalculation by temporarily removing and re-adding elements
+            const resultsParent = resultsSection.parentNode;
+            const resultsNextSibling = resultsSection.nextSibling;
+            
+            // Remove results section temporarily
+            resultsParent.removeChild(resultsSection);
+            
+            // Clear all styles
             editorContainer.style.cssText = '';
-        }
-        if (editorSection) {
-            // Explicitly clear the expanded styles by setting them to empty strings
-            console.log('Before clearing - editor section inline styles:', editorSection.style.cssText);
             editorSection.style.cssText = '';
-            console.log('After clearing - editor section inline styles:', editorSection.style.cssText);
-        }
-        if (resultsSection) {
-            // Clear all inline styles completely and ensure it's visible
-            console.log('Before clearing - results section inline styles:', resultsSection.style.cssText);
             resultsSection.style.cssText = '';
-            resultsSection.style.display = 'block'; // Explicitly show it
-            console.log('After clearing - results section inline styles:', resultsSection.style.cssText);
+            
+            // Force a reflow
+            editorContainer.offsetHeight;
+            
+            // Re-add results section
+            if (resultsNextSibling) {
+                resultsParent.insertBefore(resultsSection, resultsNextSibling);
+            } else {
+                resultsParent.appendChild(resultsSection);
+            }
+            
+            console.log('After reset - editor section styles:', editorSection.style.cssText);
+            console.log('After reset - results section styles:', resultsSection.style.cssText);
+            
             resultsSection.onclick = null;
         }
         
