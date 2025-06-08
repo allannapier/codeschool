@@ -460,15 +460,21 @@ body {
     }
 }
 
-/* Expanded layout styles */
+/* Expanded layout styles - Simple test first */
+.container.expanded {
+    border: 5px solid red !important; /* DEBUG: Should add red border to main container */
+}
+
 .container.expanded .editor-container {
-    grid-template-columns: 1fr 60px;
+    grid-template-columns: 1fr 60px !important;
     transition: all 0.3s ease;
+    background-color: red !important; /* DEBUG: Should make container red when expanded */
 }
 
 .container.expanded .results-section {
     min-height: auto;
     transition: all 0.3s ease;
+    background-color: yellow !important; /* DEBUG: Should make results yellow when expanded */
 }
 
 .container.expanded .results-section .results-header {
