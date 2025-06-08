@@ -155,13 +155,6 @@ function createBlogPostHTML(post) {
         day: 'numeric'
     });
     
-    // Get first paragraph as excerpt (limit to 200 chars)
-    const textLines = post.blog_text.split('\n').filter(line => line.trim());
-    const firstParagraph = textLines[0] || '';
-    const excerpt = firstParagraph.length > 200 
-        ? firstParagraph.substring(0, 200) + '...' 
-        : firstParagraph;
-    
     return `
         <article class="blog-post">
             ${post.blog_image_url ? `
@@ -178,7 +171,6 @@ function createBlogPostHTML(post) {
                     <span class="blog-post-date">${date}</span>
                 </div>
                 <h2 class="blog-post-title">${post.blog_title}</h2>
-                ${excerpt ? `<p class="blog-post-excerpt">${excerpt}</p>` : ''}
                 <div class="blog-post-text">${post.blog_text}</div>
             </div>
         </article>
