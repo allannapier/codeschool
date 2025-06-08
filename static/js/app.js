@@ -1044,11 +1044,12 @@ function toggleExpandedMode() {
         console.log('Editor container element:', editorContainer);
         if (editorContainer) {
             console.log('Current grid-template-columns:', getComputedStyle(editorContainer).gridTemplateColumns);
-            editorContainer.style.gridTemplateColumns = '1fr 60px';
-            editorContainer.style.backgroundColor = 'red'; // DEBUG
+            editorContainer.style.setProperty('grid-template-columns', '1fr 60px', 'important');
+            editorContainer.style.setProperty('background-color', 'red', 'important');
             console.log('After setting - grid-template-columns:', editorContainer.style.gridTemplateColumns);
             console.log('After setting - background:', editorContainer.style.backgroundColor);
-            console.log('Applied inline styles to editor-container');
+            console.log('Computed style after setting:', getComputedStyle(editorContainer).gridTemplateColumns);
+            console.log('Applied inline styles to editor-container with !important');
         }
         
         // Also style the main container for visibility
