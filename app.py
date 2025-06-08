@@ -44,6 +44,16 @@ def index():
                          supabase_url=supabase_url,
                          supabase_anon_key=supabase_anon_key)
 
+@app.route('/blog')
+def blog():
+    # Pass Supabase credentials to frontend
+    supabase_url = os.getenv('SUPABASE_URL', '')
+    supabase_anon_key = os.getenv('SUPABASE_ANON_KEY', '')
+    
+    return render_template('blog.html', 
+                         supabase_url=supabase_url,
+                         supabase_anon_key=supabase_anon_key)
+
 @app.route('/api/analyze', methods=['POST'])
 def analyze_code():
     try:
@@ -384,6 +394,44 @@ def test_email():
         return jsonify({
             'success': False,
             'error': str(e)
+        }), 500
+
+@app.route('/api/blog-posts', methods=['GET'])
+def get_blog_posts():
+    """
+    Load all blog posts from the blog_posts directory
+    """
+    try:
+        import glob
+        from datetime import datetime
+        
+        blog_posts = []
+        post_files = glob.glob('blog_posts/*.json')
+        
+        for file_path in post_files:
+            try:
+                with open(file_path, 'r') as file:
+                    post_data = json.load(file)
+                    # Add filename for reference
+                    post_data['filename'] = os.path.basename(file_path)
+                    blog_posts.append(post_data)
+            except Exception as e:
+                print(f"Error loading blog post {file_path}: {str(e)}")
+                continue
+        
+        # Sort by created_date (newest first)
+        blog_posts.sort(key=lambda x: x.get('created_date', ''), reverse=True)
+        
+        return jsonify({
+            'success': True,
+            'posts': blog_posts
+        })
+        
+    except Exception as e:
+        print(f"Error loading blog posts: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to load blog posts'
         }), 500
 
 if __name__ == '__main__':

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog - Codebotiks</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/umd/supabase.js"></script>
+    <script>
+        // Check if Supabase v1 loaded (it has a different API)
+        setTimeout(() => {
+            if (window.supabase && window.supabase.createClient) {
+                window.dispatchEvent(new CustomEvent('supabaseReady'));
+            } else {
+                // Try loading v2 as ES module
+                const script = document.createElement('script');
+                script.type = 'module';
+                script.innerHTML = `
+                    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+                    window.supabase = { createClient };
+                    window.dispatchEvent(new CustomEvent('supabaseReady'));
+                `;
+                script.onerror = () => {
+                    // Dispatch ready anyway so app doesn't hang
+                    window.dispatchEvent(new CustomEvent('supabaseReady'));
+                };
+                document.head.appendChild(script);
+            }
+        }, 300);
+    </script>
+</head>
+<body>
+    <header class="main-header">
+        <div class="header-content">
+            <div class="header-left">
+                <div class="logo">
+                    <h1>Code<span class="logo-accent">botiks</span></h1>
+                    <span class="beta-tag">BETA</span>
+                </div>
+                <div class="tagline">
+                    <span>AI-Powered Code Learning Platform</span>
+                </div>
+            </div>
+            <div class="user-section">
+                <div class="header-actions">
+                    <span id="user-email" class="user-email" style="display: none;"></span>
+                    <button id="auth-toggle-btn" class="btn btn-outline">Login</button>
+                    <button id="menu-toggle" class="menu-toggle">
+                        <span class="hamburger-line"></span>
+                        <span class="hamburger-line"></span>
+                        <span class="hamburger-line"></span>
+                    </button>
+                </div>
+                <nav class="nav-menu" id="nav-menu">
+                    <a href="/" class="nav-link">🏠 Home</a>
+                    <a href="/blog" class="nav-link active">📝 Blog</a>
+                    <button id="progress-btn" class="nav-link progress-link">📊 Progress</button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="blog-main">
+        <div class="blog-container">
+            <div class="blog-header">
+                <h1>Codebotiks Blog</h1>
+                <p>Insights, tips, and updates from the world of AI-powered coding education</p>
+            </div>
+            
+            <div id="blog-posts" class="blog-posts">
+                <div class="loading">Loading blog posts...</div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="main-footer">
+        <div class="footer-content">
+            <div class="footer-links">
+                <a href="#" id="disclaimer-link">Disclaimer</a>
+                <a href="#" id="contact-link">Contact Us</a>
+            </div>
+            <div class="footer-text">
+                <p>&copy; 2025 Codebotiks. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Disclaimer Modal -->
+    <div id="disclaimer-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" id="close-disclaimer-modal">&times;</span>
+            <h2>Disclaimer</h2>
+            <div class="disclaimer-content">
+                <p><strong>Educational Purpose:</strong> Codebotiks is designed for educational purposes to help users learn programming concepts and improve their coding skills.</p>
+                
+                <p><strong>AI-Generated Content:</strong> This platform uses OpenAI's technology to provide code analysis, explanations, and feedback. While we strive for accuracy, AI-generated content may occasionally contain errors or inaccuracies.</p>
+                
+                <p><strong>No Warranty:</strong> The information and feedback provided by Codebotiks is offered "as is" without warranty of any kind. Users should verify important information independently.</p>
+                
+                <p><strong>User Responsibility:</strong> Users are responsible for understanding and following best practices in software development. Always test code thoroughly before using in production environments.</p>
+                
+                <p><strong>Data Usage:</strong> Code submitted to the platform may be processed by OpenAI's services in accordance with their terms of service. Do not submit sensitive, proprietary, or confidential code.</p>
+                
+                <p><strong>Limitation of Liability:</strong> Codebotiks and its creators are not liable for any damages arising from the use of this platform or reliance on its content.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Modal -->
+    <div id="contact-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" id="close-contact-modal">&times;</span>
+            <h2>Contact Us</h2>
+            <form id="contact-form" class="contact-form">
+                <div class="form-group">
+                    <label for="contact-name">Name:</label>
+                    <input type="text" id="contact-name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="contact-email">Email:</label>
+                    <input type="email" id="contact-email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="contact-subject">Subject:</label>
+                    <input type="text" id="contact-subject" name="subject" required>
+                </div>
+                <div class="form-group">
+                    <label for="contact-message">Message:</label>
+                    <textarea id="contact-message" name="message" rows="5" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Send Message</button>
+            </form>
+            <div id="contact-result" class="contact-result"></div>
+        </div>
+    </div>
+
+    <!-- Auth Modal -->
+    <div id="auth-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" id="close-modal">&times;</span>
+            <h2 id="auth-title">Login to Track Progress</h2>
+            <form id="auth-form">
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" required>
+                </div>
+                <div id="auth-error" class="error-message"></div>
+                <button type="submit" id="auth-submit" class="btn btn-primary">Login</button>
+            </form>
+            <p class="auth-toggle-text">
+                <a href="#" id="toggle-auth">Need an account? Sign up</a>
+            </p>
+        </div>
+    </div>
+
+    <!-- Progress Modal -->
+    <div id="progress-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" id="close-progress-modal">&times;</span>
+            <h2>Your Progress</h2>
+            <div class="progress-stats">
+                <div class="stat">
+                    <span class="stat-number" id="completed-count">0</span>
+                    <span class="stat-label">Challenges Completed</span>
+                </div>
+            </div>
+            <div class="progress-content">
+                <h3>Completed Challenges</h3>
+                <div id="completed-challenges" class="completed-challenges">
+                    <p class="placeholder">No challenges completed yet. Start coding to track your progress!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Inject Supabase configuration
+        window.SUPABASE_CONFIG = {
+            url: '{{ supabase_url }}',
+            anonKey: '{{ supabase_anon_key }}'
+        };
+    </script>
+    <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/blog.js') }}"></script>
+</body>
+</html>
