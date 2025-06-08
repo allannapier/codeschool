@@ -241,9 +241,45 @@ window.showSuccess = function(message) {
     alert(message);
 };
 
+// Demo modal functions
+function showDemoModal() {
+    const demoModal = document.getElementById('demo-modal');
+    if (demoModal) {
+        demoModal.style.display = 'flex';
+    }
+}
+
+function hideDemoModal() {
+    const demoModal = document.getElementById('demo-modal');
+    if (demoModal) {
+        demoModal.style.display = 'none';
+    }
+}
+
 // Initialize blog when DOM is loaded
 document.addEventListener('DOMContentLoaded', async () => {
     await initBlog();
+    
+    // Initialize demo modal
+    const demoBtn = document.getElementById('demo-btn');
+    const demoModal = document.getElementById('demo-modal');
+    const closeDemoModal = document.getElementById('close-demo-modal');
+    
+    if (demoBtn) {
+        demoBtn.addEventListener('click', showDemoModal);
+    }
+    
+    if (closeDemoModal) {
+        closeDemoModal.addEventListener('click', hideDemoModal);
+    }
+    
+    if (demoModal) {
+        demoModal.addEventListener('click', (e) => {
+            if (e.target === demoModal) {
+                hideDemoModal();
+            }
+        });
+    }
     
     // Wait for Supabase to be ready before initializing auth
     const waitForSupabase = () => {
