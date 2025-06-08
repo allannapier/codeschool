@@ -995,6 +995,44 @@ function switchTab(tabName) {
     }
 }
 
+function toggleExpandedMode() {
+    const mainContainer = document.querySelector('.main-container');
+    const expandToggleBtn = document.getElementById('expand-toggle');
+    const resultsSection = document.querySelector('.results-section');
+    
+    if (!mainContainer || !expandToggleBtn) return;
+    
+    const isExpanded = mainContainer.classList.contains('expanded');
+    
+    if (isExpanded) {
+        // Collapse - return to normal view
+        mainContainer.classList.remove('expanded');
+        expandToggleBtn.innerHTML = '⬅️';
+        expandToggleBtn.title = 'Expand code editor';
+    } else {
+        // Expand - minimize results panel
+        mainContainer.classList.add('expanded');
+        expandToggleBtn.innerHTML = '➡️';
+        expandToggleBtn.title = 'Restore normal view';
+    }
+    
+    // Trigger Monaco editor resize after transition
+    setTimeout(() => {
+        if (editor) {
+            editor.layout();
+        }
+    }, 300);
+    
+    // Make entire results section clickable when collapsed
+    if (resultsSection) {
+        resultsSection.onclick = isExpanded ? null : () => {
+            if (mainContainer.classList.contains('expanded')) {
+                toggleExpandedMode();
+            }
+        };
+    }
+}
+
 // Footer modal functions
 function showDisclaimerModal() {
     if (disclaimerModal) {
@@ -1141,6 +1179,10 @@ document.addEventListener('DOMContentLoaded', async function() {
     aiFeedbackContent = document.getElementById('ai-feedback-content');
     codeOutputContent = document.getElementById('code-output-content');
     
+    // Initialize expand toggle
+    const expandToggleBtn = document.getElementById('expand-toggle');
+    const mainContainer = document.querySelector('.main-container');
+    
     // Initialize footer elements
     disclaimerBtn = document.getElementById('disclaimer-btn');
     contactBtn = document.getElementById('contact-btn');
@@ -1203,6 +1245,11 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     if (codeOutputTab) {
         codeOutputTab.addEventListener('click', () => switchTab('code-output'));
+    }
+    
+    // Add expand toggle event listener
+    if (expandToggleBtn && mainContainer) {
+        expandToggleBtn.addEventListener('click', toggleExpandedMode);
     }
     
     // Add footer event listeners

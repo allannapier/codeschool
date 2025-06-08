@@ -6,6 +6,8 @@
     <meta name="description" content="Codebotiks is an AI-powered platform for learning programming. Practice coding challenges, get AI feedback, and track your progress in Python, JavaScript, and more.">
     <title>Codebotiks - AI-Powered Code Learning</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5628713824897873"
+            crossorigin="anonymous"></script>
     <script src="https://unpkg.com/monaco-editor@0.45.0/min/vs/loader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/umd/supabase.js"></script>
     <script>
@@ -150,9 +152,12 @@
             <div class="results-section">
                 <div class="results-header">
                     <h3>Results</h3>
-                    <div class="tab-buttons">
-                        <button id="ai-feedback-tab" class="tab-btn active">🤖 AI Feedback</button>
-                        <button id="code-output-tab" class="tab-btn">🖥️ Code Output</button>
+                    <div class="results-header-controls">
+                        <div class="tab-buttons">
+                            <button id="ai-feedback-tab" class="tab-btn active">🤖 AI Feedback</button>
+                            <button id="code-output-tab" class="tab-btn">🖥️ Code Output</button>
+                        </div>
+                        <button id="expand-toggle" class="expand-toggle-btn" title="Expand code editor">⬅️</button>
                     </div>
                 </div>
                 

@@ -61,6 +61,11 @@ def robots():
     from flask import send_from_directory
     return send_from_directory('.', 'robots.txt', mimetype='text/plain')
 
+@app.route('/ads.txt')
+def ads():
+    from flask import send_from_directory
+    return send_from_directory('.', 'ads.txt', mimetype='text/plain')
+
 @app.route('/api/analyze', methods=['POST'])
 def analyze_code():
     try:
