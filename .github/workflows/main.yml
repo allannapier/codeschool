@@ -1,188 +1,25 @@
-# .github/workflows/claude-debug.yml
-name: Claude Code Debug Test
+# .github/workflows/claude-official.yml
+name: Claude Code Official Action
 
 on:
-  workflow_dispatch:  # Allows manual triggering
-  push:
-    branches: [ main ]  # Remove this if you don't want it to run on every push
+  workflow_dispatch:
+    inputs:
+      prompt:
+        description: 'Prompt for Claude Code'
+        required: true
+        default: 'echo "Hello from Claude Code!"'
 
 jobs:
-  debug-claude:
+  claude-task:
     runs-on: ubuntu-latest
     
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
       
-    - name: Setup Node.js (if needed)
-      uses: actions/setup-node@v4
+    - name: Run Claude Code
+      uses: anthropics/claude-code-base-action@beta
       with:
-        node-version: '18'
-        
-    - name: Setup npm for proper Claude Code installation
-      run: |
-        echo "=== Current npm configuration ==="
-        echo "NPM prefix: $(npm config get prefix)"
-        echo "NPM global root: $(npm root -g)"
-        
-        echo "=== Installing Claude Code ==="
-        npm install -g @anthropic-ai/claude-code
-        
-        echo "=== Finding Claude Code binary ==="
-        NPM_PREFIX=$(npm config get prefix)
-        echo "NPM prefix is: $NPM_PREFIX"
-        
-        # Look for the claude-code binary in common locations
-        echo "Searching for claude-code binary:"
-        find $NPM_PREFIX -name "claude-code" -type f 2>/dev/null || echo "Not found in npm prefix"
-        find /opt/hostedtoolcache -name "claude-code" -type f 2>/dev/null || echo "Not found in hostedtoolcache"
-        
-        # Check the bin directory specifically
-        if [ -d "$NPM_PREFIX/bin" ]; then
-          echo "Contents of $NPM_PREFIX/bin:"
-          ls -la "$NPM_PREFIX/bin/" | grep claude || echo "No claude binary in bin"
-        fi
-        
-        # Also check node_modules/.bin
-        NPM_ROOT=$(npm root -g)
-        if [ -d "$NPM_ROOT/.bin" ]; then
-          echo "Contents of $NPM_ROOT/.bin:"
-          ls -la "$NPM_ROOT/.bin/" | grep claude || echo "No claude binary in node_modules/.bin"
-        fi
-        
-        # Check if there's a claude-code package directory
-        if [ -d "$NPM_ROOT/@anthropic-ai/claude-code" ]; then
-          echo "Claude Code package contents:"
-          find "$NPM_ROOT/@anthropic-ai/claude-code" -name "claude-code" -o -name "cli*" -o -name "bin*" -type f 2>/dev/null
-        fi
-        
-    - name: Verify Claude Code installation
-      run: |
-        echo "=== Claude Code Version ==="
-        claude-code --version || echo "Failed to get version"
-        echo "=== Which Claude Code ==="
-        which claude-code || echo "claude-code not found in PATH"
-        
-    - name: Check environment variables
-      env:
-        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-      run: |
-        echo "=== Environment Check ==="
-        echo "API Key length: ${#ANTHROPIC_API_KEY}"
-        echo "API Key starts with: ${ANTHROPIC_API_KEY:0:8}..."
-        echo "NODE_ENV: $NODE_ENV"
-        echo "PATH: $PATH"
-        
-    - name: Test API connectivity
-      env:
-        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-      run: |
-        echo "=== Testing API Connectivity ==="
-        curl -v -H "Authorization: Bearer $ANTHROPIC_API_KEY" \
-             -H "Content-Type: application/json" \
-             -H "anthropic-version: 2023-06-01" \
-             https://api.anthropic.com/v1/messages \
-             -d '{
-               "model": "claude-3-sonnet-20240229",
-               "max_tokens": 10,
-               "messages": [{"role": "user", "content": "Hi"}]
-             }' || echo "API test failed"
-             
-    - name: Test Claude Code in headless mode
-      env:
-        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-      run: |
-        echo "=== Testing Claude Code in Headless Mode ==="
-        set -x  # Enable command tracing
-        
-        # Find where claude-code actually is
-        NPM_PREFIX=$(npm config get prefix)
-        NPM_ROOT=$(npm root -g)
-        
-        # Find the actual binary
-        CLAUDE_CODE_PATH=""
-        for potential_path in \
-          "$NPM_PREFIX/bin/claude-code" \
-          "$NPM_ROOT/.bin/claude-code" \
-          "$NPM_ROOT/@anthropic-ai/claude-code/bin/claude-code" \
-          "$NPM_ROOT/@anthropic-ai/claude-code/cli.js"
-        do
-          if [ -f "$potential_path" ]; then
-            CLAUDE_CODE_PATH="$potential_path"
-            break
-          fi
-        done
-        
-        if [ -n "$CLAUDE_CODE_PATH" ]; then
-          echo "Found claude-code at: $CLAUDE_CODE_PATH"
-          
-          # Make it executable
-          chmod +x "$CLAUDE_CODE_PATH" 2>/dev/null || true
-          
-          echo "=== Testing headless mode with -p flag ==="
-          
-          # Test 1: Simple echo command
-          echo "1. Testing simple echo command:"
-          timeout 120 "$CLAUDE_CODE_PATH" -p "echo 'Hello from Claude Code in GitHub Actions!'" 2>&1 | tee claude-output-simple.log || echo "Simple test failed with exit code: $?"
-          
-          # Test 2: Get help
-          echo "2. Testing help command:"
-          "$CLAUDE_CODE_PATH" --help 2>&1 | tee claude-help.log || echo "Help failed with exit code: $?"
-          
-          # Test 3: Version check
-          echo "3. Testing version:"
-          "$CLAUDE_CODE_PATH" --version 2>&1 | tee claude-version.log || echo "Version failed with exit code: $?"
-          
-          # Test 4: More complex task
-          echo "4. Testing file operations:"
-          timeout 120 "$CLAUDE_CODE_PATH" -p "Create a simple text file called 'test.txt' with the content 'Hello World from Claude Code'" 2>&1 | tee claude-output-file.log || echo "File test failed with exit code: $?"
-          
-          # Check if the file was created
-          if [ -f "test.txt" ]; then
-            echo "SUCCESS: test.txt was created!"
-            echo "Contents:"
-            cat test.txt
-          else
-            echo "File was not created"
-          fi
-          
-        else
-          echo "Could not find claude-code binary!"
-        fi
-        
-        echo "=== All Output Files ==="
-        for file in claude-*.log; do
-          if [ -f "$file" ]; then
-            echo "=== Contents of $file ==="
-            cat "$file"
-            echo "=== End of $file ==="
-          fi
-        done
-        
-    - name: Alternative test - try different command
-      env:
-        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-      run: |
-        echo "=== Alternative Test ==="
-        # Try the most basic claude-code command
-        timeout 60 claude-code --help || echo "Help command failed with exit code: $?"
-        
-    - name: Check system resources and limits
-      run: |
-        echo "=== System Info ==="
-        echo "Disk space:"
-        df -h
-        echo "Memory:"
-        free -h
-        echo "Network connectivity:"
-        ping -c 3 api.anthropic.com || echo "Cannot reach Anthropic API"
-        
-    - name: Upload debug logs
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: claude-debug-logs
-        path: |
-          claude-output.log
-          /tmp/claude-*
-        retention-days: 5
+        prompt: ${{ github.event.inputs.prompt }}
+        anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+        allowed_tools: "Bash,View,Edit,Create,Write,Read"
