@@ -19,10 +19,27 @@ jobs:
       with:
         node-version: '18'
         
-    - name: Install Claude Code (if not already installed)
+    - name: Install Claude Code - Try multiple methods
       run: |
-        npm install -g @anthropic-ai/claude-code
-        # Or use your preferred installation method
+        echo "=== Trying NPM Installation ==="
+        npm install -g @anthropic-ai/claude-code || echo "NPM install failed"
+        
+        echo "=== Checking if installed ==="
+        which claude-code || echo "Not found in PATH after npm install"
+        
+        echo "=== Trying alternative installation methods ==="
+        # Try alternative package names
+        npm install -g claude-code || echo "Alternative npm install failed"
+        
+        # Try installing from GitHub releases if it's distributed that way
+        echo "=== Checking available npm packages ==="
+        npm search claude-code || echo "Search failed"
+        
+        echo "=== Current PATH ==="
+        echo $PATH
+        
+        echo "=== NPM global packages ==="
+        npm list -g --depth=0 || echo "Failed to list global packages"
         
     - name: Verify Claude Code installation
       run: |
