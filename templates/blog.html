@@ -51,11 +51,22 @@
                         <span class="hamburger-line"></span>
                     </button>
                 </div>
-                <nav class="nav-menu" id="nav-menu">
-                    <a href="/" class="nav-link">🏠 Home</a>
-                    <a href="/blog" class="nav-link active">📝 Blog</a>
-                    <button id="progress-btn" class="nav-link progress-link">📊 Progress</button>
-                </nav>
+                
+                <!-- Navigation Menu -->
+                <div id="nav-menu" class="nav-menu">
+                    <div class="nav-content">
+                        <div class="nav-section">
+                            <h3>Navigation</h3>
+                            <a href="/" class="nav-link">🏠 Home</a>
+                            <a href="/blog" class="nav-link active">📝 Blog</a>
+                        </div>
+                        
+                        <div class="nav-section">
+                            <h3>Progress</h3>
+                            <button id="progress-btn" class="menu-btn">📊 View Progress</button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </header>
@@ -135,7 +146,7 @@
     </div>
 
     <!-- Auth Modal -->
-    <div id="auth-modal" class="modal">
+    <div id="auth-modal" class="modal" style="display: none;">
         <div class="modal-content">
             <span class="close-modal" id="close-modal">&times;</span>
             <h2 id="auth-title">Login to Track Progress</h2>
