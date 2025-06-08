@@ -1001,7 +1001,6 @@ function toggleExpandedMode() {
     const editorContainer = document.querySelector('.editor-container');
     
     if (!mainContainer || !expandToggleBtn || !editorContainer) {
-        console.log('Missing elements');
         return;
     }
     
@@ -1013,7 +1012,6 @@ function toggleExpandedMode() {
     setTimeout(() => { expandToggleBtn.disabled = false; }, 500);
     
     const isExpanded = editorContainer.classList.contains('expanded');
-    console.log('toggleExpandedMode called, isExpanded:', isExpanded);
     
     if (isExpanded) {
         // Collapse - return to normal view using CSS classes
@@ -1026,8 +1024,6 @@ function toggleExpandedMode() {
         if (expandedIndicator) {
             expandedIndicator.remove();
         }
-        
-        console.log('Collapsed - removed expanded class');
         
     } else {
         // Expand - use CSS classes for smooth animation
@@ -1073,8 +1069,6 @@ function toggleExpandedMode() {
             expandedIndicator.onclick = () => toggleExpandedMode();
             document.body.appendChild(expandedIndicator);
         }
-        
-        console.log('Expanded - added expanded class');
     }
     
     // Trigger Monaco editor resize after layout change
@@ -1234,9 +1228,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Initialize expand toggle
     const expandToggleBtn = document.getElementById('expand-toggle');
     const mainContainer = document.querySelector('.container');
-    
-    console.log('Expand toggle button found:', !!expandToggleBtn);
-    console.log('Main container found:', !!mainContainer);
     
     // Initialize footer elements
     disclaimerBtn = document.getElementById('disclaimer-btn');
