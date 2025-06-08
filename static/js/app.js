@@ -1033,14 +1033,20 @@ function toggleExpandedMode() {
         if (editorSection) {
             editorSection.style.flex = '';
             editorSection.style.minWidth = '';
+            editorSection.style.width = '';
             editorSection.style.backgroundColor = '';
+            editorSection.style.border = '';
             console.log('Reset editor section styles');
         }
         if (resultsSection) {
             resultsSection.style.flex = '';
+            resultsSection.style.width = '';
             resultsSection.style.minWidth = '';
             resultsSection.style.maxWidth = '';
+            resultsSection.style.flexShrink = '';
+            resultsSection.style.flexGrow = '';
             resultsSection.style.backgroundColor = '';
+            resultsSection.style.border = '';
             console.log('Reset results section styles');
         }
         
@@ -1066,12 +1072,17 @@ function toggleExpandedMode() {
             editorContainer.style.setProperty('display', 'flex', 'important');
             editorContainer.style.setProperty('gap', '2rem', 'important');
             
-            // Set explicit widths
-            editorSection.style.setProperty('flex', '1', 'important');
+            // Set explicit widths - be more aggressive
+            editorSection.style.setProperty('flex', '1 1 auto', 'important');
             editorSection.style.setProperty('min-width', '0', 'important');
+            editorSection.style.setProperty('width', 'auto', 'important');
+            
             resultsSection.style.setProperty('flex', '0 0 60px', 'important');
+            resultsSection.style.setProperty('width', '60px', 'important');
             resultsSection.style.setProperty('min-width', '60px', 'important');
             resultsSection.style.setProperty('max-width', '60px', 'important');
+            resultsSection.style.setProperty('flex-shrink', '0', 'important');
+            resultsSection.style.setProperty('flex-grow', '0', 'important');
             
             // Debug styling - make it very obvious
             editorSection.style.setProperty('background-color', 'red', 'important');
