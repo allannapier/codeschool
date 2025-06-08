@@ -536,6 +536,7 @@ let resultsDiv, loadingDiv;
 let aiFeedbackTab, codeOutputTab, aiFeedbackContent, codeOutputContent;
 let disclaimerBtn, contactBtn, disclaimerModal, contactModal;
 let closeDisclaimerModal, closeContactModal, contactForm;
+let demoBtn, demoModal, closeDemoModal;
 
 // Challenge data
 let challengesData = [];
@@ -1106,6 +1107,18 @@ function hideContactModal() {
     }
 }
 
+function showDemoModal() {
+    if (demoModal) {
+        demoModal.style.display = 'flex';
+    }
+}
+
+function hideDemoModal() {
+    if (demoModal) {
+        demoModal.style.display = 'none';
+    }
+}
+
 function showContactError(message) {
     const errorDiv = document.getElementById('contact-error');
     if (errorDiv) {
@@ -1232,6 +1245,11 @@ document.addEventListener('DOMContentLoaded', async function() {
     closeContactModal = document.getElementById('close-contact-modal');
     contactForm = document.getElementById('contact-form');
     
+    // Initialize demo elements
+    demoBtn = document.getElementById('demo-btn');
+    demoModal = document.getElementById('demo-modal');
+    closeDemoModal = document.getElementById('close-demo-modal');
+    
     // Add event listeners
     analyzeBtn.addEventListener('click', analyzeCode);
     explainBtn.addEventListener('click', explainCode);
@@ -1301,12 +1319,20 @@ document.addEventListener('DOMContentLoaded', async function() {
         contactBtn.addEventListener('click', showContactModal);
     }
     
+    if (demoBtn) {
+        demoBtn.addEventListener('click', showDemoModal);
+    }
+    
     if (closeDisclaimerModal) {
         closeDisclaimerModal.addEventListener('click', hideDisclaimerModal);
     }
     
     if (closeContactModal) {
         closeContactModal.addEventListener('click', hideContactModal);
+    }
+    
+    if (closeDemoModal) {
+        closeDemoModal.addEventListener('click', hideDemoModal);
     }
     
     if (contactForm) {
@@ -1332,6 +1358,14 @@ document.addEventListener('DOMContentLoaded', async function() {
         contactModal.addEventListener('click', (e) => {
             if (e.target === contactModal) {
                 hideContactModal();
+            }
+        });
+    }
+    
+    if (demoModal) {
+        demoModal.addEventListener('click', (e) => {
+            if (e.target === demoModal) {
+                hideDemoModal();
             }
         });
     }

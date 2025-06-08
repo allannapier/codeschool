@@ -49,6 +49,7 @@
             <div class="user-section">
                 <div class="header-actions">
                     <span id="user-email" class="user-email" style="display: none;"></span>
+                    <button id="demo-btn" class="btn btn-outline" title="Watch a quick demo of how Codebotiks works">🎥 Demo</button>
                     <button id="auth-toggle-btn" class="btn btn-outline" title="Login to track your challenge progress and save your achievements">Login</button>
                     <button id="menu-toggle" class="menu-toggle" title="Open navigation menu for challenges, settings, and progress">
                         <span class="hamburger-line"></span>
@@ -326,6 +327,23 @@
                 </form>
                 <div id="contact-error" class="error" style="display: none;"></div>
                 <div id="contact-success" class="success" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Demo Modal -->
+    <div id="demo-modal" class="modal" style="display: none;">
+        <div class="modal-content demo-modal-content">
+            <div class="modal-header">
+                <h2>🎥 Codebotiks Demo</h2>
+                <button class="close-btn" id="close-demo-modal" title="Close demo">&times;</button>
+            </div>
+            <div class="modal-body demo-modal-body">
+                <div class="demo-container">
+                    <div style="position: relative; box-sizing: content-box; max-height: 80vh; max-height: 80svh; width: 100%; aspect-ratio: 1.9416342412451362; padding: 40px 0 40px 0;">
+                        <iframe src="https://app.supademo.com/embed/cmbnxfpnn9yyisn1rxvs6pn78?embed_v=2" loading="lazy" title="Codebotiks Demo" allow="clipboard-write" frameborder="0" webkitallowfullscreen="true" mozallowfullscreen="true" allowfullscreen style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></iframe>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
