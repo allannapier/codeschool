@@ -998,10 +998,10 @@ function switchTab(tabName) {
 function toggleExpandedMode() {
     const mainContainer = document.querySelector('.container');
     const expandToggleBtn = document.getElementById('expand-toggle');
-    const resultsSection = document.querySelector('.results-section');
+    const editorContainer = document.querySelector('.editor-container');
     
-    if (!mainContainer || !expandToggleBtn) {
-        console.log('Missing elements - container:', !!mainContainer, 'button:', !!expandToggleBtn);
+    if (!mainContainer || !expandToggleBtn || !editorContainer) {
+        console.log('Missing elements');
         return;
     }
     
@@ -1012,51 +1012,14 @@ function toggleExpandedMode() {
     expandToggleBtn.disabled = true;
     setTimeout(() => { expandToggleBtn.disabled = false; }, 500);
     
-    const isExpanded = mainContainer.classList.contains('expanded');
+    const isExpanded = editorContainer.classList.contains('expanded');
     console.log('toggleExpandedMode called, isExpanded:', isExpanded);
     
     if (isExpanded) {
-        // Collapse - return to normal view
-        mainContainer.classList.remove('expanded');
+        // Collapse - return to normal view using CSS classes
+        editorContainer.classList.remove('expanded');
         expandToggleBtn.innerHTML = '↔️';
         expandToggleBtn.title = 'Expand code editor';
-        
-        // Nuclear reset approach - completely recreate the layout
-        const editorContainer = mainContainer.querySelector('.editor-container');
-        const editorSection = mainContainer.querySelector('.editor-section');
-        const resultsSection = mainContainer.querySelector('.results-section');
-        
-        if (editorContainer && editorSection && resultsSection) {
-            console.log('Before reset - editor section styles:', editorSection.style.cssText);
-            console.log('Before reset - results section styles:', resultsSection.style.cssText);
-            
-            // Force layout recalculation by temporarily removing and re-adding elements
-            const resultsParent = resultsSection.parentNode;
-            const resultsNextSibling = resultsSection.nextSibling;
-            
-            // Remove results section temporarily
-            resultsParent.removeChild(resultsSection);
-            
-            // Clear all styles
-            editorContainer.style.cssText = '';
-            editorSection.style.cssText = '';
-            resultsSection.style.cssText = '';
-            
-            // Force a reflow
-            editorContainer.offsetHeight;
-            
-            // Re-add results section
-            if (resultsNextSibling) {
-                resultsParent.insertBefore(resultsSection, resultsNextSibling);
-            } else {
-                resultsParent.appendChild(resultsSection);
-            }
-            
-            console.log('After reset - editor section styles:', editorSection.style.cssText);
-            console.log('After reset - results section styles:', resultsSection.style.cssText);
-            
-            resultsSection.onclick = null;
-        }
         
         // Remove floating indicator
         const expandedIndicator = document.getElementById('expanded-indicator');
@@ -1064,82 +1027,54 @@ function toggleExpandedMode() {
             expandedIndicator.remove();
         }
         
-        // Reset main container
-        mainContainer.style.cssText = '';
+        console.log('Collapsed - removed expanded class');
         
     } else {
-        // Expand - completely hide results and make editor full width
-        mainContainer.classList.add('expanded');
+        // Expand - use CSS classes for smooth animation
+        editorContainer.classList.add('expanded');
         expandToggleBtn.innerHTML = '↩️';
         expandToggleBtn.title = 'Restore normal view';
         
-        const editorContainer = mainContainer.querySelector('.editor-container');
-        const editorSection = mainContainer.querySelector('.editor-section');
-        const resultsSection = mainContainer.querySelector('.results-section');
-        
-        if (editorContainer && editorSection && resultsSection) {
-            // Completely override the grid layout
-            editorContainer.style.cssText = `
-                display: flex !important;
-                grid-template-columns: none !important;
-                flex-direction: row !important;
-                gap: 0 !important;
+        // Create floating results indicator
+        let expandedIndicator = document.getElementById('expanded-indicator');
+        if (!expandedIndicator) {
+            expandedIndicator = document.createElement('div');
+            expandedIndicator.id = 'expanded-indicator';
+            expandedIndicator.innerHTML = '📊<br>R<br>e<br>s<br>u<br>l<br>t<br>s';
+            expandedIndicator.style.cssText = `
+                position: fixed !important;
+                top: 50% !important;
+                right: 10px !important;
+                transform: translateY(-50%) !important;
+                background: var(--primary-color) !important;
+                color: white !important;
+                padding: 10px 8px !important;
+                border-radius: 8px !important;
+                cursor: pointer !important;
+                z-index: 1000 !important;
+                font-size: 11px !important;
+                line-height: 1.2 !important;
+                text-align: center !important;
+                font-weight: 600 !important;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+                transition: all 0.2s ease !important;
             `;
             
-            // Make editor take full available space
-            editorSection.style.cssText = `
-                flex: 1 !important;
-                width: 100% !important;
-                max-width: none !important;
-                margin-right: 10px !important;
-            `;
+            expandedIndicator.addEventListener('mouseenter', () => {
+                expandedIndicator.style.background = 'var(--primary-hover)';
+                expandedIndicator.style.transform = 'translateY(-50%) scale(1.05)';
+            });
             
-            // Hide results section completely
-            resultsSection.style.cssText = `
-                display: none !important;
-            `;
+            expandedIndicator.addEventListener('mouseleave', () => {
+                expandedIndicator.style.background = 'var(--primary-color)';
+                expandedIndicator.style.transform = 'translateY(-50%) scale(1)';
+            });
             
-            // Create floating results indicator
-            let expandedIndicator = document.getElementById('expanded-indicator');
-            if (!expandedIndicator) {
-                expandedIndicator = document.createElement('div');
-                expandedIndicator.id = 'expanded-indicator';
-                expandedIndicator.innerHTML = '📊<br>R<br>e<br>s<br>u<br>l<br>t<br>s';
-                expandedIndicator.style.cssText = `
-                    position: fixed !important;
-                    top: 50% !important;
-                    right: 10px !important;
-                    transform: translateY(-50%) !important;
-                    background: var(--primary-color) !important;
-                    color: white !important;
-                    padding: 10px 8px !important;
-                    border-radius: 8px !important;
-                    cursor: pointer !important;
-                    z-index: 1000 !important;
-                    font-size: 11px !important;
-                    line-height: 1.2 !important;
-                    text-align: center !important;
-                    font-weight: 600 !important;
-                    box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
-                    transition: all 0.2s ease !important;
-                `;
-                
-                expandedIndicator.addEventListener('mouseenter', () => {
-                    expandedIndicator.style.background = 'var(--primary-hover)';
-                    expandedIndicator.style.transform = 'translateY(-50%) scale(1.05)';
-                });
-                
-                expandedIndicator.addEventListener('mouseleave', () => {
-                    expandedIndicator.style.background = 'var(--primary-color)';
-                    expandedIndicator.style.transform = 'translateY(-50%) scale(1)';
-                });
-                
-                expandedIndicator.onclick = () => toggleExpandedMode();
-                document.body.appendChild(expandedIndicator);
-            }
-            
-            console.log('Applied expanded layout - results hidden, editor full width');
+            expandedIndicator.onclick = () => toggleExpandedMode();
+            document.body.appendChild(expandedIndicator);
         }
+        
+        console.log('Expanded - added expanded class');
     }
     
     // Trigger Monaco editor resize after layout change
@@ -1147,14 +1082,7 @@ function toggleExpandedMode() {
         if (editor) {
             editor.layout();
         }
-    }, 100);
-    
-    // Additional resize after a longer delay to ensure layout settles
-    setTimeout(() => {
-        if (editor) {
-            editor.layout();
-        }
-    }, 300);
+    }, 350); // Wait for CSS transition to complete
 }
 
 // Footer modal functions

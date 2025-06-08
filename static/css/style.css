@@ -372,6 +372,13 @@ body {
     grid-template-columns: 1fr 1fr;
     gap: 2rem;
     margin-bottom: 1rem;
+    transition: grid-template-columns 0.3s ease;
+}
+
+/* Expanded state - hide results column */
+.editor-container.expanded {
+    grid-template-columns: 1fr 0;
+    gap: 0;
 }
 
 .editor-section, .results-section {
@@ -380,6 +387,17 @@ body {
     padding: 2rem;
     box-shadow: var(--shadow-md);
     border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+    min-width: 0; /* Prevent overflow issues */
+}
+
+/* Results section in expanded mode */
+.editor-container.expanded .results-section {
+    overflow: hidden;
+    min-width: 0;
+    width: 0;
+    padding: 0;
+    opacity: 0;
 }
 
 .editor-header {
@@ -460,30 +478,7 @@ body {
     }
 }
 
-/* Expanded layout styles */
-.container.expanded {
-    /* Container is handled by JavaScript for better control */
-}
-
-.container.expanded .editor-container {
-    /* Layout is handled by JavaScript for better control */
-    transition: all 0.3s ease;
-}
-
-.container.expanded .editor-section {
-    /* Styles are handled by JavaScript for better control */
-    transition: all 0.3s ease;
-}
-
-.container.expanded .results-section {
-    /* Completely hidden by JavaScript when expanded */
-    transition: all 0.3s ease;
-}
-
-/* Ensure Monaco editor resizes properly */
-.container.expanded .editor {
-    transition: all 0.3s ease;
-}
+/* Expanded layout styles - now handled properly with CSS classes */
 
 .results-header h3 {
     margin: 0;
