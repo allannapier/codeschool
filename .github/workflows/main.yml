@@ -1,0 +1,25 @@
+# .github/workflows/claude-official.yml
+name: Claude Code Official Action
+
+on:
+  workflow_dispatch:
+    inputs:
+      prompt:
+        description: 'Prompt for Claude Code'
+        required: true
+        default: 'echo "Hello from Claude Code!"'
+
+jobs:
+  claude-task:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Run Claude Code
+      uses: anthropics/claude-code-base-action@beta
+      with:
+        prompt: ${{ github.event.inputs.prompt }}
+        anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+        allowed_tools: "Bash,View,Edit,Create,Write,Read"
