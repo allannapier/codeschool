@@ -66,8 +66,13 @@ async function initAuth() {
     // Check if Supabase is available and configured
     if (!supabase || !SUPABASE_URL || !SUPABASE_ANON_KEY) {
         console.warn('Supabase not configured. Authentication features disabled.');
+        console.log('Debug - supabase:', !!supabase, 'URL:', !!SUPABASE_URL, 'KEY:', !!SUPABASE_ANON_KEY);
         return;
     }
+    
+    // Debug Supabase client
+    console.log('Supabase client created:', supabase);
+    console.log('Supabase auth methods:', Object.keys(supabase.auth || {}));
 
     // Get DOM elements
     authModal = document.getElementById('auth-modal');
@@ -108,10 +113,20 @@ async function initAuth() {
     });
 
     // Check if user is already logged in
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session) {
-        currentUser = session.user;
-        updateAuthUI();
+    try {
+        if (!supabase.auth || typeof supabase.auth.getSession !== 'function') {
+            console.error('Supabase auth.getSession is not available. Auth object:', supabase.auth);
+            return;
+        }
+        
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+            currentUser = session.user;
+            updateAuthUI();
+        }
+    } catch (error) {
+        console.error('Error getting session:', error);
+        return;
     }
 
     // Listen for auth state changes

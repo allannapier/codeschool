@@ -250,10 +250,27 @@ window.showSuccess = function(message) {
 document.addEventListener('DOMContentLoaded', async () => {
     await initBlog();
     
-    // Initialize auth system after blog is fully loaded
-    setTimeout(() => {
-        if (window.authSystem && window.authSystem.initAuth) {
-            window.authSystem.initAuth();
+    // Wait for Supabase to be ready before initializing auth
+    const waitForSupabase = () => {
+        return new Promise((resolve) => {
+            if (window.supabase && window.SUPABASE_CONFIG?.url && window.SUPABASE_CONFIG?.anonKey) {
+                resolve();
+            } else {
+                window.addEventListener('supabaseReady', resolve, { once: true });
+                // Fallback timeout
+                setTimeout(resolve, 5000);
+            }
+        });
+    };
+    
+    await waitForSupabase();
+    
+    // Initialize auth system after Supabase is ready
+    if (window.authSystem && window.authSystem.initAuth) {
+        try {
+            await window.authSystem.initAuth();
+        } catch (error) {
+            console.error('Auth initialization failed:', error);
         }
-    }, 100);
+    }
 });
