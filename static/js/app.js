@@ -1073,11 +1073,19 @@ function toggleExpandedMode() {
             resultsSection.style.setProperty('min-width', '60px', 'important');
             resultsSection.style.setProperty('max-width', '60px', 'important');
             
-            // Debug styling
-            editorSection.style.setProperty('background-color', 'lightblue', 'important');
+            // Debug styling - make it very obvious
+            editorSection.style.setProperty('background-color', 'red', 'important');
+            editorSection.style.setProperty('border', '10px solid blue', 'important');
             resultsSection.style.setProperty('background-color', 'yellow', 'important');
+            resultsSection.style.setProperty('border', '10px solid green', 'important');
             
             console.log('Applied flexbox layout instead of grid');
+            
+            // Debug - check what actually got applied
+            console.log('Container display after:', getComputedStyle(editorContainer).display);
+            console.log('Editor section flex after:', getComputedStyle(editorSection).flex);
+            console.log('Results section flex after:', getComputedStyle(resultsSection).flex);
+            console.log('Results section width after:', getComputedStyle(resultsSection).width);
         }
         
         // Also style the main container for visibility
