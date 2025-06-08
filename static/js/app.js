@@ -1005,7 +1005,15 @@ function toggleExpandedMode() {
         return;
     }
     
+    // Prevent double-calls
+    if (expandToggleBtn.disabled) {
+        return;
+    }
+    expandToggleBtn.disabled = true;
+    setTimeout(() => { expandToggleBtn.disabled = false; }, 500);
+    
     const isExpanded = mainContainer.classList.contains('expanded');
+    console.log('toggleExpandedMode called, isExpanded:', isExpanded);
     
     if (isExpanded) {
         // Collapse - return to normal view
@@ -1029,8 +1037,11 @@ function toggleExpandedMode() {
             console.log('After clearing - editor section inline styles:', editorSection.style.cssText);
         }
         if (resultsSection) {
-            // Clear all inline styles completely
+            // Clear all inline styles completely and ensure it's visible
+            console.log('Before clearing - results section inline styles:', resultsSection.style.cssText);
             resultsSection.style.cssText = '';
+            resultsSection.style.display = 'block'; // Explicitly show it
+            console.log('After clearing - results section inline styles:', resultsSection.style.cssText);
             resultsSection.onclick = null;
         }
         
