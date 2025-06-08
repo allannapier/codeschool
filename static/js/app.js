@@ -1024,7 +1024,9 @@ function toggleExpandedMode() {
         }
         if (editorSection) {
             // Explicitly clear the expanded styles by setting them to empty strings
+            console.log('Before clearing - editor section inline styles:', editorSection.style.cssText);
             editorSection.style.cssText = '';
+            console.log('After clearing - editor section inline styles:', editorSection.style.cssText);
         }
         if (resultsSection) {
             // Clear all inline styles completely
@@ -1122,6 +1124,13 @@ function toggleExpandedMode() {
             editor.layout();
         }
     }, 100);
+    
+    // Additional resize after a longer delay to ensure layout settles
+    setTimeout(() => {
+        if (editor) {
+            editor.layout();
+        }
+    }, 300);
 }
 
 // Footer modal functions
