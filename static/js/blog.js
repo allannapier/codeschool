@@ -53,12 +53,12 @@ function setupMenuToggle() {
 // Set up footer modal functionality
 function setupFooterModals() {
     // Disclaimer modal
-    const disclaimerLink = document.getElementById('disclaimer-link');
+    const disclaimerBtn = document.getElementById('disclaimer-btn');
     const disclaimerModal = document.getElementById('disclaimer-modal');
     const closeDisclaimerModal = document.getElementById('close-disclaimer-modal');
     
-    if (disclaimerLink && disclaimerModal && closeDisclaimerModal) {
-        disclaimerLink.addEventListener('click', (e) => {
+    if (disclaimerBtn && disclaimerModal && closeDisclaimerModal) {
+        disclaimerBtn.addEventListener('click', (e) => {
             e.preventDefault();
             disclaimerModal.style.display = 'flex';
         });
@@ -75,13 +75,13 @@ function setupFooterModals() {
     }
     
     // Contact modal
-    const contactLink = document.getElementById('contact-link');
+    const contactBtn = document.getElementById('contact-btn');
     const contactModal = document.getElementById('contact-modal');
     const closeContactModal = document.getElementById('close-contact-modal');
     const contactForm = document.getElementById('contact-form');
     
-    if (contactLink && contactModal && closeContactModal && contactForm) {
-        contactLink.addEventListener('click', (e) => {
+    if (contactBtn && contactModal && closeContactModal && contactForm) {
+        contactBtn.addEventListener('click', (e) => {
             e.preventDefault();
             contactModal.style.display = 'flex';
         });
