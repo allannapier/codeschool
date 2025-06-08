@@ -1018,12 +1018,31 @@ function toggleExpandedMode() {
         expandToggleBtn.innerHTML = '↔️';
         expandToggleBtn.title = 'Expand code editor';
         console.log('Collapsed - removed expanded class');
+        
+        // Reset styles directly
+        const editorContainer = mainContainer.querySelector('.editor-container');
+        if (editorContainer) {
+            editorContainer.style.gridTemplateColumns = '';
+            editorContainer.style.backgroundColor = '';
+        }
     } else {
         // Expand - minimize results panel
         mainContainer.classList.add('expanded');
         expandToggleBtn.innerHTML = '↩️';
         expandToggleBtn.title = 'Restore normal view';
         console.log('Expanded - added expanded class');
+        
+        // Apply styles directly via JavaScript as backup
+        const editorContainer = mainContainer.querySelector('.editor-container');
+        if (editorContainer) {
+            editorContainer.style.gridTemplateColumns = '1fr 60px';
+            editorContainer.style.backgroundColor = 'red'; // DEBUG
+            console.log('Applied inline styles to editor-container');
+        }
+        
+        // Also style the main container for visibility
+        mainContainer.style.border = '5px solid red';
+        mainContainer.style.backgroundColor = 'pink';
     }
     
     console.log('Container classes after toggle:', mainContainer.className);
