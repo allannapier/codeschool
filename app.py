@@ -3,6 +3,8 @@ from flask_cors import CORS
 import openai
 import os
 import json
+import glob
+from datetime import datetime
 from dotenv import load_dotenv
 import jwt
 from functools import wraps
@@ -402,10 +404,14 @@ def get_blog_posts():
     Load all blog posts from the blog_posts directory
     """
     try:
-        import glob
-        from datetime import datetime
-        
         blog_posts = []
+        # Ensure the blog_posts directory exists
+        if not os.path.exists('blog_posts'):
+            return jsonify({
+                'success': True,
+                'posts': []
+            })
+        
         post_files = glob.glob('blog_posts/*.json')
         
         for file_path in post_files:
