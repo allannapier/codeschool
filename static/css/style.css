@@ -460,64 +460,24 @@ body {
     }
 }
 
-/* Expanded layout styles - Simple test first */
-main.container.expanded {
-    border: 5px solid red !important; /* DEBUG: Should add red border to main container */
-    background-color: pink !important;
+/* Expanded layout styles */
+.container.expanded {
+    /* Container is handled by JavaScript for better control */
 }
 
-main.container.expanded .editor-container {
-    grid-template-columns: 1fr 60px !important;
+.container.expanded .editor-container {
+    /* Layout is handled by JavaScript for better control */
     transition: all 0.3s ease;
-    background-color: red !important; /* DEBUG: Should make container red when expanded */
 }
 
-main.container.expanded .results-section {
-    min-height: auto;
+.container.expanded .editor-section {
+    /* Styles are handled by JavaScript for better control */
     transition: all 0.3s ease;
-    background-color: yellow !important; /* DEBUG: Should make results yellow when expanded */
 }
 
-.container.expanded .results-section .results-header {
-    writing-mode: vertical-rl;
-    text-orientation: mixed;
-    height: 100%;
-    margin-bottom: 0;
-    border-bottom: none;
-    border-left: 1px solid var(--border-color);
-    padding: 1rem 0.5rem;
-    justify-content: center;
-    flex-direction: column;
-}
-
-.container.expanded .results-section .results-header h3 {
-    transform: rotate(180deg);
-    font-size: 1rem;
-    margin: 0;
-}
-
-.container.expanded .results-section .results-header-controls {
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-.container.expanded .results-section .tab-buttons {
-    display: none;
-}
-
-.container.expanded .results-section .expand-toggle-btn {
-    transform: rotate(180deg);
-    font-size: 0.9rem;
-    padding: 0.4rem;
-}
-
-.container.expanded .results-section .tab-content {
-    display: none;
-}
-
-.container.expanded .results-section:hover {
-    background: var(--background-color);
-    cursor: pointer;
+.container.expanded .results-section {
+    /* Completely hidden by JavaScript when expanded */
+    transition: all 0.3s ease;
 }
 
 /* Ensure Monaco editor resizes properly */

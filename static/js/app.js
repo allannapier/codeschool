@@ -1000,133 +1000,125 @@ function toggleExpandedMode() {
     const expandToggleBtn = document.getElementById('expand-toggle');
     const resultsSection = document.querySelector('.results-section');
     
-    console.log('Toggle clicked!');
-    console.log('Container:', mainContainer);
-    console.log('Results section:', resultsSection);
-    
     if (!mainContainer || !expandToggleBtn) {
         console.log('Missing elements - container:', !!mainContainer, 'button:', !!expandToggleBtn);
         return;
     }
     
     const isExpanded = mainContainer.classList.contains('expanded');
-    console.log('Currently expanded:', isExpanded);
     
     if (isExpanded) {
         // Collapse - return to normal view
         mainContainer.classList.remove('expanded');
         expandToggleBtn.innerHTML = '↔️';
         expandToggleBtn.title = 'Expand code editor';
-        console.log('Collapsed - removed expanded class');
         
-        // Reset styles directly
+        // Reset to original grid layout
         const editorContainer = mainContainer.querySelector('.editor-container');
         const editorSection = mainContainer.querySelector('.editor-section');
         const resultsSection = mainContainer.querySelector('.results-section');
         
-        console.log('Resetting all elements');
         if (editorContainer) {
-            editorContainer.style.display = '';
-            editorContainer.style.gap = '';
-            console.log('Reset container styles');
+            editorContainer.style.cssText = '';
         }
         if (editorSection) {
-            editorSection.style.flex = '';
-            editorSection.style.minWidth = '';
-            editorSection.style.width = '';
-            editorSection.style.backgroundColor = '';
-            editorSection.style.border = '';
-            console.log('Reset editor section styles');
+            editorSection.style.cssText = '';
         }
         if (resultsSection) {
-            resultsSection.style.flex = '';
-            resultsSection.style.width = '';
-            resultsSection.style.minWidth = '';
-            resultsSection.style.maxWidth = '';
-            resultsSection.style.flexShrink = '';
-            resultsSection.style.flexGrow = '';
-            resultsSection.style.backgroundColor = '';
-            resultsSection.style.border = '';
-            console.log('Reset results section styles');
+            resultsSection.style.cssText = '';
+            resultsSection.onclick = null;
         }
         
-        // Reset main container styles
-        mainContainer.style.border = '';
-        mainContainer.style.backgroundColor = '';
+        // Remove floating indicator
+        const expandedIndicator = document.getElementById('expanded-indicator');
+        if (expandedIndicator) {
+            expandedIndicator.remove();
+        }
+        
+        // Reset main container
+        mainContainer.style.cssText = '';
+        
     } else {
-        // Expand - minimize results panel
+        // Expand - completely hide results and make editor full width
         mainContainer.classList.add('expanded');
         expandToggleBtn.innerHTML = '↩️';
         expandToggleBtn.title = 'Restore normal view';
-        console.log('Expanded - added expanded class');
         
-        // Apply styles directly via JavaScript - try different approach
         const editorContainer = mainContainer.querySelector('.editor-container');
         const editorSection = mainContainer.querySelector('.editor-section');
         const resultsSection = mainContainer.querySelector('.results-section');
         
-        console.log('Found elements - container:', !!editorContainer, 'editor:', !!editorSection, 'results:', !!resultsSection);
-        
         if (editorContainer && editorSection && resultsSection) {
-            // Nuclear option: completely change the layout approach
+            // Completely override the grid layout
+            editorContainer.style.cssText = `
+                display: flex !important;
+                grid-template-columns: none !important;
+                flex-direction: row !important;
+                gap: 0 !important;
+            `;
             
-            // Make editor take full width
-            editorContainer.style.setProperty('display', 'block', 'important');
-            editorSection.style.setProperty('width', '100%', 'important');
-            editorSection.style.setProperty('background-color', 'lightgreen', 'important');
+            // Make editor take full available space
+            editorSection.style.cssText = `
+                flex: 1 !important;
+                width: 100% !important;
+                max-width: none !important;
+                margin-right: 10px !important;
+            `;
             
-            // Hide results section and create a minimal placeholder
-            resultsSection.style.setProperty('display', 'none', 'important');
+            // Hide results section completely
+            resultsSection.style.cssText = `
+                display: none !important;
+            `;
             
-            // Create a small floating toggle button
+            // Create floating results indicator
             let expandedIndicator = document.getElementById('expanded-indicator');
             if (!expandedIndicator) {
                 expandedIndicator = document.createElement('div');
                 expandedIndicator.id = 'expanded-indicator';
-                expandedIndicator.innerHTML = '📊 Results (Click to restore)';
+                expandedIndicator.innerHTML = '📊<br>R<br>e<br>s<br>u<br>l<br>t<br>s';
                 expandedIndicator.style.cssText = `
                     position: fixed !important;
                     top: 50% !important;
                     right: 10px !important;
+                    transform: translateY(-50%) !important;
                     background: var(--primary-color) !important;
                     color: white !important;
-                    padding: 10px !important;
-                    border-radius: 5px !important;
+                    padding: 10px 8px !important;
+                    border-radius: 8px !important;
                     cursor: pointer !important;
                     z-index: 1000 !important;
-                    writing-mode: vertical-rl !important;
-                    text-orientation: mixed !important;
-                    font-size: 12px !important;
+                    font-size: 11px !important;
+                    line-height: 1.2 !important;
+                    text-align: center !important;
+                    font-weight: 600 !important;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+                    transition: all 0.2s ease !important;
                 `;
+                
+                expandedIndicator.addEventListener('mouseenter', () => {
+                    expandedIndicator.style.background = 'var(--primary-hover)';
+                    expandedIndicator.style.transform = 'translateY(-50%) scale(1.05)';
+                });
+                
+                expandedIndicator.addEventListener('mouseleave', () => {
+                    expandedIndicator.style.background = 'var(--primary-color)';
+                    expandedIndicator.style.transform = 'translateY(-50%) scale(1)';
+                });
+                
                 expandedIndicator.onclick = () => toggleExpandedMode();
                 document.body.appendChild(expandedIndicator);
             }
             
-            console.log('Applied nuclear layout change - hidden results, full-width editor');
+            console.log('Applied expanded layout - results hidden, editor full width');
         }
-        
-        // Also style the main container for visibility
-        mainContainer.style.border = '5px solid red';
-        mainContainer.style.backgroundColor = 'pink';
     }
     
-    console.log('Container classes after toggle:', mainContainer.className);
-    
-    // Trigger Monaco editor resize after transition
+    // Trigger Monaco editor resize after layout change
     setTimeout(() => {
         if (editor) {
             editor.layout();
         }
-    }, 300);
-    
-    // Make entire results section clickable when collapsed
-    if (resultsSection) {
-        resultsSection.onclick = isExpanded ? null : () => {
-            if (mainContainer.classList.contains('expanded')) {
-                toggleExpandedMode();
-            }
-        };
-    }
+    }, 100);
 }
 
 // Footer modal functions
