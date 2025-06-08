@@ -88,62 +88,76 @@ jobs:
                "messages": [{"role": "user", "content": "Hi"}]
              }' || echo "API test failed"
              
-    - name: Test Claude Code with maximum verbosity
+    - name: Test Claude Code in headless mode
       env:
         ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        DEBUG: '*'
-        NODE_ENV: development
       run: |
-        echo "=== Running Claude Code Test ==="
+        echo "=== Testing Claude Code in Headless Mode ==="
         set -x  # Enable command tracing
         
-        # First, find where claude-code actually is
+        # Find where claude-code actually is
         NPM_PREFIX=$(npm config get prefix)
         NPM_ROOT=$(npm root -g)
         
-        echo "Looking for claude-code binary in multiple locations..."
-        
-        # Try to find the actual binary
+        # Find the actual binary
         CLAUDE_CODE_PATH=""
-        
-        # Check common locations
         for potential_path in \
           "$NPM_PREFIX/bin/claude-code" \
           "$NPM_ROOT/.bin/claude-code" \
           "$NPM_ROOT/@anthropic-ai/claude-code/bin/claude-code" \
-          "$NPM_ROOT/@anthropic-ai/claude-code/cli.js" \
-          "$NPM_ROOT/@anthropic-ai/claude-code/dist/cli.js"
+          "$NPM_ROOT/@anthropic-ai/claude-code/cli.js"
         do
           if [ -f "$potential_path" ]; then
-            echo "Found claude-code at: $potential_path"
             CLAUDE_CODE_PATH="$potential_path"
             break
           fi
         done
         
         if [ -n "$CLAUDE_CODE_PATH" ]; then
-          echo "Testing claude-code at: $CLAUDE_CODE_PATH"
+          echo "Found claude-code at: $CLAUDE_CODE_PATH"
           
-          # Make it executable if needed
+          # Make it executable
           chmod +x "$CLAUDE_CODE_PATH" 2>/dev/null || true
           
-          # Try to get version first
-          echo "Getting version:"
-          "$CLAUDE_CODE_PATH" --version || echo "Version command failed"
+          echo "=== Testing headless mode with -p flag ==="
           
-          # Try the actual test command
-          echo "Running test command:"
-          timeout 60 "$CLAUDE_CODE_PATH" --verbose --debug "echo 'Hello World'" 2>&1 | tee claude-output.log
+          # Test 1: Simple echo command
+          echo "1. Testing simple echo command:"
+          timeout 120 "$CLAUDE_CODE_PATH" -p "echo 'Hello from Claude Code in GitHub Actions!'" 2>&1 | tee claude-output-simple.log || echo "Simple test failed with exit code: $?"
+          
+          # Test 2: Get help
+          echo "2. Testing help command:"
+          "$CLAUDE_CODE_PATH" --help 2>&1 | tee claude-help.log || echo "Help failed with exit code: $?"
+          
+          # Test 3: Version check
+          echo "3. Testing version:"
+          "$CLAUDE_CODE_PATH" --version 2>&1 | tee claude-version.log || echo "Version failed with exit code: $?"
+          
+          # Test 4: More complex task
+          echo "4. Testing file operations:"
+          timeout 120 "$CLAUDE_CODE_PATH" -p "Create a simple text file called 'test.txt' with the content 'Hello World from Claude Code'" 2>&1 | tee claude-output-file.log || echo "File test failed with exit code: $?"
+          
+          # Check if the file was created
+          if [ -f "test.txt" ]; then
+            echo "SUCCESS: test.txt was created!"
+            echo "Contents:"
+            cat test.txt
+          else
+            echo "File was not created"
+          fi
           
         else
-          echo "Could not find claude-code binary anywhere!"
-          echo "Full package structure:"
-          find "$NPM_ROOT/@anthropic-ai" -type f 2>/dev/null | head -20
+          echo "Could not find claude-code binary!"
         fi
         
-        echo "Exit code: $?"
-        echo "=== Full Output ==="
-        cat claude-output.log 2>/dev/null || echo "No log file created"
+        echo "=== All Output Files ==="
+        for file in claude-*.log; do
+          if [ -f "$file" ]; then
+            echo "=== Contents of $file ==="
+            cat "$file"
+            echo "=== End of $file ==="
+          fi
+        done
         
     - name: Alternative test - try different command
       env:
