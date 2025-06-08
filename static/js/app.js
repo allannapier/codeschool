@@ -1021,11 +1021,27 @@ function toggleExpandedMode() {
         
         // Reset styles directly
         const editorContainer = mainContainer.querySelector('.editor-container');
-        console.log('Resetting editor container:', !!editorContainer);
+        const editorSection = mainContainer.querySelector('.editor-section');
+        const resultsSection = mainContainer.querySelector('.results-section');
+        
+        console.log('Resetting all elements');
         if (editorContainer) {
-            editorContainer.style.gridTemplateColumns = '';
-            editorContainer.style.backgroundColor = '';
-            console.log('Reset inline styles on editor-container');
+            editorContainer.style.display = '';
+            editorContainer.style.gap = '';
+            console.log('Reset container styles');
+        }
+        if (editorSection) {
+            editorSection.style.flex = '';
+            editorSection.style.minWidth = '';
+            editorSection.style.backgroundColor = '';
+            console.log('Reset editor section styles');
+        }
+        if (resultsSection) {
+            resultsSection.style.flex = '';
+            resultsSection.style.minWidth = '';
+            resultsSection.style.maxWidth = '';
+            resultsSection.style.backgroundColor = '';
+            console.log('Reset results section styles');
         }
         
         // Reset main container styles
@@ -1038,18 +1054,30 @@ function toggleExpandedMode() {
         expandToggleBtn.title = 'Restore normal view';
         console.log('Expanded - added expanded class');
         
-        // Apply styles directly via JavaScript as backup
+        // Apply styles directly via JavaScript - try different approach
         const editorContainer = mainContainer.querySelector('.editor-container');
-        console.log('Editor container found:', !!editorContainer);
-        console.log('Editor container element:', editorContainer);
-        if (editorContainer) {
-            console.log('Current grid-template-columns:', getComputedStyle(editorContainer).gridTemplateColumns);
-            editorContainer.style.setProperty('grid-template-columns', '1fr 60px', 'important');
-            editorContainer.style.setProperty('background-color', 'red', 'important');
-            console.log('After setting - grid-template-columns:', editorContainer.style.gridTemplateColumns);
-            console.log('After setting - background:', editorContainer.style.backgroundColor);
-            console.log('Computed style after setting:', getComputedStyle(editorContainer).gridTemplateColumns);
-            console.log('Applied inline styles to editor-container with !important');
+        const editorSection = mainContainer.querySelector('.editor-section');
+        const resultsSection = mainContainer.querySelector('.results-section');
+        
+        console.log('Found elements - container:', !!editorContainer, 'editor:', !!editorSection, 'results:', !!resultsSection);
+        
+        if (editorContainer && editorSection && resultsSection) {
+            // Try overriding the grid completely
+            editorContainer.style.setProperty('display', 'flex', 'important');
+            editorContainer.style.setProperty('gap', '2rem', 'important');
+            
+            // Set explicit widths
+            editorSection.style.setProperty('flex', '1', 'important');
+            editorSection.style.setProperty('min-width', '0', 'important');
+            resultsSection.style.setProperty('flex', '0 0 60px', 'important');
+            resultsSection.style.setProperty('min-width', '60px', 'important');
+            resultsSection.style.setProperty('max-width', '60px', 'important');
+            
+            // Debug styling
+            editorSection.style.setProperty('background-color', 'lightblue', 'important');
+            resultsSection.style.setProperty('background-color', 'yellow', 'important');
+            
+            console.log('Applied flexbox layout instead of grid');
         }
         
         // Also style the main container for visibility
