@@ -1183,6 +1183,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     const expandToggleBtn = document.getElementById('expand-toggle');
     const mainContainer = document.querySelector('.main-container');
     
+    console.log('Expand toggle button found:', !!expandToggleBtn);
+    console.log('Main container found:', !!mainContainer);
+    
     // Initialize footer elements
     disclaimerBtn = document.getElementById('disclaimer-btn');
     contactBtn = document.getElementById('contact-btn');
