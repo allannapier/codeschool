@@ -284,7 +284,6 @@ async function executeCode() {
         displayExecutionResult(result, executionTime);
         
     } catch (error) {
-        console.error('Code execution error:', error);
         displayExecutionError(error.message || 'Failed to execute code');
     } finally {
         // Restore run button
@@ -583,7 +582,6 @@ async function analyzeCode() {
         }
     } catch (error) {
         showError('Network error. Please try again.');
-        console.error('Analysis error:', error);
     } finally {
         showLoading(false);
         disableButtons(false);
@@ -629,7 +627,6 @@ async function explainCode() {
         }
     } catch (error) {
         showError('Network error. Please try again.');
-        console.error('Explanation error:', error);
     } finally {
         showLoading(false);
         disableButtons(false);
@@ -734,7 +731,6 @@ async function loadChallenges() {
         
         await populateChallengesDropdown();
     } catch (error) {
-        console.error('Failed to load challenges:', error);
         // Show error in dropdown
         challengesSelect.innerHTML = '<option value="">Error loading challenges</option>';
     }
@@ -919,7 +915,6 @@ async function submitChallenge() {
         }
     } catch (error) {
         showError('Network error. Please try again.');
-        console.error('Challenge submission error:', error);
     } finally {
         showLoading(false);
         disableButtons(false);
@@ -1186,7 +1181,6 @@ async function handleContactForm(e) {
         }
     } catch (error) {
         showContactError('Network error. Please try again later.');
-        console.error('Contact form error:', error);
     } finally {
         submitBtn.disabled = false;
         submitBtn.textContent = originalText;

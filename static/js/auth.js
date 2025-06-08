@@ -10,7 +10,7 @@ try {
         supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
 } catch (error) {
-    console.error('Error creating Supabase client:', error);
+    // Silent fallback
 }
 
 // Authentication state
@@ -59,20 +59,14 @@ async function initAuth() {
                 supabase = supabaseLib.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             }
         } catch (error) {
-            console.error('Error creating Supabase client in initAuth:', error);
+            // Silent fallback
         }
     }
     
     // Check if Supabase is available and configured
     if (!supabase || !SUPABASE_URL || !SUPABASE_ANON_KEY) {
-        console.warn('Supabase not configured. Authentication features disabled.');
-        console.log('Debug - supabase:', !!supabase, 'URL:', !!SUPABASE_URL, 'KEY:', !!SUPABASE_ANON_KEY);
         return;
     }
-    
-    // Debug Supabase client
-    console.log('Supabase client created:', supabase);
-    console.log('Supabase auth methods:', Object.keys(supabase.auth || {}));
 
     // Get DOM elements
     authModal = document.getElementById('auth-modal');
@@ -116,43 +110,29 @@ async function initAuth() {
     try {
         let session = null;
         
-        console.log('Attempting to get session...');
-        console.log('LocalStorage supabase keys:', Object.keys(localStorage).filter(key => key.includes('supabase')));
-        
         // Handle both v1 and v2 Supabase API
         if (supabase.auth.getSession) {
             // v2 API
-            console.log('Using v2 getSession API');
             const { data: { session: sessionData } } = await supabase.auth.getSession();
             session = sessionData;
         } else if (supabase.auth.session) {
             // v1 API - session() is a synchronous method
-            console.log('Using v1 session API');
             session = supabase.auth.session();
         } else if (supabase.auth.user) {
             // v1 API alternative - check current user
-            console.log('Using v1 user API');
             const user = supabase.auth.user();
             if (user) {
                 session = { user: user };
             }
         } else {
-            console.error('Unable to get session from Supabase auth');
-            console.log('Available auth methods:', Object.keys(supabase.auth));
             return;
         }
-        
-        console.log('Session retrieved:', !!session, session?.user?.email);
         
         if (session && session.user) {
             currentUser = session.user;
             updateAuthUI();
-            console.log('User session restored:', currentUser.email);
-        } else {
-            console.log('No active session found');
         }
     } catch (error) {
-        console.error('Error getting session:', error);
         return;
     }
 
@@ -313,7 +293,6 @@ async function handleAuth(e) {
         }
         
     } catch (error) {
-        console.error('Auth error:', error);
         
         // Handle specific error types
         if (error.message.includes('Email not confirmed')) {
@@ -348,7 +327,6 @@ async function handleLogout() {
         const error = result?.error || (result && !result.data ? result : null);
         if (error) throw error;
     } catch (error) {
-        console.error('Logout error:', error);
         showError('Failed to logout. Please try again.');
     }
 }
@@ -412,7 +390,6 @@ async function loadUserProgress() {
             }).join('');
         }
     } catch (error) {
-        console.error('Error loading user progress:', error);
         document.getElementById('completed-challenges').innerHTML = '<p class="error">Failed to load progress data.</p>';
     }
 }
@@ -437,7 +414,6 @@ async function saveProgress(challengeId, challengeTitle, status = 'completed') {
         if (error) throw error;
         return true;
     } catch (error) {
-        console.error('Error saving progress:', error);
         return false;
     }
 }
@@ -456,7 +432,6 @@ async function getUserProgress() {
         if (error) throw error;
         return data || [];
     } catch (error) {
-        console.error('Error fetching progress:', error);
         return [];
     }
 }
