@@ -114,12 +114,21 @@ async function initAuth() {
 
     // Check if user is already logged in
     try {
-        if (!supabase.auth || typeof supabase.auth.getSession !== 'function') {
-            console.error('Supabase auth.getSession is not available. Auth object:', supabase.auth);
+        let session = null;
+        
+        // Handle both v1 and v2 Supabase API
+        if (supabase.auth.getSession) {
+            // v2 API
+            const { data: { session: sessionData } } = await supabase.auth.getSession();
+            session = sessionData;
+        } else if (supabase.auth.session) {
+            // v1 API
+            session = supabase.auth.session();
+        } else {
+            console.error('Unable to get session from Supabase auth');
             return;
         }
         
-        const { data: { session } } = await supabase.auth.getSession();
         if (session) {
             currentUser = session.user;
             updateAuthUI();
@@ -130,7 +139,7 @@ async function initAuth() {
     }
 
     // Listen for auth state changes
-    supabase.auth.onAuthStateChange(async (event, session) => {
+    const authStateChangeHandler = async (event, session) => {
         if (event === 'SIGNED_IN') {
             currentUser = session.user;
             updateAuthUI();
@@ -151,7 +160,16 @@ async function initAuth() {
                 await window.populateChallengesDropdown();
             }
         }
-    });
+    };
+    
+    // Handle both v1 and v2 auth state listeners
+    if (supabase.auth.onAuthStateChange) {
+        supabase.auth.onAuthStateChange(authStateChangeHandler);
+    } else if (supabase.auth.on) {
+        // v1 API
+        supabase.auth.on('SIGNED_IN', (session) => authStateChangeHandler('SIGNED_IN', session));
+        supabase.auth.on('SIGNED_OUT', () => authStateChangeHandler('SIGNED_OUT', null));
+    }
 }
 
 function showAuthModal() {
@@ -219,21 +237,49 @@ async function handleAuth(e) {
         let result;
         
         if (isLoginMode) {
-            result = await supabase.auth.signInWithPassword({
-                email: email,
-                password: password
-            });
+            // Handle both v1 and v2 login API
+            if (supabase.auth.signInWithPassword) {
+                // v2 API
+                result = await supabase.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+            } else if (supabase.auth.signIn) {
+                // v1 API
+                result = await supabase.auth.signIn({
+                    email: email,
+                    password: password
+                });
+            } else {
+                throw new Error('Login method not available');
+            }
         } else {
-            result = await supabase.auth.signUp({
-                email: email,
-                password: password,
-                options: {
-                    emailRedirectTo: `${window.location.origin}/`,
-                    data: {
-                        signup_source: 'codebotiks_web'
-                    }
+            // Handle both v1 and v2 signup API
+            if (supabase.auth.signUp) {
+                // Both v1 and v2 have signUp, but with different options format
+                const signUpOptions = {
+                    email: email,
+                    password: password
+                };
+                
+                // v2 has options object, v1 has redirectTo directly
+                if (supabase.auth.signInWithPassword) {
+                    // v2 API
+                    signUpOptions.options = {
+                        emailRedirectTo: `${window.location.origin}/`,
+                        data: {
+                            signup_source: 'codebotiks_web'
+                        }
+                    };
+                } else {
+                    // v1 API
+                    signUpOptions.redirectTo = `${window.location.origin}/`;
                 }
-            });
+                
+                result = await supabase.auth.signUp(signUpOptions);
+            } else {
+                throw new Error('Signup method not available');
+            }
         }
         
         if (result.error) {
@@ -271,7 +317,17 @@ async function handleAuth(e) {
 
 async function handleLogout() {
     try {
-        const { error } = await supabase.auth.signOut();
+        let result;
+        
+        // Handle both v1 and v2 logout API
+        if (supabase.auth.signOut) {
+            result = await supabase.auth.signOut();
+        } else {
+            throw new Error('Logout method not available');
+        }
+        
+        // v1 returns error directly, v2 returns { error }
+        const error = result?.error || (result && !result.data ? result : null);
         if (error) throw error;
     } catch (error) {
         console.error('Logout error:', error);
