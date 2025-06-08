@@ -41,8 +41,6 @@ function setupMenuToggle() {
             progressBtn.addEventListener('click', () => {
                 if (window.authSystem && window.authSystem.showProgressModal) {
                     window.authSystem.showProgressModal();
-                } else {
-                    console.warn('Auth system not loaded');
                 }
                 navMenu.classList.remove('active');
             });
@@ -129,7 +127,6 @@ async function loadBlogPosts() {
         }
         
     } catch (error) {
-        console.error('Error loading blog posts:', error);
         blogPostsContainer.innerHTML = `
             <div class="blog-error">
                 <h3>Error Loading Blog Posts</h3>
@@ -231,7 +228,6 @@ async function handleContactForm() {
         }
         
     } catch (error) {
-        console.error('Contact form error:', error);
         resultDiv.innerHTML = `<div class="error-message">❌ ${error.message}</div>`;
     } finally {
         submitBtn.disabled = false;
@@ -241,7 +237,6 @@ async function handleContactForm() {
 
 // Provide showSuccess function for auth system
 window.showSuccess = function(message) {
-    console.log('Success:', message);
     // Simple alert for now - could be enhanced with a toast notification
     alert(message);
 };
@@ -254,17 +249,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     const waitForSupabase = () => {
         return new Promise((resolve) => {
             if (window.supabase && window.SUPABASE_CONFIG?.url && window.SUPABASE_CONFIG?.anonKey) {
-                console.log('Supabase already ready');
                 resolve();
             } else {
-                console.log('Waiting for Supabase ready event...');
                 window.addEventListener('supabaseReady', () => {
-                    console.log('Supabase ready event received');
                     resolve();
                 }, { once: true });
                 // Fallback timeout
                 setTimeout(() => {
-                    console.log('Supabase ready timeout reached');
                     resolve();
                 }, 5000);
             }
@@ -281,7 +272,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             await window.authSystem.initAuth();
         } catch (error) {
-            console.error('Auth initialization failed:', error);
+            // Silent fallback
         }
     }
 });
