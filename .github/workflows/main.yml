@@ -19,27 +19,42 @@ jobs:
       with:
         node-version: '18'
         
-    - name: Install Claude Code - Try multiple methods
+    - name: Setup npm for proper Claude Code installation
       run: |
-        echo "=== Trying NPM Installation ==="
-        npm install -g @anthropic-ai/claude-code || echo "NPM install failed"
+        echo "=== Current npm configuration ==="
+        echo "NPM prefix: $(npm config get prefix)"
+        echo "NPM global root: $(npm root -g)"
         
-        echo "=== Checking if installed ==="
-        which claude-code || echo "Not found in PATH after npm install"
+        echo "=== Installing Claude Code ==="
+        npm install -g @anthropic-ai/claude-code
         
-        echo "=== Trying alternative installation methods ==="
-        # Try alternative package names
-        npm install -g claude-code || echo "Alternative npm install failed"
+        echo "=== Finding Claude Code binary ==="
+        NPM_PREFIX=$(npm config get prefix)
+        echo "NPM prefix is: $NPM_PREFIX"
         
-        # Try installing from GitHub releases if it's distributed that way
-        echo "=== Checking available npm packages ==="
-        npm search claude-code || echo "Search failed"
+        # Look for the claude-code binary in common locations
+        echo "Searching for claude-code binary:"
+        find $NPM_PREFIX -name "claude-code" -type f 2>/dev/null || echo "Not found in npm prefix"
+        find /opt/hostedtoolcache -name "claude-code" -type f 2>/dev/null || echo "Not found in hostedtoolcache"
         
-        echo "=== Current PATH ==="
-        echo $PATH
+        # Check the bin directory specifically
+        if [ -d "$NPM_PREFIX/bin" ]; then
+          echo "Contents of $NPM_PREFIX/bin:"
+          ls -la "$NPM_PREFIX/bin/" | grep claude || echo "No claude binary in bin"
+        fi
         
-        echo "=== NPM global packages ==="
-        npm list -g --depth=0 || echo "Failed to list global packages"
+        # Also check node_modules/.bin
+        NPM_ROOT=$(npm root -g)
+        if [ -d "$NPM_ROOT/.bin" ]; then
+          echo "Contents of $NPM_ROOT/.bin:"
+          ls -la "$NPM_ROOT/.bin/" | grep claude || echo "No claude binary in node_modules/.bin"
+        fi
+        
+        # Check if there's a claude-code package directory
+        if [ -d "$NPM_ROOT/@anthropic-ai/claude-code" ]; then
+          echo "Claude Code package contents:"
+          find "$NPM_ROOT/@anthropic-ai/claude-code" -name "claude-code" -o -name "cli*" -o -name "bin*" -type f 2>/dev/null
+        fi
         
     - name: Verify Claude Code installation
       run: |
@@ -82,12 +97,53 @@ jobs:
         echo "=== Running Claude Code Test ==="
         set -x  # Enable command tracing
         
-        # Try a simple command with all possible debug flags
-        claude-code --verbose --debug "echo 'Hello World'" 2>&1 | tee claude-output.log
+        # First, find where claude-code actually is
+        NPM_PREFIX=$(npm config get prefix)
+        NPM_ROOT=$(npm root -g)
+        
+        echo "Looking for claude-code binary in multiple locations..."
+        
+        # Try to find the actual binary
+        CLAUDE_CODE_PATH=""
+        
+        # Check common locations
+        for potential_path in \
+          "$NPM_PREFIX/bin/claude-code" \
+          "$NPM_ROOT/.bin/claude-code" \
+          "$NPM_ROOT/@anthropic-ai/claude-code/bin/claude-code" \
+          "$NPM_ROOT/@anthropic-ai/claude-code/cli.js" \
+          "$NPM_ROOT/@anthropic-ai/claude-code/dist/cli.js"
+        do
+          if [ -f "$potential_path" ]; then
+            echo "Found claude-code at: $potential_path"
+            CLAUDE_CODE_PATH="$potential_path"
+            break
+          fi
+        done
+        
+        if [ -n "$CLAUDE_CODE_PATH" ]; then
+          echo "Testing claude-code at: $CLAUDE_CODE_PATH"
+          
+          # Make it executable if needed
+          chmod +x "$CLAUDE_CODE_PATH" 2>/dev/null || true
+          
+          # Try to get version first
+          echo "Getting version:"
+          "$CLAUDE_CODE_PATH" --version || echo "Version command failed"
+          
+          # Try the actual test command
+          echo "Running test command:"
+          timeout 60 "$CLAUDE_CODE_PATH" --verbose --debug "echo 'Hello World'" 2>&1 | tee claude-output.log
+          
+        else
+          echo "Could not find claude-code binary anywhere!"
+          echo "Full package structure:"
+          find "$NPM_ROOT/@anthropic-ai" -type f 2>/dev/null | head -20
+        fi
         
         echo "Exit code: $?"
         echo "=== Full Output ==="
-        cat claude-output.log || echo "No log file created"
+        cat claude-output.log 2>/dev/null || echo "No log file created"
         
     - name: Alternative test - try different command
       env:
