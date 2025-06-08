@@ -49,8 +49,8 @@
             <div class="user-section">
                 <div class="header-actions">
                     <span id="user-email" class="user-email" style="display: none;"></span>
-                    <button id="auth-toggle-btn" class="btn btn-outline">Login</button>
-                    <button id="menu-toggle" class="menu-toggle">
+                    <button id="auth-toggle-btn" class="btn btn-outline" title="Login to track your challenge progress and save your achievements">Login</button>
+                    <button id="menu-toggle" class="menu-toggle" title="Open navigation menu for challenges, settings, and progress">
                         <span class="hamburger-line"></span>
                         <span class="hamburger-line"></span>
                         <span class="hamburger-line"></span>
@@ -66,28 +66,28 @@
                     <h3>Challenges</h3>
                     <div class="menu-control-group">
                         <label for="menu-challenges">Select Challenge:</label>
-                        <select id="menu-challenges">
+                        <select id="menu-challenges" title="Select a coding challenge to practice your skills and track your progress">
                             <option value="">Choose a Challenge</option>
                         </select>
                     </div>
-                    <button id="menu-submit-challenge" class="menu-btn" style="display: none;">Submit Challenge</button>
+                    <button id="menu-submit-challenge" class="menu-btn" style="display: none;" title="Submit your current code solution for the selected challenge">Submit Challenge</button>
                 </div>
                 
                 <div class="nav-section">
                     <h3>Navigation</h3>
-                    <a href="/blog" class="nav-link">📝 Blog</a>
+                    <a href="/blog" class="nav-link" title="Read coding tips, tutorials, and updates from the Codebotiks team">📝 Blog</a>
                 </div>
                 
                 <div class="nav-section">
                     <h3>Progress</h3>
-                    <button id="menu-progress" class="menu-btn">View Progress</button>
+                    <button id="menu-progress" class="menu-btn" title="View your completed challenges and track your learning progress">View Progress</button>
                 </div>
                 
                 <div class="nav-section">
                     <h3>Settings</h3>
                     <div class="menu-control-group">
                         <label for="menu-skill-level">Skill Level:</label>
-                        <select id="menu-skill-level">
+                        <select id="menu-skill-level" title="Set your programming skill level to get appropriate difficulty feedback and explanations">
                             <option value="beginner">Beginner</option>
                             <option value="intermediate">Intermediate</option>
                             <option value="advanced">Advanced</option>
@@ -106,7 +106,7 @@
                     <div class="editor-controls">
                         <div class="control-group">
                             <label for="language">Language:</label>
-                            <select id="language">
+                            <select id="language" title="Choose the programming language for your code editor and execution">
                                 <option value="python">Python</option>
                                 <option value="javascript">JavaScript</option>
                                 <option value="typescript">TypeScript</option>
@@ -128,25 +128,25 @@
                     </div>
                     
                     <div class="toolbar-group">
-                        <button id="theme-toggle" class="toolbar-btn" title="Toggle dark/light theme">🌓 Theme</button>
-                        <button id="minimap-toggle" class="toolbar-btn" title="Toggle minimap">🗺️ Map</button>
-                        <button id="wrap-toggle" class="toolbar-btn" title="Toggle word wrap">↩️ Wrap</button>
+                        <button id="theme-toggle" class="toolbar-btn" title="Switch between light and dark editor themes">🌓 Theme</button>
+                        <button id="minimap-toggle" class="toolbar-btn" title="Show/hide the code overview minimap on the right side">🗺️ Map</button>
+                        <button id="wrap-toggle" class="toolbar-btn" title="Enable/disable automatic line wrapping for long lines">↩️ Wrap</button>
                     </div>
                     
                     <div class="toolbar-group">
-                        <button id="run-code" class="toolbar-btn toolbar-btn-run" title="Run code">▶️ Run Code</button>
-                        <button id="fold-all" class="toolbar-btn" title="Fold all code blocks">📁 Fold</button>
-                        <button id="unfold-all" class="toolbar-btn" title="Unfold all code blocks">📂 Unfold</button>
+                        <button id="run-code" class="toolbar-btn toolbar-btn-run" title="Execute your code and see the output in the Results panel">▶️ Run Code</button>
+                        <button id="fold-all" class="toolbar-btn" title="Collapse all function and class definitions for better code overview">📁 Fold</button>
+                        <button id="unfold-all" class="toolbar-btn" title="Expand all folded code sections to see the full code">📂 Unfold</button>
                     </div>
                 </div>
                 
                 <div id="editor" class="editor"></div>
                 
                 <div class="buttons">
-                    <button id="analyze-btn" class="btn primary">Analyze</button>
-                    <button id="explain-btn" class="btn secondary">Explain</button>
-                    <button id="submit-challenge-btn" class="btn success" style="display: none;">Submit Challenge</button>
-                    <button id="clear-btn" class="btn">Clear</button>
+                    <button id="analyze-btn" class="btn primary" title="Get AI-powered analysis of your code's quality, performance, and best practices">Analyze</button>
+                    <button id="explain-btn" class="btn secondary" title="Get a detailed explanation of how your code works line by line">Explain</button>
+                    <button id="submit-challenge-btn" class="btn success" style="display: none;" title="Submit your solution for evaluation and progress tracking">Submit Challenge</button>
+                    <button id="clear-btn" class="btn" title="Reset the editor to the default sample code for the selected language">Clear</button>
                 </div>
             </div>
 
@@ -155,10 +155,10 @@
                     <h3>Results</h3>
                     <div class="results-header-controls">
                         <div class="tab-buttons">
-                            <button id="ai-feedback-tab" class="tab-btn active">🤖 AI Feedback</button>
-                            <button id="code-output-tab" class="tab-btn">🖥️ Code Output</button>
+                            <button id="ai-feedback-tab" class="tab-btn active" title="View AI-powered code analysis and explanations">🤖 AI Feedback</button>
+                            <button id="code-output-tab" class="tab-btn" title="View the execution output of your code">🖥️ Code Output</button>
                         </div>
-                        <button id="expand-toggle" class="expand-toggle-btn" title="Expand code editor">↔️</button>
+                        <button id="expand-toggle" class="expand-toggle-btn" title="Expand code editor to full width for better coding experience">↔️</button>
                     </div>
                 </div>
                 
@@ -199,9 +199,9 @@
     <footer class="main-footer">
         <div class="footer-content">
             <div class="footer-links">
-                <button id="disclaimer-btn" class="footer-link">Disclaimer</button>
+                <button id="disclaimer-btn" class="footer-link" title="Read important information about code usage and AI training">Disclaimer</button>
                 <span class="footer-separator">|</span>
-                <button id="contact-btn" class="footer-link">Contact Us</button>
+                <button id="contact-btn" class="footer-link" title="Send us feedback, questions, or bug reports">Contact Us</button>
             </div>
             <div class="footer-text">
                 <p>&copy; 2024 Codebotiks. All rights reserved.</p>
