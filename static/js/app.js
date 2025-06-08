@@ -1021,10 +1021,16 @@ function toggleExpandedMode() {
         
         // Reset styles directly
         const editorContainer = mainContainer.querySelector('.editor-container');
+        console.log('Resetting editor container:', !!editorContainer);
         if (editorContainer) {
             editorContainer.style.gridTemplateColumns = '';
             editorContainer.style.backgroundColor = '';
+            console.log('Reset inline styles on editor-container');
         }
+        
+        // Reset main container styles
+        mainContainer.style.border = '';
+        mainContainer.style.backgroundColor = '';
     } else {
         // Expand - minimize results panel
         mainContainer.classList.add('expanded');
@@ -1034,9 +1040,14 @@ function toggleExpandedMode() {
         
         // Apply styles directly via JavaScript as backup
         const editorContainer = mainContainer.querySelector('.editor-container');
+        console.log('Editor container found:', !!editorContainer);
+        console.log('Editor container element:', editorContainer);
         if (editorContainer) {
+            console.log('Current grid-template-columns:', getComputedStyle(editorContainer).gridTemplateColumns);
             editorContainer.style.gridTemplateColumns = '1fr 60px';
             editorContainer.style.backgroundColor = 'red'; // DEBUG
+            console.log('After setting - grid-template-columns:', editorContainer.style.gridTemplateColumns);
+            console.log('After setting - background:', editorContainer.style.backgroundColor);
             console.log('Applied inline styles to editor-container');
         }
         
