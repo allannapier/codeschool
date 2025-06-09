@@ -303,6 +303,7 @@ function createCourseCardHTML(course) {
                         `<button id="start-course-${course.id}" class="btn primary">${statusIcon} ${statusText}</button>`
                     }
                     <button onclick="viewCourseDetails(${course.id})" class="btn secondary">📋 Details</button>
+                    ${isCompleted ? `<a href="/tutorials/certificate/${course.id}" class="btn success" style="text-decoration: none;">🏆 Certificate</a>` : ''}
                 </div>
             </div>
         </div>

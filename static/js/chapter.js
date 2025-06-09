@@ -694,14 +694,139 @@ async function markChapterComplete() {
             updateCourseProgress();
             updateChapterNavigation();
             
-            if (window.showSuccess) {
-                window.showSuccess('Chapter marked as complete! 🎉');
+            // Check if course is completed
+            if (result.course_completed) {
+                showCourseCompletionModal(result.certificate_url);
+            } else {
+                if (window.showSuccess) {
+                    window.showSuccess('Chapter marked as complete! 🎉');
+                }
             }
         } else {
             throw new Error(result.error || 'Failed to mark chapter complete');
         }
     } catch (error) {
         alert(`Error marking chapter complete: ${error.message}`);
+    }
+}
+
+// Show course completion modal with certificate
+function showCourseCompletionModal(certificateUrl) {
+    // Create modal HTML
+    const modalHTML = `
+        <div id="course-completion-modal" class="modal" style="display: flex;">
+            <div class="modal-content" style="max-width: 500px;">
+                <div class="modal-header">
+                    <h2>🎉 Course Completed!</h2>
+                    <button class="close-btn" onclick="closeCourseCompletionModal()">&times;</button>
+                </div>
+                <div class="modal-body" style="text-align: center; padding: 2rem;">
+                    <div style="font-size: 4rem; margin-bottom: 1rem;">🏆</div>
+                    <h3 style="color: var(--primary-color); margin-bottom: 1rem;">Congratulations!</h3>
+                    <p style="margin-bottom: 2rem; line-height: 1.6;">
+                        You have successfully completed <strong>${courseData.title}</strong>! 
+                        Your dedication to learning is commendable.
+                    </p>
+                    <div style="background: var(--background-color); padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem;">
+                        <h4 style="margin-bottom: 0.5rem;">Your Achievement</h4>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem;">
+                            You've completed all chapters and demonstrated mastery of the course material.
+                            Your certificate is ready to download and share!
+                        </p>
+                    </div>
+                    <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                        <a href="${certificateUrl}" target="_blank" class="btn primary" style="text-decoration: none;">
+                            🏆 View Certificate
+                        </a>
+                        <button onclick="shareCourseCompletion()" class="btn secondary">
+                            🔗 Share Achievement
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Add modal to page
+    const existingModal = document.getElementById('course-completion-modal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
+    // Add confetti effect
+    createConfettiEffect();
+}
+
+// Close course completion modal
+function closeCourseCompletionModal() {
+    const modal = document.getElementById('course-completion-modal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+// Share course completion
+function shareCourseCompletion() {
+    const text = `🎉 I just completed the "${courseData.title}" course on Codebotiks! Ready to tackle new coding challenges!`;
+    const url = window.location.origin + '/tutorials';
+    
+    if (navigator.share) {
+        navigator.share({
+            title: 'Course Completed on Codebotiks',
+            text: text,
+            url: url
+        });
+    } else {
+        // Fallback: copy to clipboard
+        navigator.clipboard.writeText(`${text} ${url}`).then(() => {
+            alert('Achievement shared! Link copied to clipboard.');
+        }).catch(() => {
+            // Fallback for older browsers
+            const textArea = document.createElement('textarea');
+            textArea.value = `${text} ${url}`;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            alert('Achievement shared! Link copied to clipboard.');
+        });
+    }
+}
+
+// Create confetti effect
+function createConfettiEffect() {
+    const colors = ['#667eea', '#764ba2', '#f093fb', '#f5576c', '#4facfe', '#00f2fe'];
+    const confettiCount = 50;
+    
+    for (let i = 0; i < confettiCount; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.style.position = 'fixed';
+            confetti.style.left = Math.random() * 100 + 'vw';
+            confetti.style.top = '-10px';
+            confetti.style.width = '10px';
+            confetti.style.height = '10px';
+            confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+            confetti.style.zIndex = '10000';
+            confetti.style.pointerEvents = 'none';
+            confetti.style.borderRadius = '50%';
+            
+            document.body.appendChild(confetti);
+            
+            // Animate confetti fall
+            const animation = confetti.animate([
+                { transform: `translateY(0) rotate(0deg)`, opacity: 1 },
+                { transform: `translateY(100vh) rotate(720deg)`, opacity: 0 }
+            ], {
+                duration: 3000 + Math.random() * 2000,
+                easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+            });
+            
+            animation.onfinish = () => confetti.remove();
+        }, i * 50);
     }
 }
 

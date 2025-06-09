@@ -815,9 +815,62 @@ def mark_chapter_complete():
         
         # This would save to database
         # For now, just return success
-        return jsonify({
+        response_data = {
             'success': True,
             'message': 'Chapter marked as complete'
+        }
+        
+        # Check if course is completed
+        course_completion = check_course_completion(course_id)
+        if course_completion['completed']:
+            response_data['course_completed'] = True
+            response_data['certificate_url'] = f'/tutorials/certificate/{course_id}'
+        
+        return jsonify(response_data)
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/tutorials/certificate/<int:course_id>')
+def generate_certificate(course_id):
+    """Generate and display certificate for completed course"""
+    try:
+        # Load course data
+        course_data = load_course_data(course_id)
+        if not course_data:
+            return "Course not found", 404
+        
+        # Check if course is completed (for now, we'll allow viewing)
+        # In production, you'd verify the user has actually completed the course
+        
+        # Generate certificate data
+        certificate_data = generate_certificate_data(course_id, course_data)
+        
+        return render_template('certificate.html', **certificate_data)
+        
+    except Exception as e:
+        print(f"Error generating certificate: {str(e)}")
+        return "Error generating certificate", 500
+
+@app.route('/api/tutorials/certificate/<int:course_id>', methods=['GET'])
+def get_certificate_data(course_id):
+    """Get certificate data as JSON"""
+    try:
+        course_data = load_course_data(course_id)
+        if not course_data:
+            return jsonify({
+                'success': False,
+                'error': 'Course not found'
+            }), 404
+        
+        certificate_data = generate_certificate_data(course_id, course_data)
+        
+        return jsonify({
+            'success': True,
+            'certificate': certificate_data
         })
         
     except Exception as e:
@@ -1047,6 +1100,75 @@ def get_sample_test_questions(course_id, chapter_id):
         ]
     
     return []
+
+# Certificate Generation Functions
+
+def check_course_completion(course_id):
+    """Check if a course is completed based on chapter completion"""
+    try:
+        chapters = load_all_chapters(course_id)
+        total_chapters = len(chapters)
+        
+        # For now, we'll simulate completion
+        # In production, this would check the user's actual progress from database
+        completed_chapters = total_chapters  # Simulate all chapters completed
+        
+        completion_percentage = (completed_chapters / total_chapters) * 100 if total_chapters > 0 else 0
+        
+        return {
+            'completed': completion_percentage >= 100,
+            'total_chapters': total_chapters,
+            'completed_chapters': completed_chapters,
+            'completion_percentage': completion_percentage
+        }
+    except Exception as e:
+        print(f"Error checking course completion: {str(e)}")
+        return {
+            'completed': False,
+            'total_chapters': 0,
+            'completed_chapters': 0,
+            'completion_percentage': 0
+        }
+
+def generate_certificate_data(course_id, course_data):
+    """Generate data for certificate display"""
+    try:
+        import uuid
+        from datetime import datetime
+        
+        # Get course completion data
+        completion_data = check_course_completion(course_id)
+        
+        # Generate certificate data
+        certificate_data = {
+            'student_name': 'John Doe',  # In production, get from authenticated user
+            'course_title': course_data.get('title', 'Unknown Course'),
+            'course_description': course_data.get('description', ''),
+            'course_duration': course_data.get('estimated_duration', 8),
+            'total_chapters': completion_data['total_chapters'],
+            'chapters_completed': completion_data['completed_chapters'],
+            'completion_date': datetime.now().strftime('%B %d, %Y'),
+            'certificate_id': f"CB-{course_id}-{str(uuid.uuid4())[:8].upper()}",
+            'average_score': 85,  # In production, calculate from actual test scores
+            'back_url': f'/tutorials/course/{course_id}/chapter/1'
+        }
+        
+        return certificate_data
+        
+    except Exception as e:
+        print(f"Error generating certificate data: {str(e)}")
+        return {
+            'student_name': 'Student',
+            'course_title': 'Course',
+            'course_description': '',
+            'course_duration': 8,
+            'total_chapters': 1,
+            'chapters_completed': 1,
+            'completion_date': datetime.now().strftime('%B %d, %Y'),
+            'certificate_id': 'CB-ERROR',
+            'average_score': 0,
+            'back_url': '/tutorials'
+        }
 
 if __name__ == '__main__':
     app.run(debug=True)
