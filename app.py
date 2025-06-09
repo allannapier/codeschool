@@ -1173,6 +1173,100 @@ def get_sample_test_questions(course_id, chapter_id):
     
     return []
 
+# User Progress Functions
+
+def get_user_from_session():
+    """Get user ID from session (fallback for non-Supabase auth)"""
+    # For development, we can use a session-based approach
+    # In production, this should integrate with Supabase auth
+    
+    # Generate a persistent demo user ID based on session
+    if 'temp_user_id' not in session:
+        import uuid
+        session['temp_user_id'] = str(uuid.uuid4())
+    
+    return session['temp_user_id']
+
+def save_user_progress(user_id, course_id, chapter_id, test_score=None, practical_passed=None):
+    """Save user progress to Supabase"""
+    try:
+        if not supabase:
+            print("Supabase not configured")
+            return False
+        
+        progress_data = {
+            'user_id': user_id,
+            'course_id': course_id,
+            'chapter_id': chapter_id,
+            'completed_at': datetime.now().isoformat(),
+            'test_score': test_score,
+            'practical_passed': practical_passed
+        }
+        
+        # Use upsert to handle duplicate completions
+        response = supabase.table('user_progress').upsert(progress_data).execute()
+        
+        if response.data:
+            print(f"Progress saved for user {user_id}, chapter {chapter_id}")
+            return True
+        else:
+            print(f"Failed to save progress: {response}")
+            return False
+            
+    except Exception as e:
+        print(f"Error saving user progress: {str(e)}")
+        return False
+
+def load_user_progress(user_id):
+    """Load user progress from Supabase"""
+    try:
+        if not supabase:
+            print("Supabase not configured")
+            return {}
+        
+        response = supabase.table('user_progress').select('*').eq('user_id', user_id).execute()
+        
+        if response.data:
+            # Convert to the format expected by frontend
+            progress = {}
+            for record in response.data:
+                course_id = record['course_id']
+                chapter_id = record['chapter_id']
+                
+                if course_id not in progress:
+                    progress[course_id] = {}
+                
+                progress[course_id][chapter_id] = {
+                    'completed_at': record['completed_at'],
+                    'test_score': record.get('test_score'),
+                    'practical_passed': record.get('practical_passed')
+                }
+            
+            return progress
+        else:
+            return {}
+            
+    except Exception as e:
+        print(f"Error loading user progress: {str(e)}")
+        return {}
+
+def get_user_completed_chapters(user_id, course_id):
+    """Get list of completed chapter IDs for a user and course"""
+    try:
+        if not supabase:
+            return []
+        
+        response = supabase.table('user_progress').select('chapter_id').eq('user_id', user_id).eq('course_id', course_id).execute()
+        
+        if response.data:
+            return [record['chapter_id'] for record in response.data]
+        else:
+            return []
+            
+    except Exception as e:
+        print(f"Error getting completed chapters: {str(e)}")
+        return []
+
 # Certificate Generation Functions
 
 def check_course_completion(course_id, user_id=None):
