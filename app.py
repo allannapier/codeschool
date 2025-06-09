@@ -868,17 +868,25 @@ def mark_chapter_complete():
         course_id = data.get('course_id')
         chapter_id = data.get('chapter_id')
         
+        print(f"DEBUG: mark_chapter_complete called with course_id={course_id}, chapter_id={chapter_id}")
+        
         # Get user ID from token (implement proper auth)
         user_id = get_user_from_token() or get_user_from_session()
+        print(f"DEBUG: User ID resolved to: {user_id}")
+        
         if not user_id:
+            print("ERROR: User not authenticated")
             return jsonify({
                 'success': False,
                 'error': 'User not authenticated'
             }), 401
         
         # Save progress to database
+        print("DEBUG: Calling save_user_progress...")
         success = save_user_progress(user_id, course_id, chapter_id)
+        
         if not success:
+            print("ERROR: save_user_progress returned False")
             return jsonify({
                 'success': False,
                 'error': 'Failed to save progress'
@@ -895,9 +903,13 @@ def mark_chapter_complete():
             response_data['course_completed'] = True
             response_data['certificate_url'] = f'/tutorials/certificate/{course_id}'
         
+        print(f"DEBUG: Returning success response: {response_data}")
         return jsonify(response_data)
         
     except Exception as e:
+        print(f"ERROR: Exception in mark_chapter_complete: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({
             'success': False,
             'error': str(e)
@@ -1190,8 +1202,10 @@ def get_user_from_session():
 def save_user_progress(user_id, course_id, chapter_id, test_score=None, practical_passed=None):
     """Save user progress to Supabase"""
     try:
+        print(f"DEBUG: Attempting to save progress - user_id={user_id}, course_id={course_id}, chapter_id={chapter_id}")
+        
         if not supabase:
-            print("Supabase not configured")
+            print("ERROR: Supabase not configured")
             return False
         
         progress_data = {
@@ -1203,18 +1217,24 @@ def save_user_progress(user_id, course_id, chapter_id, test_score=None, practica
             'practical_passed': practical_passed
         }
         
+        print(f"DEBUG: Progress data to save: {progress_data}")
+        
         # Use upsert to handle duplicate completions
         response = supabase.table('user_progress').upsert(progress_data).execute()
         
+        print(f"DEBUG: Supabase response: {response}")
+        
         if response.data:
-            print(f"Progress saved for user {user_id}, chapter {chapter_id}")
+            print(f"SUCCESS: Progress saved for user {user_id}, chapter {chapter_id}")
             return True
         else:
-            print(f"Failed to save progress: {response}")
+            print(f"ERROR: Failed to save progress - no data returned: {response}")
             return False
             
     except Exception as e:
-        print(f"Error saving user progress: {str(e)}")
+        print(f"ERROR: Exception saving user progress: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return False
 
 def load_user_progress(user_id):
