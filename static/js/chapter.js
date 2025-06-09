@@ -27,10 +27,14 @@ async function initChapter() {
     updateCourseProgress();
     updateChapterNavigation();
     
-    // Check if chapter can be auto-completed (for chapters with no requirements)
-    setTimeout(() => {
-        checkAndCompleteChapter();
-    }, 2000);
+    // Clear session storage for test/practical results when page loads
+    // This ensures tests start fresh each time
+    clearSessionStorage();
+    
+    // Load user progress for this chapter to update UI
+    if (window.authSystem && window.authSystem.isLoggedIn()) {
+        loadUserProgressForChapter();
+    }
 }
 
 // Set up hamburger menu functionality
@@ -228,10 +232,14 @@ function updateChapterNavigation() {
 }
 
 
-// Check if a chapter is completed
+// Check if a chapter is completed based on actual requirements
 function isChapterCompleted(chapterId) {
-    // This would check against user progress data
-    // For now, return false - implement with actual progress tracking
+    // Check if this specific chapter has been completed
+    // This should check the loaded user progress data, not session storage
+    if (window.userProgress && courseData && courseData.id) {
+        const courseProgress = window.userProgress[courseData.id];
+        return courseProgress && courseProgress[chapterId];
+    }
     return false;
 }
 
@@ -632,9 +640,9 @@ function showPracticalResults(evaluation, passed) {
     // Store practical pass status
     if (passed) {
         sessionStorage.setItem(`practical_passed_${chapterData.id}`, 'true');
-        // Check if chapter can be completed
+        // Check if chapter can be completed after practical pass
         setTimeout(() => {
-            checkAndCompleteChapter();
+            checkAndCompleteChapter('practicalPass');
         }, 1000);
     }
     
@@ -677,9 +685,41 @@ function retryPractical() {
     }
 }
 
+// Clear session storage for test/practical results
+function clearSessionStorage() {
+    if (chapterData && chapterData.id) {
+        sessionStorage.removeItem(`test_passed_${chapterData.id}`);
+        sessionStorage.removeItem(`practical_passed_${chapterData.id}`);
+        console.log(`DEBUG: Cleared session storage for chapter ${chapterData.id}`);
+    }
+}
+
+// Load user progress for current chapter to update UI
+async function loadUserProgressForChapter() {
+    try {
+        const response = await fetch('/api/tutorials/progress', {
+            headers: {
+                'Authorization': `Bearer ${await getAuthToken()}`
+            }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            window.userProgress = data.progress || {};
+            
+            // Update UI based on actual completion status
+            updateCourseProgress();
+            updateChapterNavigation();
+        }
+    } catch (error) {
+        console.warn('Could not load user progress:', error);
+    }
+}
+
 // Check if chapter requirements are met and auto-complete if so
-async function checkAndCompleteChapter() {
-    console.log('DEBUG: checkAndCompleteChapter called');
+// This should ONLY be called after a user successfully completes a test or practical
+async function checkAndCompleteChapter(triggerSource = 'unknown') {
+    console.log(`DEBUG: checkAndCompleteChapter called from: ${triggerSource}`);
     
     // Check if this chapter has any requirements
     const hasTest = chapterData.has_test;
@@ -687,37 +727,43 @@ async function checkAndCompleteChapter() {
     
     console.log(`DEBUG: Chapter requirements - hasTest: ${hasTest}, hasPractical: ${hasPractical}`);
     
-    // If no requirements, complete immediately
-    if (!hasTest && !hasPractical) {
+    // If no requirements, complete immediately only if triggered by user action
+    if (!hasTest && !hasPractical && triggerSource !== 'pageLoad') {
         console.log('DEBUG: No requirements, completing immediately');
         await autoCompleteChapter();
         return;
     }
     
-    // Check if all requirements are satisfied
+    // Don't auto-complete on page load - only when user actually completes requirements
+    if (triggerSource === 'pageLoad') {
+        console.log('DEBUG: Page load - not auto-completing, just updating UI');
+        return;
+    }
+    
+    // Check if all requirements are satisfied in current session
     let testPassed = !hasTest; // If no test required, consider it passed
     let practicalPassed = !hasPractical; // If no practical required, consider it passed
     
-    // Check test status (you'd need to store this in session/local storage)
+    // Check test status from current session only
     if (hasTest) {
         testPassed = sessionStorage.getItem(`test_passed_${chapterData.id}`) === 'true';
-        console.log(`DEBUG: Test required - passed: ${testPassed}`);
+        console.log(`DEBUG: Test required - passed in current session: ${testPassed}`);
     }
     
-    // Check practical status
+    // Check practical status from current session only
     if (hasPractical) {
         practicalPassed = sessionStorage.getItem(`practical_passed_${chapterData.id}`) === 'true';
-        console.log(`DEBUG: Practical required - passed: ${practicalPassed}`);
+        console.log(`DEBUG: Practical required - passed in current session: ${practicalPassed}`);
     }
     
     console.log(`DEBUG: Requirements check - testPassed: ${testPassed}, practicalPassed: ${practicalPassed}`);
     
-    // If all requirements met, complete the chapter
+    // If all requirements met in current session, complete the chapter
     if (testPassed && practicalPassed) {
-        console.log('DEBUG: All requirements met, calling autoCompleteChapter');
+        console.log('DEBUG: All requirements met in current session, calling autoCompleteChapter');
         await autoCompleteChapter();
     } else {
-        console.log('DEBUG: Requirements not met, not completing chapter');
+        console.log('DEBUG: Requirements not met in current session, not completing chapter');
     }
 }
 

@@ -1281,8 +1281,8 @@ def save_user_progress(user_id, course_id, chapter_id, test_score=None, practica
         
         if existing_response.data:
             print(f"DEBUG: Progress already exists for user {user_id}, chapter {chapter_id}")
-            print(f"SUCCESS: Chapter already completed - no update needed")
-            return True
+            print(f"INFO: Chapter already completed - not saving duplicate")
+            return True  # Return True because the chapter is indeed completed
         else:
             # Insert new record
             progress_data = {
