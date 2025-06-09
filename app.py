@@ -611,8 +611,36 @@ def tutorials():
 
 @app.route('/tutorials/course/<int:course_id>')
 def course_overview(course_id):
-    # For now, redirect to first chapter
-    return redirect(f'/tutorials/course/{course_id}/chapter/1')
+    try:
+        # Load course data
+        course_data = load_course_data(course_id)
+        if not course_data:
+            return "Course not found", 404
+            
+        # Load all chapters for this course
+        all_chapters = load_all_chapters(course_id)
+        
+        # If course has chapters, redirect to the first one
+        if all_chapters and len(all_chapters) > 0:
+            # Sort chapters by chapter_number to ensure we get the first one
+            sorted_chapters = sorted(all_chapters, key=lambda x: x.get('chapter_number', 1))
+            first_chapter = sorted_chapters[0]
+            print(f"DEBUG: Redirecting to chapter {first_chapter['id']} for course {course_id}")
+            return redirect(f'/tutorials/course/{course_id}/chapter/{first_chapter["id"]}')
+        
+        # If no chapters, show course overview page
+        supabase_url = os.getenv('SUPABASE_URL', '')
+        supabase_anon_key = os.getenv('SUPABASE_ANON_KEY', '')
+        
+        return render_template('course_overview.html',
+                             course=course_data,
+                             chapters=all_chapters,
+                             supabase_url=supabase_url,
+                             supabase_anon_key=supabase_anon_key)
+                             
+    except Exception as e:
+        print(f"Error loading course overview: {str(e)}")
+        return "Error loading course", 500
 
 @app.route('/tutorials/course/<int:course_id>/chapter/<int:chapter_id>')
 def chapter_view(course_id, chapter_id):
@@ -938,7 +966,11 @@ def load_all_chapters(course_id):
 def load_chapter_data(course_id, chapter_id):
     """Load specific chapter data"""
     chapters = load_all_chapters(course_id)
-    return next((chapter for chapter in chapters if chapter['id'] == chapter_id), None)
+    print(f"DEBUG: Looking for chapter {chapter_id} in course {course_id}")
+    print(f"DEBUG: Available chapters: {[ch.get('id') for ch in chapters]}")
+    chapter = next((chapter for chapter in chapters if chapter['id'] == chapter_id), None)
+    print(f"DEBUG: Found chapter: {chapter is not None}")
+    return chapter
 
 def load_chapter_content(course_id, chapter_id):
     """Load and render chapter content from markdown"""
