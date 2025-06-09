@@ -1263,37 +1263,6 @@ def get_user_from_session():
     
     return session['temp_user_id']
 
-def ensure_user_exists(user_id):
-    """Create a user record if it doesn't exist"""
-    try:
-        if not supabase:
-            return False
-            
-        # Check if user exists
-        response = supabase.table('users').select('id').eq('id', user_id).execute()
-        
-        if not response.data:
-            # User doesn't exist, create a demo user record
-            user_data = {
-                'id': user_id,
-                'email': f'demo_user_{user_id[:8]}@example.com',
-                'created_at': datetime.now().isoformat()
-            }
-            
-            try:
-                create_response = supabase.table('users').insert(user_data).execute()
-                print(f"DEBUG: Created demo user record for {user_id}")
-                return create_response.data is not None
-            except Exception as e:
-                print(f"DEBUG: Could not create user record: {e}")
-                return False
-        
-        return True
-        
-    except Exception as e:
-        print(f"DEBUG: Error checking/creating user: {e}")
-        return False
-
 def save_user_progress(user_id, course_id, chapter_id, test_score=None, practical_passed=None):
     """Save user progress to Supabase"""
     try:
@@ -1303,39 +1272,57 @@ def save_user_progress(user_id, course_id, chapter_id, test_score=None, practica
             print("ERROR: Supabase not configured")
             return False
         
-        # Ensure user exists (create if needed)
-        if not ensure_user_exists(user_id):
-            print("WARNING: Could not ensure user exists, attempting save anyway")
-        
         # Get chapter title for the challenge_title field
         chapter_data = load_chapter_data(course_id, chapter_id)
         chapter_title = chapter_data.get('title', f'Chapter {chapter_id}') if chapter_data else f'Chapter {chapter_id}'
         
-        progress_data = {
-            'user_id': user_id,
-            'course_id': course_id,
-            'chapter_id': chapter_id,
-            'challenge_id': f'chapter_{chapter_id}',  # Use a unique challenge ID
-            'challenge_title': chapter_title,  # Required field
-            'completed_at': datetime.now().isoformat(),
-            'test_score': test_score,
-            'practical_passed': practical_passed,
-            'status': 'completed'
-        }
+        # First, check if this progress already exists
+        existing_response = supabase.table('user_progress').select('*').eq('user_id', user_id).eq('course_id', course_id).eq('chapter_id', chapter_id).execute()
         
-        print(f"DEBUG: Progress data to save: {progress_data}")
-        
-        # Use upsert to handle duplicate completions
-        response = supabase.table('user_progress').upsert(progress_data).execute()
-        
-        print(f"DEBUG: Supabase response: {response}")
-        
-        if response.data:
-            print(f"SUCCESS: Progress saved for user {user_id}, chapter {chapter_id}")
-            return True
+        if existing_response.data:
+            print(f"DEBUG: Progress already exists for user {user_id}, chapter {chapter_id}")
+            # Update existing record
+            update_data = {
+                'test_score': test_score,
+                'practical_passed': practical_passed,
+                'completed_at': datetime.now().isoformat(),
+                'status': 'completed'
+            }
+            
+            response = supabase.table('user_progress').update(update_data).eq('user_id', user_id).eq('course_id', course_id).eq('chapter_id', chapter_id).execute()
+            
+            if response.data:
+                print(f"SUCCESS: Progress updated for user {user_id}, chapter {chapter_id}")
+                return True
+            else:
+                print(f"ERROR: Failed to update progress: {response}")
+                return False
         else:
-            print(f"ERROR: Failed to save progress - no data returned: {response}")
-            return False
+            # Insert new record
+            progress_data = {
+                'user_id': user_id,
+                'course_id': course_id,
+                'chapter_id': chapter_id,
+                'challenge_id': f'chapter_{course_id}_{chapter_id}',  # Make it more unique
+                'challenge_title': chapter_title,
+                'completed_at': datetime.now().isoformat(),
+                'test_score': test_score,
+                'practical_passed': practical_passed,
+                'status': 'completed'
+            }
+            
+            print(f"DEBUG: Progress data to save: {progress_data}")
+            
+            response = supabase.table('user_progress').insert(progress_data).execute()
+            
+            print(f"DEBUG: Supabase response: {response}")
+            
+            if response.data:
+                print(f"SUCCESS: Progress saved for user {user_id}, chapter {chapter_id}")
+                return True
+            else:
+                print(f"ERROR: Failed to save progress - no data returned: {response}")
+                return False
             
     except Exception as e:
         print(f"ERROR: Exception saving user progress: {str(e)}")
