@@ -712,11 +712,20 @@ def get_tutorial_courses():
 def get_tutorial_progress():
     """Get user's tutorial progress"""
     try:
-        # This would integrate with your user system
-        # For now, return empty progress
+        # Get user ID from token
+        user_id = get_user_from_token() or get_user_from_session()
+        if not user_id:
+            return jsonify({
+                'success': True,
+                'progress': {}  # Return empty if not logged in
+            })
+        
+        # Load user progress from database
+        progress = load_user_progress(user_id)
+        
         return jsonify({
             'success': True,
-            'progress': {}
+            'progress': progress
         })
     except Exception as e:
         return jsonify({
@@ -859,15 +868,29 @@ def mark_chapter_complete():
         course_id = data.get('course_id')
         chapter_id = data.get('chapter_id')
         
-        # This would save to database
-        # For now, just return success
+        # Get user ID from token (implement proper auth)
+        user_id = get_user_from_token() or get_user_from_session()
+        if not user_id:
+            return jsonify({
+                'success': False,
+                'error': 'User not authenticated'
+            }), 401
+        
+        # Save progress to database
+        success = save_user_progress(user_id, course_id, chapter_id)
+        if not success:
+            return jsonify({
+                'success': False,
+                'error': 'Failed to save progress'
+            }), 500
+        
         response_data = {
             'success': True,
             'message': 'Chapter marked as complete'
         }
         
         # Check if course is completed
-        course_completion = check_course_completion(course_id)
+        course_completion = check_course_completion(course_id, user_id)
         if course_completion['completed']:
             response_data['course_completed'] = True
             response_data['certificate_url'] = f'/tutorials/certificate/{course_id}'
@@ -1152,22 +1175,30 @@ def get_sample_test_questions(course_id, chapter_id):
 
 # Certificate Generation Functions
 
-def check_course_completion(course_id):
+def check_course_completion(course_id, user_id=None):
     """Check if a course is completed based on chapter completion"""
     try:
         chapters = load_all_chapters(course_id)
         total_chapters = len(chapters)
         
-        # For now, we'll simulate completion
-        # In production, this would check the user's actual progress from database
-        completed_chapters = total_chapters  # Simulate all chapters completed
+        if not user_id:
+            return {
+                'completed': False,
+                'total_chapters': total_chapters,
+                'completed_chapters': 0,
+                'completion_percentage': 0
+            }
         
-        completion_percentage = (completed_chapters / total_chapters) * 100 if total_chapters > 0 else 0
+        # Get user's completed chapters for this course
+        completed_chapters = get_user_completed_chapters(user_id, course_id)
+        completed_count = len(completed_chapters)
+        
+        completion_percentage = (completed_count / total_chapters) * 100 if total_chapters > 0 else 0
         
         return {
             'completed': completion_percentage >= 100,
             'total_chapters': total_chapters,
-            'completed_chapters': completed_chapters,
+            'completed_chapters': completed_count,
             'completion_percentage': completion_percentage
         }
     except Exception as e:
