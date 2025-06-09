@@ -12,7 +12,6 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import markdown
-from supabase import create_client, Client
 
 load_dotenv()
 
@@ -30,10 +29,13 @@ supabase_url = os.getenv('SUPABASE_URL')
 supabase_service_key = os.getenv('SUPABASE_SERVICE_KEY')  # Service role key for admin operations
 supabase_anon_key = os.getenv('SUPABASE_ANON_KEY')
 
+# Configure Supabase
 if supabase_url and supabase_service_key:
+    from supabase import create_client, Client
     supabase: Client = create_client(supabase_url, supabase_service_key)
+    print("Supabase client initialized successfully")
 else:
-    print("Warning: Supabase not configured. Course management will not work.")
+    print("ERROR: Supabase credentials missing. Please set SUPABASE_URL and SUPABASE_SERVICE_KEY environment variables.")
     supabase = None
 
 # Optional: Add user context to API calls (requires Supabase JWT verification)
@@ -897,42 +899,40 @@ def get_certificate_data(course_id):
 # Tutorial Data Loading Functions
 
 def load_all_courses():
-    """Load all available courses"""
+    """Load all available courses from Supabase"""
     try:
         if not supabase:
-            return get_sample_courses()
+            raise Exception("Supabase not configured")
         
         response = supabase.table('courses').select('*').order('created_at', desc=True).execute()
         return response.data if response.data else []
     except Exception as e:
         print(f"Error loading courses from Supabase: {str(e)}")
-        return get_sample_courses()
+        raise
 
 def load_course_data(course_id):
-    """Load specific course data"""
+    """Load specific course data from Supabase"""
     try:
         if not supabase:
-            courses = get_sample_courses()
-            return next((course for course in courses if course['id'] == course_id), None)
+            raise Exception("Supabase not configured")
         
         response = supabase.table('courses').select('*').eq('id', course_id).execute()
         return response.data[0] if response.data else None
     except Exception as e:
         print(f"Error loading course {course_id} from Supabase: {str(e)}")
-        courses = get_sample_courses()
-        return next((course for course in courses if course['id'] == course_id), None)
+        raise
 
 def load_all_chapters(course_id):
-    """Load all chapters for a course"""
+    """Load all chapters for a course from Supabase"""
     try:
         if not supabase:
-            return get_sample_chapters(course_id)
+            raise Exception("Supabase not configured")
         
         response = supabase.table('chapters').select('*').eq('course_id', course_id).order('chapter_number').execute()
         return response.data if response.data else []
     except Exception as e:
         print(f"Error loading chapters from Supabase: {str(e)}")
-        return get_sample_chapters(course_id)
+        raise
 
 def load_chapter_data(course_id, chapter_id):
     """Load specific chapter data"""
@@ -1571,8 +1571,7 @@ def save_course_data(course_data):
     """Save course data to Supabase"""
     try:
         if not supabase:
-            print("ERROR: Supabase not configured")
-            return False
+            raise Exception("Supabase not configured")
         
         print(f"DEBUG: Saving course data to Supabase: {course_data}")
         
