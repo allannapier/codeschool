@@ -532,6 +532,70 @@ def debug_config():
             'error': str(e)
         }), 500
 
+@app.route('/api/debug-progress', methods=['GET'])
+def debug_progress():
+    """
+    Debug endpoint to test progress tracking system
+    """
+    try:
+        debug_info = {
+            'supabase_configured': supabase is not None,
+            'supabase_url': os.getenv('SUPABASE_URL', 'Not set')[:50] + '...' if os.getenv('SUPABASE_URL') else 'Not set',
+        }
+        
+        if supabase:
+            try:
+                # Test basic connection
+                response = supabase.table('courses').select('id, title').limit(1).execute()
+                debug_info['courses_accessible'] = True
+                debug_info['sample_course'] = response.data[0] if response.data else None
+            except Exception as e:
+                debug_info['courses_accessible'] = False
+                debug_info['courses_error'] = str(e)
+            
+            try:
+                # Test user_progress table structure
+                response = supabase.table('user_progress').select('*').limit(1).execute()
+                debug_info['user_progress_accessible'] = True
+                debug_info['user_progress_sample'] = response.data[0] if response.data else 'Table exists but empty'
+            except Exception as e:
+                debug_info['user_progress_accessible'] = False
+                debug_info['user_progress_error'] = str(e)
+            
+            # Test a dummy save operation
+            try:
+                import uuid
+                test_user_id = str(uuid.uuid4())
+                test_data = {
+                    'user_id': test_user_id,
+                    'course_id': 1,
+                    'chapter_id': 1,
+                    'completed_at': datetime.now().isoformat(),
+                    'test_score': 85,
+                    'practical_passed': True
+                }
+                
+                # Try to insert test data
+                response = supabase.table('user_progress').insert(test_data).execute()
+                if response.data:
+                    debug_info['test_insert'] = 'Success'
+                    # Clean up test data
+                    supabase.table('user_progress').delete().eq('user_id', test_user_id).execute()
+                else:
+                    debug_info['test_insert'] = f'Failed: {response}'
+                    
+            except Exception as e:
+                debug_info['test_insert'] = f'Error: {str(e)}'
+        else:
+            debug_info['error'] = 'Supabase not configured'
+        
+        return jsonify(debug_info)
+        
+    except Exception as e:
+        return jsonify({
+            'error': str(e)
+        }), 500
+
 @app.route('/api/test-email', methods=['GET'])
 def test_email():
     """
@@ -1208,13 +1272,20 @@ def save_user_progress(user_id, course_id, chapter_id, test_score=None, practica
             print("ERROR: Supabase not configured")
             return False
         
+        # Get chapter title for the challenge_title field
+        chapter_data = load_chapter_data(course_id, chapter_id)
+        chapter_title = chapter_data.get('title', f'Chapter {chapter_id}') if chapter_data else f'Chapter {chapter_id}'
+        
         progress_data = {
             'user_id': user_id,
             'course_id': course_id,
             'chapter_id': chapter_id,
+            'challenge_id': f'chapter_{chapter_id}',  # Use a unique challenge ID
+            'challenge_title': chapter_title,  # Required field
             'completed_at': datetime.now().isoformat(),
             'test_score': test_score,
-            'practical_passed': practical_passed
+            'practical_passed': practical_passed,
+            'status': 'completed'
         }
         
         print(f"DEBUG: Progress data to save: {progress_data}")
@@ -1250,8 +1321,12 @@ def load_user_progress(user_id):
             # Convert to the format expected by frontend
             progress = {}
             for record in response.data:
-                course_id = record['course_id']
-                chapter_id = record['chapter_id']
+                course_id = record.get('course_id')
+                chapter_id = record.get('chapter_id')
+                
+                # Skip records without course_id or chapter_id (old challenge-based records)
+                if not course_id or not chapter_id:
+                    continue
                 
                 if course_id not in progress:
                     progress[course_id] = {}
@@ -1259,7 +1334,8 @@ def load_user_progress(user_id):
                 progress[course_id][chapter_id] = {
                     'completed_at': record['completed_at'],
                     'test_score': record.get('test_score'),
-                    'practical_passed': record.get('practical_passed')
+                    'practical_passed': record.get('practical_passed'),
+                    'challenge_title': record.get('challenge_title', f'Chapter {chapter_id}')
                 }
             
             return progress
@@ -1279,7 +1355,8 @@ def get_user_completed_chapters(user_id, course_id):
         response = supabase.table('user_progress').select('chapter_id').eq('user_id', user_id).eq('course_id', course_id).execute()
         
         if response.data:
-            return [record['chapter_id'] for record in response.data]
+            # Filter out null chapter_ids
+            return [record['chapter_id'] for record in response.data if record.get('chapter_id')]
         else:
             return []
             
