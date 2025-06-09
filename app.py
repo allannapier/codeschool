@@ -797,13 +797,14 @@ def submit_tutorial_practical():
             }), 404
         
         # AI evaluation prompt
-        prompt = f"""
-        Evaluate this {language} code for the practical exercise in Chapter {chapter_id}.
+        chapter_number = chapter_data.get('chapter_number', chapter_id)
+        practical_instructions = chapter_data.get('practical_instructions', 'Complete the coding exercise.')
         
-        Chapter Title: {chapter_data.get('title', 'Unknown')}
+        prompt = f"""
+        Evaluate this {language} code for the practical exercise in Chapter {chapter_number}: "{chapter_data.get('title', 'Unknown')}".
         
         Exercise Requirements:
-        {chapter_data.get('practical_description', 'Complete the coding exercise.')}
+        {practical_instructions}
         
         Submitted Code:
         ```{language}
