@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blog - Codebotiks</title>
+    <title>Tutorials - Codebotiks</title>
     <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <script src="https://js.sentry-cdn.com/4b03ab7aee3d02db5ea9a72f16414e65.min.js" crossorigin="anonymous"></script>
@@ -49,7 +49,7 @@
                 <div class="header-actions">
                     <span id="user-email" class="user-email" style="display: none;"></span>
                     <button id="demo-btn" class="btn btn-outline" title="Watch a quick demo of how Codebotiks works">🎥 Demo</button>
-                    <button id="auth-toggle-btn" class="btn btn-outline" title="Login to track your challenge progress and save your achievements">Login</button>
+                    <button id="auth-toggle-btn" class="btn btn-outline" title="Login to track your tutorial progress and save your achievements">Login</button>
                     <button id="menu-toggle" class="menu-toggle" title="Open navigation menu">
                         <span class="hamburger-line"></span>
                         <span class="hamburger-line"></span>
@@ -62,13 +62,14 @@
                     <div class="nav-content">
                         <div class="nav-section">
                             <h3>Navigation</h3>
-                            <a href="/" class="nav-link" title="Go back to the main coding platform">🏠 Home</a>
-                            <a href="/blog" class="nav-link active" title="You are currently on the blog page">📝 Blog</a>
+                            <a href="/" class="nav-link" title="Go to the main coding platform">🏠 Home</a>
+                            <a href="/tutorials" class="nav-link active" title="You are currently on the tutorials page">📚 Tutorials</a>
+                            <a href="/blog" class="nav-link" title="Read coding tips, tutorials, and updates">📝 Blog</a>
                         </div>
                         
                         <div class="nav-section">
                             <h3>Progress</h3>
-                            <button id="progress-btn" class="menu-btn" title="View your completed challenges and track your learning progress">📊 View Progress</button>
+                            <button id="progress-btn" class="menu-btn" title="View your completed tutorials and track your learning progress">📊 View Progress</button>
                         </div>
                     </div>
                 </div>
@@ -76,15 +77,17 @@
         </div>
     </header>
 
-    <main class="blog-main">
-        <div class="blog-container">
-            <div class="blog-header">
-                <h1>Codebotiks Blog</h1>
-                <p>Insights, tips, and updates from the world of AI-powered coding education</p>
+    <main class="tutorials-main">
+        <div class="tutorials-container">
+            <!-- Tutorial Header -->
+            <div class="tutorials-header">
+                <h1>Learn to Code</h1>
+                <p>Interactive tutorials to master programming fundamentals and advanced concepts</p>
             </div>
-            
-            <div id="blog-posts" class="blog-posts">
-                <div class="loading">Loading blog posts...</div>
+
+            <!-- Tutorial Courses Grid -->
+            <div id="courses-grid" class="courses-grid">
+                <div class="loading">Loading courses...</div>
             </div>
         </div>
     </main>
@@ -96,7 +99,7 @@
                 <span class="footer-separator">|</span>
                 <a href="/" class="footer-link" title="Go back to the main coding platform">Home</a>
                 <span class="footer-separator">|</span>
-                <a href="/tutorials" class="footer-link" title="Learn programming with interactive tutorials">Tutorials</a>
+                <a href="/blog" class="footer-link" title="Read coding tips, tutorials, and updates">Blog</a>
                 <span class="footer-separator">|</span>
                 <button id="contact-btn" class="footer-link" title="Send us feedback, questions, or bug reports">Contact Us</button>
             </div>
@@ -203,23 +206,23 @@
     <div id="progress-modal" class="modal" style="display: none;">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Your Progress</h2>
+                <h2>Your Tutorial Progress</h2>
                 <button class="close-btn" id="close-progress-modal">&times;</button>
             </div>
             <div class="modal-body">
                 <div id="progress-stats" class="progress-stats">
                     <div class="stat-item">
                         <span class="stat-number" id="completed-count">0</span>
-                        <span class="stat-label">Challenges Completed</span>
+                        <span class="stat-label">Chapters Completed</span>
                     </div>
                     <div class="stat-item">
-                        <span class="stat-number" id="total-count">44</span>
-                        <span class="stat-label">Total Challenges</span>
+                        <span class="stat-number" id="total-count">0</span>
+                        <span class="stat-label">Total Chapters</span>
                     </div>
                 </div>
                 <div id="progress-list" class="progress-list">
-                    <h3>Completed Challenges</h3>
-                    <div id="completed-challenges"></div>
+                    <h3>Completed Chapters</h3>
+                    <div id="completed-chapters"></div>
                 </div>
             </div>
         </div>
@@ -311,7 +314,7 @@
     </div>
 
     <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/blog.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/tutorials.js') }}"></script>
     <script src="{{ url_for('static', filename='js/cookies.js') }}"></script>
 </body>
 </html>

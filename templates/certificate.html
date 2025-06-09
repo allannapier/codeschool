@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Completion Certificate - {{ course_title }}</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@400;500;600&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        
+        .certificate-container {
+            background: white;
+            width: 100%;
+            max-width: 800px;
+            min-height: 600px; /* Ensure minimum height for content */
+            position: relative;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        .certificate {
+            width: 100%;
+            min-height: 100%;
+            padding: 3rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            background: linear-gradient(45deg, #f8fafc 0%, #ffffff 50%, #f1f5f9 100%);
+        }
+        
+        /* Decorative border */
+        .certificate::before {
+            content: '';
+            position: absolute;
+            top: 1.5rem;
+            left: 1.5rem;
+            right: 1.5rem;
+            bottom: 1.5rem;
+            border: 3px solid;
+            border-image: linear-gradient(45deg, #667eea, #764ba2, #667eea) 1;
+            border-radius: 8px;
+        }
+        
+        /* Decorative corner elements */
+        .corner-decoration {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            clip-path: polygon(0 0, 100% 0, 0 100%);
+        }
+        
+        .corner-decoration.top-left {
+            top: 1.5rem;
+            left: 1.5rem;
+        }
+        
+        .corner-decoration.top-right {
+            top: 1.5rem;
+            right: 1.5rem;
+            transform: rotate(90deg);
+        }
+        
+        .corner-decoration.bottom-left {
+            bottom: 1.5rem;
+            left: 1.5rem;
+            transform: rotate(-90deg);
+        }
+        
+        .corner-decoration.bottom-right {
+            bottom: 1.5rem;
+            right: 1.5rem;
+            transform: rotate(180deg);
+        }
+        
+        .certificate-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            z-index: 2;
+            position: relative;
+        }
+        
+        .certificate-logo {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+        
+        .certificate-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+        
+        .certificate-subtitle {
+            font-size: 1.1rem;
+            color: #64748b;
+            font-weight: 500;
+        }
+        
+        .certificate-body {
+            text-align: center;
+            z-index: 2;
+            position: relative;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .certificate-text {
+            font-size: 1.2rem;
+            color: #475569;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+        
+        .student-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.8rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 1.5rem 0;
+            text-decoration: underline;
+            text-decoration-color: #667eea;
+            text-underline-offset: 8px;
+            text-decoration-thickness: 3px;
+        }
+        
+        .course-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #667eea;
+            margin: 1rem 0;
+        }
+        
+        .completion-details {
+            font-size: 1rem;
+            color: #64748b;
+            margin-top: 1.5rem;
+        }
+        
+        .completion-details p {
+            margin-bottom: 0.5rem;
+            line-height: 1.4;
+        }
+        
+        .certificate-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: end;
+            z-index: 2;
+            position: relative;
+            margin-top: 2rem;
+        }
+        
+        .signature-section {
+            text-align: center;
+            flex: 1;
+        }
+        
+        .signature-line {
+            border-top: 2px solid #667eea;
+            width: 200px;
+            margin: 0 auto 0.5rem;
+        }
+        
+        .signature-title {
+            font-size: 0.9rem;
+            color: #64748b;
+            font-weight: 500;
+        }
+        
+        .certificate-info {
+            text-align: right;
+            font-size: 0.9rem;
+            color: #64748b;
+        }
+        
+        .certificate-id {
+            font-family: 'Monaco', monospace;
+            color: #94a3b8;
+            margin-top: 0.5rem;
+        }
+        
+        /* Achievement badge */
+        .achievement-badge {
+            position: absolute;
+            top: 2rem;
+            right: 3rem;
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2rem;
+            box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+            z-index: 3;
+        }
+        
+        /* Print styles */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+                margin: 0;
+            }
+            
+            .certificate-container {
+                box-shadow: none;
+                border-radius: 0;
+                max-width: none;
+                width: 100%;
+                height: 100vh;
+                min-height: 100vh;
+                aspect-ratio: 1.414; /* A4 ratio for print */
+                page-break-inside: avoid;
+            }
+            
+            .certificate {
+                height: 100vh;
+                min-height: 100vh;
+                padding: 2rem;
+            }
+            
+            .certificate-actions {
+                display: none !important;
+            }
+        }
+        
+        /* Tablet responsive */
+        @media (max-width: 1024px) and (min-width: 769px) {
+            .certificate-container {
+                min-height: 700px; /* Ensure adequate height for tablets */
+            }
+            
+            .certificate {
+                padding: 2.5rem;
+            }
+        }
+        
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+            
+            .certificate-container {
+                min-height: auto; /* Allow natural height on mobile */
+            }
+            
+            .certificate {
+                padding: 2rem 1.5rem;
+                min-height: auto;
+                gap: 1rem; /* Add gap between sections */
+            }
+            
+            .certificate-title {
+                font-size: 2rem;
+            }
+            
+            .student-name {
+                font-size: 2rem;
+                margin: 1rem 0;
+            }
+            
+            .course-title {
+                font-size: 1.4rem;
+            }
+            
+            .completion-details {
+                font-size: 0.9rem;
+                margin-top: 1rem;
+            }
+            
+            .completion-details p {
+                margin-bottom: 0.5rem;
+            }
+            
+            .achievement-badge {
+                width: 60px;
+                height: 60px;
+                font-size: 1.5rem;
+                top: 1.5rem;
+                right: 1.5rem;
+            }
+            
+            .certificate-footer {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+                margin-top: 1.5rem;
+            }
+            
+            .certificate-info {
+                text-align: center;
+            }
+            
+            .signature-line {
+                width: 150px;
+            }
+        }
+        
+        /* Action buttons */
+        .certificate-actions {
+            position: fixed;
+            top: 2rem;
+            left: 2rem;
+            display: flex;
+            gap: 1rem;
+            z-index: 1000;
+        }
+        
+        .action-btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-download {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-download:hover {
+            background: #5a67d8;
+            transform: translateY(-1px);
+        }
+        
+        .btn-share {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+        
+        .btn-share:hover {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-back {
+            background: #64748b;
+            color: white;
+        }
+        
+        .btn-back:hover {
+            background: #475569;
+        }
+        
+        @media print {
+            .certificate-actions {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="certificate-actions">
+        <a href="{{ back_url or '/tutorials' }}" class="action-btn btn-back">
+            ← Back to Course
+        </a>
+        <button onclick="downloadCertificate()" class="action-btn btn-download">
+            📥 Download PDF
+        </button>
+        <button onclick="shareCertificate()" class="action-btn btn-share">
+            🔗 Share
+        </button>
+    </div>
+
+    <div class="certificate-container" id="certificate">
+        <div class="certificate">
+            <!-- Decorative corners -->
+            <div class="corner-decoration top-left"></div>
+            <div class="corner-decoration top-right"></div>
+            <div class="corner-decoration bottom-left"></div>
+            <div class="corner-decoration bottom-right"></div>
+            
+            <!-- Achievement badge -->
+            <div class="achievement-badge">🏆</div>
+            
+            <!-- Header -->
+            <div class="certificate-header">
+                <div class="certificate-logo">Codebotiks</div>
+                <h1 class="certificate-title">Certificate of Completion</h1>
+                <p class="certificate-subtitle">This is to certify that</p>
+            </div>
+            
+            <!-- Body -->
+            <div class="certificate-body">
+                <div class="student-name">{{ student_name }}</div>
+                
+                <div class="certificate-text">
+                    has successfully completed the course
+                </div>
+                
+                <div class="course-title">{{ course_title }}</div>
+                
+                <div class="completion-details">
+                    <p>{{ course_description }}</p>
+                    <p><strong>Course Duration:</strong> {{ course_duration }} hours</p>
+                    <p><strong>Chapters Completed:</strong> {{ chapters_completed }}/{{ total_chapters }}</p>
+                    {% if average_score %}
+                    <p><strong>Average Test Score:</strong> {{ average_score }}%</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Footer -->
+            <div class="certificate-footer">
+                <div class="signature-section">
+                    <div class="signature-line"></div>
+                    <div class="signature-title">Instructor</div>
+                </div>
+                
+                <div class="certificate-info">
+                    <div><strong>Date of Completion:</strong> {{ completion_date }}</div>
+                    <div class="certificate-id">Certificate ID: {{ certificate_id }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function downloadCertificate() {
+            // Create a more print-friendly version
+            const originalActions = document.querySelector('.certificate-actions');
+            originalActions.style.display = 'none';
+            
+            // Use the browser's print dialog
+            window.print();
+            
+            // Restore the actions
+            setTimeout(() => {
+                originalActions.style.display = 'flex';
+            }, 1000);
+        }
+        
+        function shareCertificate() {
+            const url = window.location.href;
+            const text = `I just completed the course "${document.querySelector('.course-title').textContent}" on Codebotiks! 🎉`;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Course Completion Certificate',
+                    text: text,
+                    url: url
+                });
+            } else {
+                // Fallback: copy to clipboard
+                navigator.clipboard.writeText(`${text} ${url}`).then(() => {
+                    alert('Certificate link copied to clipboard!');
+                }).catch(() => {
+                    // Fallback for older browsers
+                    const textArea = document.createElement('textarea');
+                    textArea.value = `${text} ${url}`;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    alert('Certificate link copied to clipboard!');
+                });
+            }
+        }
+        
+        // Add some subtle animations
+        document.addEventListener('DOMContentLoaded', () => {
+            const certificate = document.querySelector('.certificate');
+            certificate.style.opacity = '0';
+            certificate.style.transform = 'scale(0.95)';
+            
+            setTimeout(() => {
+                certificate.style.transition = 'all 0.5s ease-out';
+                certificate.style.opacity = '1';
+                certificate.style.transform = 'scale(1)';
+            }, 100);
+        });
+    </script>
+</body>
+</html>

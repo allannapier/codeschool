@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Editor - Codebotiks Admin</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    
+    <!-- Quill.js Rich Text Editor -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+    
+    <!-- Sortable.js for drag and drop -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+</head>
+<body class="admin-body">
+    <!-- Admin Header -->
+    <header class="admin-header">
+        <div class="admin-header-content">
+            <div class="admin-logo">
+                <h1>Codebotiks <span class="admin-badge">Admin</span></h1>
+            </div>
+            <nav class="admin-nav">
+                <a href="/admin" class="admin-nav-link">Dashboard</a>
+                <a href="/admin/courses" class="admin-nav-link active">Courses</a>
+                <a href="/admin/users" class="admin-nav-link">Users</a>
+                <a href="/" class="admin-nav-link">← Back to Site</a>
+            </nav>
+            <div class="admin-user">
+                <span class="admin-user-name">{{ admin_user.name or 'Admin' }}</span>
+                <a href="/admin/logout" class="admin-logout">Logout</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+        <div class="admin-container">
+            <!-- Course Editor Header -->
+            <div class="editor-header">
+                <div class="editor-title">
+                    <h2>{{ 'Edit Course' if course else 'Create New Course' }}</h2>
+                    <p class="editor-subtitle">{{ 'Update course details and manage chapters' if course else 'Create a new tutorial course with chapters and assessments' }}</p>
+                </div>
+                <div class="editor-actions">
+                    <button id="preview-course" class="btn secondary" {{ 'onclick="previewCourse()"' if course else 'disabled' }}>
+                        👁️ Preview Course
+                    </button>
+                    <button id="save-course" class="btn primary" onclick="saveCourse()">
+                        💾 {{ 'Update Course' if course else 'Create Course' }}
+                    </button>
+                </div>
+            </div>
+
+            <!-- Course Editor Form -->
+            <div class="editor-content">
+                <!-- Course Details Panel -->
+                <div class="editor-panel">
+                    <div class="panel-header">
+                        <h3>📚 Course Details</h3>
+                        <button class="panel-toggle" onclick="togglePanel(this)">−</button>
+                    </div>
+                    <div class="panel-content">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="course-title">Course Title *</label>
+                                <input type="text" id="course-title" 
+                                       value="{{ course.title if course else '' }}" 
+                                       placeholder="e.g., Python Fundamentals" 
+                                       required>
+                            </div>
+                            <div class="form-group">
+                                <label for="course-slug">URL Slug *</label>
+                                <input type="text" id="course-slug" 
+                                       value="{{ course.slug if course else '' }}" 
+                                       placeholder="python-fundamentals" 
+                                       pattern="[a-z0-9\-]+" 
+                                       required>
+                                <small>Auto-generated from title. Only lowercase letters, numbers, and hyphens.</small>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="course-difficulty">Difficulty Level</label>
+                                <select id="course-difficulty">
+                                    <option value="beginner" {{ 'selected' if course and course.difficulty == 'beginner' else '' }}>Beginner</option>
+                                    <option value="intermediate" {{ 'selected' if course and course.difficulty == 'intermediate' else '' }}>Intermediate</option>
+                                    <option value="advanced" {{ 'selected' if course and course.difficulty == 'advanced' else '' }}>Advanced</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="course-duration">Estimated Duration (hours)</label>
+                                <input type="number" id="course-duration" 
+                                       value="{{ course.estimated_duration if course else '8' }}" 
+                                       min="1" max="100" step="0.5">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group-with-ai">
+                            <div class="form-group">
+                                <label for="course-subtitle">Short Description</label>
+                                <input type="text" id="course-subtitle" 
+                                       value="{{ course.subtitle if course else '' }}" 
+                                       placeholder="Brief one-line description for course cards" 
+                                       maxlength="100">
+                            </div>
+                            <button type="button" class="ai-generate-btn" onclick="generateAIContent('course_subtitle', document.getElementById('course-subtitle'))">
+                                Generate
+                            </button>
+                        </div>
+                        
+                        <div class="form-group-with-ai">
+                            <div class="form-group">
+                                <label for="course-description">Full Description</label>
+                                <textarea id="course-description" 
+                                          placeholder="Detailed course description for course pages"
+                                          rows="4">{{ course.description if course else '' }}</textarea>
+                            </div>
+                            <button type="button" class="ai-generate-btn" onclick="generateAIContent('course_description', document.getElementById('course-description'))">
+                                Generate
+                            </button>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="course-thumbnail">Thumbnail URL</label>
+                            <input type="url" id="course-thumbnail" 
+                                   value="{{ course.thumbnail if course else '' }}" 
+                                   placeholder="https://example.com/thumbnail.jpg">
+                            <small>Optional: URL to course thumbnail image</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chapters Panel -->
+                <div class="editor-panel">
+                    <div class="panel-header">
+                        <h3>📖 Chapters ({{ chapters|length if chapters else 0 }})</h3>
+                        <div class="panel-header-actions">
+                            <button class="btn-icon" onclick="addChapter()" title="Add Chapter" {{ 'disabled' if not course else '' }}>
+                                ➕ Add Chapter
+                            </button>
+                            <button class="panel-toggle" onclick="togglePanel(this)">−</button>
+                        </div>
+                    </div>
+                    <div class="panel-content">
+                        <div id="chapters-list" class="chapters-list">
+                            {% if chapters %}
+                                {% for chapter in chapters %}
+                                <div class="chapter-item" data-chapter-id="{{ chapter.id }}">
+                                    <div class="chapter-header">
+                                        <div class="chapter-drag-handle">⋮⋮</div>
+                                        <div class="chapter-info">
+                                            <h4 class="chapter-title">{{ chapter.title }}</h4>
+                                            <span class="chapter-meta">{{ chapter.estimated_duration }}min • {{ chapter.difficulty }}</span>
+                                        </div>
+                                        <div class="chapter-actions">
+                                            <button class="btn-icon" onclick="editChapter({{ chapter.id }})" title="Edit Chapter">✏️</button>
+                                            <button class="btn-icon" onclick="duplicateChapter({{ chapter.id }})" title="Duplicate">📋</button>
+                                            <button class="btn-icon danger" onclick="deleteChapter({{ chapter.id }})" title="Delete">🗑️</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="empty-state">
+                                    <div class="empty-icon">📖</div>
+                                    <h4>No chapters yet</h4>
+                                    <p>{{ 'Add your first chapter to get started' if course else 'Save the course first, then add chapters' }}</p>
+                                    <button class="btn primary" onclick="addChapter()" {{ 'disabled' if not course else '' }}>Add First Chapter</button>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Course Settings Panel -->
+                <div class="editor-panel">
+                    <div class="panel-header">
+                        <h3>⚙️ Course Settings</h3>
+                        <button class="panel-toggle" onclick="togglePanel(this)">−</button>
+                    </div>
+                    <div class="panel-content">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="course-status">Publication Status</label>
+                                <select id="course-status">
+                                    <option value="draft" {{ 'selected' if course and course.status == 'draft' else '' }}>Draft</option>
+                                    <option value="published" {{ 'selected' if course and course.status == 'published' else '' }}>Published</option>
+                                    <option value="archived" {{ 'selected' if course and course.status == 'archived' else '' }}>Archived</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="course-featured">Featured Course</label>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="course-featured" 
+                                           {{ 'checked' if course and course.featured else '' }}>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="course-tags">Tags (comma-separated)</label>
+                            <input type="text" id="course-tags" 
+                                   value="{{ course.tags|join(', ') if course and course.tags else '' }}" 
+                                   placeholder="python, programming, beginner">
+                        </div>
+                        
+                        <div class="form-group-with-ai">
+                            <div class="form-group">
+                                <label for="course-prerequisites">Prerequisites</label>
+                                <textarea id="course-prerequisites" 
+                                          placeholder="List any prerequisites for this course"
+                                          rows="2">{{ course.prerequisites if course else '' }}</textarea>
+                            </div>
+                            <button type="button" class="ai-generate-btn" onclick="generateAIContent('course_prerequisites', document.getElementById('course-prerequisites'))">
+                                Generate
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Chapter Editor Modal -->
+    <div id="chapter-modal" class="modal" style="display: none;">
+        <div class="modal-content large-modal">
+            <div class="modal-header">
+                <h2 id="chapter-modal-title">Edit Chapter</h2>
+                <button class="close-btn" onclick="closeChapterModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- Chapter Details Tab -->
+                <div class="chapter-editor-tabs">
+                    <button class="tab-btn active" onclick="switchChapterTab('details')">📝 Details</button>
+                    <button class="tab-btn" onclick="switchChapterTab('content')">📄 Content</button>
+                    <button class="tab-btn" onclick="switchChapterTab('assessments')">🧪 Assessments</button>
+                </div>
+
+                <!-- Chapter Details Tab Content -->
+                <div id="chapter-details-tab" class="tab-content active">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="chapter-title">Chapter Title *</label>
+                            <input type="text" id="chapter-title" placeholder="e.g., Introduction to Variables" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="chapter-number">Chapter Number</label>
+                            <input type="number" id="chapter-number" min="1" value="1">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="chapter-duration">Estimated Duration (minutes)</label>
+                            <input type="number" id="chapter-duration" min="5" max="180" value="45">
+                        </div>
+                        <div class="form-group">
+                            <label for="chapter-difficulty">Difficulty</label>
+                            <select id="chapter-difficulty">
+                                <option value="beginner">Beginner</option>
+                                <option value="intermediate">Intermediate</option>
+                                <option value="advanced">Advanced</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="objectives-header">
+                            <label for="chapter-objectives">Learning Objectives</label>
+                            <button type="button" class="ai-generate-objectives" onclick="generateAIContent('chapter_objectives', null)">
+                                Generate
+                            </button>
+                        </div>
+                        <div id="objectives-list" class="objectives-list">
+                            <div class="objective-item">
+                                <input type="text" placeholder="What will students learn in this chapter?" class="objective-input">
+                                <button type="button" onclick="removeObjective(this)" class="btn-remove">×</button>
+                            </div>
+                        </div>
+                        <button type="button" onclick="addObjective()" class="btn secondary small">+ Add Objective</button>
+                    </div>
+                </div>
+
+                <!-- Chapter Content Tab -->
+                <div id="chapter-content-tab" class="tab-content">
+                    <div class="content-editor">
+                        <div class="editor-toolbar">
+                            <button onclick="insertYouTube()" class="toolbar-btn">📺 YouTube</button>
+                            <button onclick="insertCodeBlock()" class="toolbar-btn">💻 Code</button>
+                            <button onclick="insertCallout()" class="toolbar-btn">💡 Callout</button>
+                        </div>
+                        <div id="chapter-content-editor" class="rich-editor"></div>
+                    </div>
+                </div>
+
+                <!-- Assessments Tab -->
+                <div id="chapter-assessments-tab" class="tab-content">
+                    <div class="assessments-section">
+                        <h4>Chapter Test</h4>
+                        <div class="form-group">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="has-test" onchange="toggleTestSection()">
+                                <span class="toggle-slider"></span>
+                                Enable chapter test
+                            </label>
+                        </div>
+                        
+                        <div id="test-section" class="test-section" style="display: none;">
+                            <div id="test-questions" class="test-questions">
+                                <!-- Test questions will be added here -->
+                            </div>
+                            <button type="button" onclick="addTestQuestion()" class="btn secondary">+ Add Question</button>
+                        </div>
+                        
+                        <h4 style="margin-top: 2rem;">Practical Exercise</h4>
+                        <div class="form-group">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="has-practical" onchange="togglePracticalSection()">
+                                <span class="toggle-slider"></span>
+                                Enable practical exercise
+                            </label>
+                        </div>
+                        
+                        <div id="practical-section" class="practical-section" style="display: none;">
+                            <div class="form-group-with-ai">
+                                <div class="form-group">
+                                    <label for="practical-instructions">Instructions</label>
+                                    <textarea id="practical-instructions" 
+                                              placeholder="Describe what students should accomplish in this exercise"
+                                              rows="4"></textarea>
+                                </div>
+                                <button type="button" class="ai-generate-btn" onclick="generateAIContent('practical_instructions', document.getElementById('practical-instructions'))">
+                                    Generate
+                                </button>
+                            </div>
+                            <div class="form-group">
+                                <label for="practical-starter-code">Starter Code (optional)</label>
+                                <textarea id="practical-starter-code" 
+                                          placeholder="# Write your solution here&#10;def solve():&#10;    pass"
+                                          rows="6"
+                                          class="code-textarea"></textarea>
+                            </div>
+                            <div class="form-group-with-ai">
+                                <div class="form-group">
+                                    <label for="practical-evaluation-criteria">AI Evaluation Criteria</label>
+                                    <textarea id="practical-evaluation-criteria" 
+                                              placeholder="Describe what the AI should look for when evaluating submissions"
+                                              rows="3"></textarea>
+                                </div>
+                                <button type="button" class="ai-generate-btn" onclick="generateAIContent('practical_evaluation_criteria', document.getElementById('practical-evaluation-criteria'))">
+                                    Generate
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" onclick="closeChapterModal()" class="btn secondary">Cancel</button>
+                    <button type="button" onclick="saveChapter()" class="btn primary">Save Chapter</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success/Error Messages -->
+    <div id="message-container" class="message-container"></div>
+
+    <!-- Hidden form for data -->
+    <form id="course-form" style="display: none;">
+        <input type="hidden" id="course-id" value="{{ course.id if course else '' }}">
+    </form>
+
+    <script src="{{ url_for('static', filename='js/admin/course-editor.js') }}"></script>
+</body>
+</html>

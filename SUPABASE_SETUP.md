@@ -11,19 +11,30 @@
 
 From your Supabase dashboard:
 1. Go to Settings → API
-2. Copy your Project URL and anon/public key
-3. Update `static/js/auth.js` with your credentials:
+2. Copy your **Project URL**, **anon/public key**, and **service_role key**
+3. Add these to your environment variables (.env file):
+
+```env
+SUPABASE_URL=your_project_url_here
+SUPABASE_ANON_KEY=your_anon_key_here
+SUPABASE_SERVICE_KEY=your_service_role_key_here
+```
+
+4. Also update `static/js/auth.js` with your credentials:
 
 ```javascript
 const SUPABASE_URL = 'YOUR_PROJECT_URL_HERE';
 const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY_HERE';
 ```
 
+**Important**: The service role key is needed for admin operations (course creation/editing)
+
 ## 3. Set Up Database Schema
 
 1. Go to the SQL Editor in your Supabase dashboard
-2. Copy and paste the contents of `database_schema.sql`
-3. Run the SQL to create the tables and functions
+2. First, copy and paste the contents of `database_schema.sql` and run it
+3. Then, copy and paste the contents of `admin_schema.sql` and run it
+4. This will create all necessary tables for user progress AND course management
 
 ## 4. Configure Authentication
 
