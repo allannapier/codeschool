@@ -1327,6 +1327,18 @@ def api_admin_create_course():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+@app.route('/api/admin/courses/<int:course_id>', methods=['GET'])
+def api_admin_get_course(course_id):
+    """Get specific course for admin"""
+    if not is_admin_authenticated():
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    course = load_course_data(course_id)
+    if not course:
+        return jsonify({'success': False, 'error': 'Course not found'}), 404
+    
+    return jsonify({'success': True, 'course': course})
+
 @app.route('/api/admin/courses/<int:course_id>', methods=['PUT'])
 def api_admin_update_course(course_id):
     """Update existing course"""
@@ -1544,6 +1556,8 @@ def generate_chapter_id(course_id):
 def save_course_data(course_data):
     """Save course data to file"""
     try:
+        print(f"DEBUG: Saving course data: {course_data}")
+        
         # Create tutorials directory if it doesn't exist
         os.makedirs('tutorials', exist_ok=True)
         
@@ -1555,6 +1569,8 @@ def save_course_data(course_data):
                 courses = data.get('courses', [])
         else:
             courses = []
+        
+        print(f"DEBUG: Loaded {len(courses)} existing courses")
         
         # Update or add course
         course_exists = False

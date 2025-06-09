@@ -234,8 +234,19 @@ async function saveCourse() {
             courseData = data.course;
             
             if (!isEditing) {
-                // Redirect to edit page for new course
-                window.location.href = `/admin/courses/${data.course.id}/edit`;
+                // Update the hidden course ID field
+                document.getElementById('course-id').value = data.course.id;
+                showMessage('Course created successfully! You can now add chapters.', 'success');
+                
+                // Update the page title and actions
+                document.querySelector('.editor-title h2').textContent = 'Edit Course';
+                document.querySelector('.editor-subtitle').textContent = 'Update course details and manage chapters';
+                document.getElementById('save-course').textContent = '💾 Update Course';
+                document.getElementById('preview-course').disabled = false;
+                document.getElementById('preview-course').setAttribute('onclick', 'previewCourse()');
+                
+                // Reload chapters (will show empty state with add button)
+                await loadChapters();
             } else {
                 showMessage('Course updated successfully', 'success');
             }

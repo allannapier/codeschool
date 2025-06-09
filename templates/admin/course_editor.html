@@ -129,7 +129,7 @@
                     <div class="panel-header">
                         <h3>📖 Chapters ({{ chapters|length if chapters else 0 }})</h3>
                         <div class="panel-header-actions">
-                            <button class="btn-icon" onclick="addChapter()" title="Add Chapter">
+                            <button class="btn-icon" onclick="addChapter()" title="Add Chapter" {{ 'disabled' if not course else '' }}>
                                 ➕ Add Chapter
                             </button>
                             <button class="panel-toggle" onclick="togglePanel(this)">−</button>
@@ -158,8 +158,8 @@
                                 <div class="empty-state">
                                     <div class="empty-icon">📖</div>
                                     <h4>No chapters yet</h4>
-                                    <p>Add your first chapter to get started</p>
-                                    <button class="btn primary" onclick="addChapter()">Add First Chapter</button>
+                                    <p>{{ 'Add your first chapter to get started' if course else 'Save the course first, then add chapters' }}</p>
+                                    <button class="btn primary" onclick="addChapter()" {{ 'disabled' if not course else '' }}>Add First Chapter</button>
                                 </div>
                             {% endif %}
                         </div>
