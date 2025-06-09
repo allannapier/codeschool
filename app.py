@@ -625,7 +625,6 @@ def course_overview(course_id):
             # Sort chapters by chapter_number to ensure we get the first one
             sorted_chapters = sorted(all_chapters, key=lambda x: x.get('chapter_number', 1))
             first_chapter = sorted_chapters[0]
-            print(f"DEBUG: Redirecting to chapter {first_chapter['id']} for course {course_id}")
             return redirect(f'/tutorials/course/{course_id}/chapter/{first_chapter["id"]}')
         
         # If no chapters, show course overview page
@@ -966,11 +965,7 @@ def load_all_chapters(course_id):
 def load_chapter_data(course_id, chapter_id):
     """Load specific chapter data"""
     chapters = load_all_chapters(course_id)
-    print(f"DEBUG: Looking for chapter {chapter_id} in course {course_id}")
-    print(f"DEBUG: Available chapters: {[ch.get('id') for ch in chapters]}")
-    chapter = next((chapter for chapter in chapters if chapter['id'] == chapter_id), None)
-    print(f"DEBUG: Found chapter: {chapter is not None}")
-    return chapter
+    return next((chapter for chapter in chapters if chapter['id'] == chapter_id), None)
 
 def load_chapter_content(course_id, chapter_id):
     """Load and render chapter content from markdown"""
