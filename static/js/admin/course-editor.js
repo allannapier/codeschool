@@ -119,8 +119,10 @@ async function loadChapters() {
         const response = await fetch(`/api/admin/courses/${courseId}/chapters`);
         if (response.ok) {
             const data = await response.json();
+            console.log('Loaded chapters from API:', data);
             if (data.success) {
                 chaptersData = data.chapters;
+                console.log('Set chaptersData to:', chaptersData);
                 renderChaptersList();
             }
         }
@@ -275,10 +277,15 @@ function addChapter() {
 
 // Edit existing chapter
 function editChapter(chapterId) {
+    console.log('Editing chapter with ID:', chapterId);
+    console.log('Available chapters data:', chaptersData);
     currentChapter = chaptersData.find(ch => ch.id === chapterId);
+    console.log('Found chapter for editing:', currentChapter);
     if (currentChapter) {
         openChapterModal('Edit Chapter');
         populateChapterForm(currentChapter);
+    } else {
+        console.error('Chapter not found in chaptersData!');
     }
 }
 
@@ -384,6 +391,7 @@ function resetChapterForm() {
 
 // Populate chapter form
 function populateChapterForm(chapter) {
+    console.log('populateChapterForm called with chapter:', chapter);
     document.getElementById('chapter-title').value = chapter.title || '';
     document.getElementById('chapter-number').value = chapter.chapter_number || 1;
     document.getElementById('chapter-duration').value = chapter.estimated_duration || 45;
@@ -403,8 +411,13 @@ function populateChapterForm(chapter) {
     }
     
     // Populate content
+    console.log('Chapter content data:', chapter.content);
+    console.log('Rich editor available:', !!richEditor);
     if (richEditor && chapter.content) {
+        console.log('Setting rich editor content to:', chapter.content);
         richEditor.root.innerHTML = chapter.content;
+    } else {
+        console.log('Not populating content - richEditor:', !!richEditor, 'content:', !!chapter.content);
     }
     
     // Populate assessments
