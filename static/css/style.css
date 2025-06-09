@@ -2540,6 +2540,40 @@ body {
     padding: 1.5rem;
 }
 
+.practical-feedback {
+    background: var(--background-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin: 1rem 0;
+    line-height: 1.6;
+    color: var(--text-primary);
+}
+
+.practical-feedback.success {
+    background: linear-gradient(145deg, #f0fdf4 0%, #dcfce7 100%);
+    border-color: var(--success-color);
+    color: var(--text-primary);
+}
+
+.practical-feedback.needs-work {
+    background: linear-gradient(145deg, #fef2f2 0%, #fee2e2 100%);
+    border-color: #f87171;
+    color: var(--text-primary);
+}
+
+.practical-feedback strong {
+    color: var(--primary-color);
+    font-weight: 600;
+    display: block;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.practical-feedback strong:first-child {
+    margin-top: 0;
+}
+
 .practical-actions {
     display: flex;
     gap: 1rem;

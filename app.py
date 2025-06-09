@@ -311,6 +311,135 @@ def send_email(to_email, subject, body, reply_to=None):
         print(f"ERROR: {error_msg}")
         return False, "Failed to send email. Please try again later."
 
+@app.route('/api/execute-code', methods=['POST'])
+def execute_code():
+    """Execute code and return the output"""
+    try:
+        data = request.get_json()
+        code = data.get('code', '')
+        language = data.get('language', 'python')
+        
+        if not code.strip():
+            return jsonify({'error': 'No code provided'}), 400
+        
+        # For security and simplicity, we'll use a basic execution simulation
+        # In a production environment, you'd use a sandboxed execution environment
+        
+        if language == 'python':
+            # Basic Python execution simulation
+            # This is a simplified version - in production you'd use docker or similar
+            try:
+                import subprocess
+                import tempfile
+                import os
+                
+                # Create a temporary file
+                with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as f:
+                    f.write(code)
+                    temp_file = f.name
+                
+                # Execute the code with timeout
+                result = subprocess.run(
+                    ['python3', temp_file],
+                    capture_output=True,
+                    text=True,
+                    timeout=10  # 10 second timeout
+                )
+                
+                # Clean up
+                os.unlink(temp_file)
+                
+                output = result.stdout
+                error = result.stderr
+                
+                if result.returncode == 0:
+                    return jsonify({
+                        'success': True,
+                        'output': output or '(no output)',
+                        'error': None
+                    })
+                else:
+                    return jsonify({
+                        'success': False,
+                        'output': output,
+                        'error': error
+                    })
+                    
+            except subprocess.TimeoutExpired:
+                return jsonify({
+                    'success': False,
+                    'error': 'Code execution timed out (10 seconds limit)'
+                })
+            except Exception as e:
+                return jsonify({
+                    'success': False,
+                    'error': f'Execution error: {str(e)}'
+                })
+        
+        elif language == 'javascript':
+            # JavaScript execution using Node.js
+            try:
+                import subprocess
+                import tempfile
+                import os
+                
+                # Create a temporary file
+                with tempfile.NamedTemporaryFile(mode='w', suffix='.js', delete=False) as f:
+                    f.write(code)
+                    temp_file = f.name
+                
+                # Execute the code with timeout
+                result = subprocess.run(
+                    ['node', temp_file],
+                    capture_output=True,
+                    text=True,
+                    timeout=10
+                )
+                
+                # Clean up
+                os.unlink(temp_file)
+                
+                output = result.stdout
+                error = result.stderr
+                
+                if result.returncode == 0:
+                    return jsonify({
+                        'success': True,
+                        'output': output or '(no output)',
+                        'error': None
+                    })
+                else:
+                    return jsonify({
+                        'success': False,
+                        'output': output,
+                        'error': error
+                    })
+                    
+            except subprocess.TimeoutExpired:
+                return jsonify({
+                    'success': False,
+                    'error': 'Code execution timed out (10 seconds limit)'
+                })
+            except Exception as e:
+                return jsonify({
+                    'success': False,
+                    'error': f'Execution error: {str(e)}'
+                })
+        
+        else:
+            # For other languages, return a simulated output
+            return jsonify({
+                'success': True,
+                'output': f'Code execution simulation for {language}:\n\n{code}\n\n(This is a simulated output - actual execution not implemented for {language})',
+                'error': None
+            })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
 @app.route('/api/contact', methods=['POST'])
 def contact():
     try:

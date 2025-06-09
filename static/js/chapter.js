@@ -613,11 +613,14 @@ function showPracticalResults(evaluation, passed) {
     const resultsContainer = document.getElementById('practical-results');
     if (!resultsContainer) return;
     
+    // Format the evaluation text to preserve line breaks and add proper spacing
+    const formattedEvaluation = formatPracticalFeedback(evaluation);
+    
     resultsContainer.style.display = 'block';
     resultsContainer.innerHTML = `
         <h4>📋 Exercise Evaluation</h4>
         <div class="practical-feedback ${passed ? 'success' : 'needs-work'}">
-            ${evaluation}
+            ${formattedEvaluation}
         </div>
         <div class="practical-actions">
             <button onclick="closePracticalModalHandler()" class="btn primary">Continue</button>
@@ -629,6 +632,31 @@ function showPracticalResults(evaluation, passed) {
     setTimeout(() => {
         resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 100);
+}
+
+// Format practical feedback for better readability
+function formatPracticalFeedback(text) {
+    if (!text) return '';
+    
+    // Convert newlines to HTML line breaks
+    let formatted = text.replace(/\n/g, '<br>');
+    
+    // Add extra spacing after section headers (like **Result:** **Feedback:** etc.)
+    formatted = formatted.replace(/\*\*(.*?):\*\*/g, '<strong>$1:</strong>');
+    
+    // Add spacing after bullet points and dashes
+    formatted = formatted.replace(/^[\-\•]\s/gm, '<br>• ');
+    
+    // Add spacing between major sections
+    formatted = formatted.replace(/<br><strong>/g, '<br><br><strong>');
+    
+    // Clean up multiple consecutive line breaks
+    formatted = formatted.replace(/(<br\s*\/?>){3,}/g, '<br><br>');
+    
+    // Remove leading line breaks
+    formatted = formatted.replace(/^(<br\s*\/?>)+/, '');
+    
+    return formatted;
 }
 
 // Retry practical
