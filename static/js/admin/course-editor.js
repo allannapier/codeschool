@@ -411,12 +411,19 @@ function populateChapterForm(chapter) {
     document.getElementById('has-test').checked = chapter.has_test || false;
     document.getElementById('has-practical').checked = chapter.has_practical || false;
     
+    // Show/hide sections first
     toggleTestSection();
     togglePracticalSection();
     
-    // Populate test questions
+    // Then populate test questions AFTER sections are visible
     if (chapter.test_questions && chapter.test_questions.length > 0) {
+        console.log('Loading test questions:', chapter.test_questions);
+        // Clear any auto-generated questions first
+        const testQuestions = document.getElementById('test-questions');
+        testQuestions.innerHTML = '';
         populateTestQuestions(chapter.test_questions);
+    } else {
+        console.log('No test questions found in chapter data:', chapter.test_questions);
     }
     
     // Populate practical
@@ -455,7 +462,8 @@ function toggleTestSection() {
     const testSection = document.getElementById('test-section');
     testSection.style.display = hasTest ? 'block' : 'none';
     
-    if (hasTest && !testSection.querySelector('.test-question')) {
+    // Only add a default question if section is enabled and empty AND we're not loading existing data
+    if (hasTest && !testSection.querySelector('.test-question') && !currentChapter) {
         addTestQuestion();
     }
 }
@@ -605,10 +613,12 @@ function toggleCorrectAnswer(button) {
 
 // Populate test questions
 function populateTestQuestions(questions) {
+    console.log('populateTestQuestions called with:', questions);
     const testQuestions = document.getElementById('test-questions');
     testQuestions.innerHTML = '';
     
     questions.forEach((question, index) => {
+        console.log(`Adding question ${index + 1}:`, question);
         addTestQuestion();
         const questionElement = testQuestions.children[index];
         
