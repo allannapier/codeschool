@@ -835,6 +835,120 @@ function extractYouTubeId(url) {
     return (match && match[2].length === 11) ? match[2] : null;
 }
 
+// AI Content Generation
+async function generateAIContent(contentType, inputElement) {
+    const generateBtn = inputElement.parentElement.querySelector('.ai-generate-btn');
+    const originalText = generateBtn.textContent;
+    
+    // Show loading state
+    generateBtn.disabled = true;
+    generateBtn.textContent = '🤖 Generating...';
+    generateBtn.style.opacity = '0.6';
+    
+    try {
+        // Collect context from form
+        const context = collectFormContext(contentType);
+        const currentText = inputElement.value;
+        
+        const response = await fetch('/api/admin/generate-content', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                type: contentType,
+                context: context,
+                current_text: currentText
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Handle different content types
+            if (contentType === 'chapter_objectives') {
+                // Parse JSON array for objectives
+                try {
+                    const objectives = JSON.parse(data.content);
+                    populateObjectives(objectives);
+                } catch (e) {
+                    // Fallback: treat as regular text
+                    inputElement.value = data.content;
+                }
+            } else {
+                inputElement.value = data.content;
+            }
+            
+            showMessage('AI content generated successfully!', 'success');
+        } else {
+            showMessage('Failed to generate content: ' + (data.error || 'Unknown error'), 'error');
+        }
+        
+    } catch (error) {
+        showMessage('Error generating content: ' + error.message, 'error');
+    } finally {
+        // Restore button state
+        generateBtn.disabled = false;
+        generateBtn.textContent = originalText;
+        generateBtn.style.opacity = '1';
+    }
+}
+
+function collectFormContext(contentType) {
+    const context = {};
+    
+    // Course context
+    const courseTitle = document.getElementById('course-title');
+    const courseSubtitle = document.getElementById('course-subtitle');
+    const courseDifficulty = document.getElementById('course-difficulty');
+    const courseDuration = document.getElementById('course-duration');
+    
+    if (courseTitle) context.title = courseTitle.value;
+    if (courseSubtitle) context.subtitle = courseSubtitle.value;
+    if (courseDifficulty) context.difficulty = courseDifficulty.value;
+    if (courseDuration) context.estimated_duration = parseInt(courseDuration.value) || 8;
+    
+    // Chapter context (if in chapter modal)
+    const chapterTitle = document.getElementById('chapter-title');
+    const chapterNumber = document.getElementById('chapter-number');
+    const practicalInstructions = document.getElementById('practical-instructions');
+    
+    if (chapterTitle) {
+        context.chapter_title = chapterTitle.value;
+        context.course_title = context.title; // Use course title as well
+    }
+    if (chapterNumber) context.chapter_number = parseInt(chapterNumber.value) || 1;
+    if (practicalInstructions) context.practical_instructions = practicalInstructions.value;
+    
+    // Learning objectives context
+    if (contentType === 'practical_instructions' || contentType === 'practical_evaluation_criteria') {
+        const objectives = collectLearningObjectives();
+        context.learning_objectives = objectives;
+    }
+    
+    return context;
+}
+
+function populateObjectives(objectives) {
+    const objectivesList = document.getElementById('objectives-list');
+    objectivesList.innerHTML = '';
+    
+    objectives.forEach((objective, index) => {
+        const objectiveItem = document.createElement('div');
+        objectiveItem.className = 'objective-item';
+        objectiveItem.innerHTML = `
+            <input type="text" value="${objective}" class="objective-input">
+            <button type="button" onclick="removeObjective(this)" class="btn-remove">×</button>
+        `;
+        objectivesList.appendChild(objectiveItem);
+    });
+    
+    // Add one empty objective if none exist
+    if (objectives.length === 0) {
+        addObjective();
+    }
+}
+
 // Show message notification
 function showMessage(message, type = 'success') {
     const messageContainer = document.getElementById('message-container');

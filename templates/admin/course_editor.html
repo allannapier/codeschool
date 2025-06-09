@@ -99,19 +99,29 @@
                             </div>
                         </div>
                         
-                        <div class="form-group">
-                            <label for="course-subtitle">Short Description</label>
-                            <input type="text" id="course-subtitle" 
-                                   value="{{ course.subtitle if course else '' }}" 
-                                   placeholder="Brief one-line description for course cards" 
-                                   maxlength="100">
+                        <div class="form-group-with-ai">
+                            <div class="form-group">
+                                <label for="course-subtitle">Short Description</label>
+                                <input type="text" id="course-subtitle" 
+                                       value="{{ course.subtitle if course else '' }}" 
+                                       placeholder="Brief one-line description for course cards" 
+                                       maxlength="100">
+                            </div>
+                            <button type="button" class="ai-generate-btn" onclick="generateAIContent('course_subtitle', document.getElementById('course-subtitle'))">
+                                Generate
+                            </button>
                         </div>
                         
-                        <div class="form-group">
-                            <label for="course-description">Full Description</label>
-                            <textarea id="course-description" 
-                                      placeholder="Detailed course description for course pages"
-                                      rows="4">{{ course.description if course else '' }}</textarea>
+                        <div class="form-group-with-ai">
+                            <div class="form-group">
+                                <label for="course-description">Full Description</label>
+                                <textarea id="course-description" 
+                                          placeholder="Detailed course description for course pages"
+                                          rows="4">{{ course.description if course else '' }}</textarea>
+                            </div>
+                            <button type="button" class="ai-generate-btn" onclick="generateAIContent('course_description', document.getElementById('course-description'))">
+                                Generate
+                            </button>
                         </div>
                         
                         <div class="form-group">
@@ -199,11 +209,16 @@
                                    placeholder="python, programming, beginner">
                         </div>
                         
-                        <div class="form-group">
-                            <label for="course-prerequisites">Prerequisites</label>
-                            <textarea id="course-prerequisites" 
-                                      placeholder="List any prerequisites for this course"
-                                      rows="2">{{ course.prerequisites if course else '' }}</textarea>
+                        <div class="form-group-with-ai">
+                            <div class="form-group">
+                                <label for="course-prerequisites">Prerequisites</label>
+                                <textarea id="course-prerequisites" 
+                                          placeholder="List any prerequisites for this course"
+                                          rows="2">{{ course.prerequisites if course else '' }}</textarea>
+                            </div>
+                            <button type="button" class="ai-generate-btn" onclick="generateAIContent('course_prerequisites', document.getElementById('course-prerequisites'))">
+                                Generate
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -255,7 +270,12 @@
                     </div>
                     
                     <div class="form-group">
-                        <label for="chapter-objectives">Learning Objectives</label>
+                        <div class="objectives-header">
+                            <label for="chapter-objectives">Learning Objectives</label>
+                            <button type="button" class="ai-generate-objectives" onclick="generateAIContent('chapter_objectives', null)">
+                                Generate
+                            </button>
+                        </div>
                         <div id="objectives-list" class="objectives-list">
                             <div class="objective-item">
                                 <input type="text" placeholder="What will students learn in this chapter?" class="objective-input">
@@ -307,11 +327,16 @@
                         </div>
                         
                         <div id="practical-section" class="practical-section" style="display: none;">
-                            <div class="form-group">
-                                <label for="practical-instructions">Instructions</label>
-                                <textarea id="practical-instructions" 
-                                          placeholder="Describe what students should accomplish in this exercise"
-                                          rows="4"></textarea>
+                            <div class="form-group-with-ai">
+                                <div class="form-group">
+                                    <label for="practical-instructions">Instructions</label>
+                                    <textarea id="practical-instructions" 
+                                              placeholder="Describe what students should accomplish in this exercise"
+                                              rows="4"></textarea>
+                                </div>
+                                <button type="button" class="ai-generate-btn" onclick="generateAIContent('practical_instructions', document.getElementById('practical-instructions'))">
+                                    Generate
+                                </button>
                             </div>
                             <div class="form-group">
                                 <label for="practical-starter-code">Starter Code (optional)</label>
@@ -320,11 +345,16 @@
                                           rows="6"
                                           class="code-textarea"></textarea>
                             </div>
-                            <div class="form-group">
-                                <label for="practical-evaluation-criteria">AI Evaluation Criteria</label>
-                                <textarea id="practical-evaluation-criteria" 
-                                          placeholder="Describe what the AI should look for when evaluating submissions"
-                                          rows="3"></textarea>
+                            <div class="form-group-with-ai">
+                                <div class="form-group">
+                                    <label for="practical-evaluation-criteria">AI Evaluation Criteria</label>
+                                    <textarea id="practical-evaluation-criteria" 
+                                              placeholder="Describe what the AI should look for when evaluating submissions"
+                                              rows="3"></textarea>
+                                </div>
+                                <button type="button" class="ai-generate-btn" onclick="generateAIContent('practical_evaluation_criteria', document.getElementById('practical-evaluation-criteria'))">
+                                    Generate
+                                </button>
                             </div>
                         </div>
                     </div>

@@ -216,6 +216,18 @@
 
 .form-group {
     margin-bottom: 1.5rem;
+    position: relative;
+}
+
+.form-group-with-ai {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.5rem;
+}
+
+.form-group-with-ai .form-group {
+    flex: 1;
+    margin-bottom: 0;
 }
 
 .form-group label {
@@ -710,6 +722,79 @@
 
 .code-textarea {
     font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 0.9rem;
+}
+
+/* AI Generate Buttons */
+.ai-generate-btn {
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+    min-height: 44px;
+    box-shadow: 0 2px 4px rgba(139, 92, 246, 0.2);
+}
+
+.ai-generate-btn:hover {
+    background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(139, 92, 246, 0.3);
+}
+
+.ai-generate-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.ai-generate-btn::before {
+    content: '🤖';
+    font-size: 1rem;
+}
+
+/* Objectives with AI button */
+.objectives-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.objectives-header label {
+    margin-bottom: 0;
+}
+
+.ai-generate-objectives {
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.ai-generate-objectives:hover {
+    background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+    transform: translateY(-1px);
+}
+
+.ai-generate-objectives::before {
+    content: '🤖';
     font-size: 0.9rem;
 }
 

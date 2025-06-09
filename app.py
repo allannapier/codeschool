@@ -1300,6 +1300,163 @@ def admin_users():
 
 # Admin API Routes
 
+@app.route('/api/admin/generate-content', methods=['POST'])
+def api_admin_generate_content():
+    """Generate AI content for course/chapter fields"""
+    if not is_admin_authenticated():
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    try:
+        data = request.get_json()
+        content_type = data.get('type')  # 'course_subtitle', 'course_description', etc.
+        context = data.get('context', {})  # Existing course/chapter data
+        current_text = data.get('current_text', '')  # Existing text in the field
+        
+        # Generate appropriate prompt based on content type
+        prompt = generate_content_prompt(content_type, context, current_text)
+        
+        if not prompt:
+            return jsonify({'success': False, 'error': 'Unknown content type'}), 400
+        
+        response = openai.ChatCompletion.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=500,
+            temperature=0.7
+        )
+        
+        generated_content = response.choices[0].message.content.strip()
+        
+        return jsonify({
+            'success': True,
+            'content': generated_content
+        })
+        
+    except Exception as e:
+        print(f"Error generating AI content: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+def generate_content_prompt(content_type, context, current_text):
+    """Generate appropriate prompts for different content types"""
+    
+    title = context.get('title', '')
+    difficulty = context.get('difficulty', 'beginner')
+    duration = context.get('estimated_duration', 8)
+    
+    if content_type == 'course_subtitle':
+        return f"""
+Create a compelling short subtitle (max 100 characters) for a {difficulty} level programming course titled "{title}".
+The course is approximately {duration} hours long.
+
+Current subtitle: "{current_text}"
+
+Generate a concise, engaging subtitle that would attract students. Focus on what they'll learn or achieve.
+Return only the subtitle text, no quotes or additional formatting.
+"""
+    
+    elif content_type == 'course_description':
+        subtitle = context.get('subtitle', '')
+        return f"""
+Create a comprehensive course description for:
+Title: "{title}"
+Subtitle: "{subtitle}"
+Level: {difficulty}
+Duration: {duration} hours
+
+Current description: "{current_text}"
+
+Write a detailed, engaging description (200-400 words) that includes:
+- What students will learn
+- Prerequisites (if any)
+- Who this course is for
+- Key outcomes and skills gained
+- Why this course is valuable
+
+Make it professional but approachable. Use bullet points where appropriate.
+Return only the description text.
+"""
+    
+    elif content_type == 'course_prerequisites':
+        return f"""
+Suggest appropriate prerequisites for a {difficulty} level course titled "{title}" ({duration} hours).
+
+Current prerequisites: "{current_text}"
+
+Provide a clear, concise list of what students should know before taking this course.
+If it's a beginner course, you might suggest "No prior experience required" or basic computer skills.
+For intermediate/advanced courses, list specific technologies, concepts, or previous courses.
+
+Return only the prerequisites text, be specific but not overwhelming.
+"""
+    
+    elif content_type == 'chapter_objectives':
+        chapter_title = context.get('chapter_title', '')
+        course_title = context.get('course_title', title)
+        chapter_number = context.get('chapter_number', 1)
+        
+        return f"""
+Create 3-5 specific learning objectives for Chapter {chapter_number}: "{chapter_title}" in the course "{course_title}".
+
+Current objectives: {current_text}
+
+Generate clear, measurable learning objectives that start with action verbs like:
+- Understand, Learn, Identify, Explain (for knowledge)
+- Apply, Implement, Create, Build (for skills)
+- Analyze, Evaluate, Compare (for higher-order thinking)
+
+Make them specific to this chapter topic and appropriate for the course level.
+Return as a JSON array of strings, e.g. ["Objective 1", "Objective 2", "Objective 3"]
+"""
+    
+    elif content_type == 'practical_instructions':
+        chapter_title = context.get('chapter_title', '')
+        course_title = context.get('course_title', title)
+        learning_objectives = context.get('learning_objectives', [])
+        
+        objectives_text = ', '.join(learning_objectives) if learning_objectives else 'the chapter concepts'
+        
+        return f"""
+Create clear instructions for a hands-on practical exercise for Chapter "{chapter_title}" in "{course_title}".
+
+Current instructions: "{current_text}"
+
+The exercise should help students practice: {objectives_text}
+
+Write step-by-step instructions that:
+- Clearly explain what the student needs to accomplish
+- Break down the task into manageable steps
+- Include any specific requirements or constraints
+- Mention what they should focus on learning
+- Are appropriate for the course difficulty level
+
+Keep it practical and achievable. Return only the instructions text.
+"""
+    
+    elif content_type == 'practical_evaluation_criteria':
+        chapter_title = context.get('chapter_title', '')
+        practical_instructions = context.get('practical_instructions', '')
+        
+        return f"""
+Create evaluation criteria for AI assessment of a practical exercise.
+
+Chapter: "{chapter_title}"
+Exercise Instructions: "{practical_instructions}"
+Current criteria: "{current_text}"
+
+Write clear criteria that an AI should use to evaluate student code submissions. Include:
+- Key functionality that must be present
+- Code quality aspects to check
+- Common mistakes to look for
+- What constitutes a passing solution
+
+Be specific but concise. This will guide AI evaluation of student work.
+Return only the criteria text.
+"""
+    
+    return None
+
 @app.route('/api/admin/courses', methods=['GET'])
 def api_admin_get_courses():
     """Get all courses for admin"""
