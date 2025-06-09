@@ -845,12 +845,21 @@ async function generateAIContent(contentType, inputElement) {
         generateBtn = document.querySelector('.ai-generate-objectives');
         originalText = generateBtn ? generateBtn.textContent : 'Generate';
     } else {
-        generateBtn = inputElement.parentElement.querySelector('.ai-generate-btn');
+        // Look for the button in the parent form-group-with-ai container
+        const formGroupWithAI = inputElement.closest('.form-group-with-ai');
+        if (formGroupWithAI) {
+            generateBtn = formGroupWithAI.querySelector('.ai-generate-btn');
+        } else {
+            // Fallback: look in parent element
+            generateBtn = inputElement.parentElement.querySelector('.ai-generate-btn');
+        }
         originalText = generateBtn ? generateBtn.textContent : 'Generate';
     }
     
     if (!generateBtn) {
         console.error('Generate button not found for content type:', contentType);
+        console.error('InputElement:', inputElement);
+        console.error('Parent elements:', inputElement.parentElement, inputElement.closest('.form-group-with-ai'));
         return;
     }
     
