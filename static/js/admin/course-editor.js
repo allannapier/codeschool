@@ -119,10 +119,8 @@ async function loadChapters() {
         const response = await fetch(`/api/admin/courses/${courseId}/chapters`);
         if (response.ok) {
             const data = await response.json();
-            console.log('Loaded chapters from API:', data);
             if (data.success) {
                 chaptersData = data.chapters;
-                console.log('Set chaptersData to:', chaptersData);
                 renderChaptersList();
             }
         }
@@ -277,15 +275,10 @@ function addChapter() {
 
 // Edit existing chapter
 function editChapter(chapterId) {
-    console.log('Editing chapter with ID:', chapterId);
-    console.log('Available chapters data:', chaptersData);
     currentChapter = chaptersData.find(ch => ch.id === chapterId);
-    console.log('Found chapter for editing:', currentChapter);
     if (currentChapter) {
         openChapterModal('Edit Chapter');
         populateChapterForm(currentChapter);
-    } else {
-        console.error('Chapter not found in chaptersData!');
     }
 }
 
@@ -391,7 +384,6 @@ function resetChapterForm() {
 
 // Populate chapter form
 function populateChapterForm(chapter) {
-    console.log('populateChapterForm called with chapter:', chapter);
     document.getElementById('chapter-title').value = chapter.title || '';
     document.getElementById('chapter-number').value = chapter.chapter_number || 1;
     document.getElementById('chapter-duration').value = chapter.estimated_duration || 45;
@@ -411,13 +403,8 @@ function populateChapterForm(chapter) {
     }
     
     // Populate content
-    console.log('Chapter content data:', chapter.content);
-    console.log('Rich editor available:', !!richEditor);
     if (richEditor && chapter.content) {
-        console.log('Setting rich editor content to:', chapter.content);
         richEditor.root.innerHTML = chapter.content;
-    } else {
-        console.log('Not populating content - richEditor:', !!richEditor, 'content:', !!chapter.content);
     }
     
     // Populate assessments
@@ -430,13 +417,10 @@ function populateChapterForm(chapter) {
     
     // Then populate test questions AFTER sections are visible
     if (chapter.test_questions && chapter.test_questions.length > 0) {
-        console.log('Loading test questions:', chapter.test_questions);
         // Clear any auto-generated questions first
         const testQuestions = document.getElementById('test-questions');
         testQuestions.innerHTML = '';
         populateTestQuestions(chapter.test_questions);
-    } else {
-        console.log('No test questions found in chapter data:', chapter.test_questions);
     }
     
     // Populate practical
@@ -626,12 +610,10 @@ function toggleCorrectAnswer(button) {
 
 // Populate test questions
 function populateTestQuestions(questions) {
-    console.log('populateTestQuestions called with:', questions);
     const testQuestions = document.getElementById('test-questions');
     testQuestions.innerHTML = '';
     
     questions.forEach((question, index) => {
-        console.log(`Adding question ${index + 1}:`, question);
         addTestQuestion();
         const questionElement = testQuestions.children[index];
         

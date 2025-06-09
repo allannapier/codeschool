@@ -641,11 +641,11 @@ def chapter_view(course_id, chapter_id):
                     next_chapter = all_chapters[i + 1]
                 break
         
-        # Load chapter content (markdown)
-        chapter_content = load_chapter_content(course_id, chapter_id)
+        # Load chapter content from database
+        chapter_content = chapter_data.get('content', '') if chapter_data else ''
         
-        # Load test questions if available
-        test_questions = load_test_questions(course_id, chapter_id)
+        # Load test questions from database
+        test_questions = chapter_data.get('test_questions', []) if chapter_data else []
         
         # Pass Supabase credentials
         supabase_url = os.getenv('SUPABASE_URL', '')
@@ -706,8 +706,9 @@ def submit_tutorial_test():
         chapter_id = data.get('chapter_id')
         answers = data.get('answers', [])
         
-        # Load test questions and correct answers
-        test_questions = load_test_questions(course_id, chapter_id)
+        # Load test questions from database
+        chapter_data = load_chapter_data(course_id, chapter_id)
+        test_questions = chapter_data.get('test_questions', []) if chapter_data else []
         if not test_questions:
             return jsonify({
                 'success': False,
