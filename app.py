@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template, redirect
+from flask import Flask, request, jsonify, render_template, redirect, session
 from flask_cors import CORS
 import openai
 import os
@@ -17,6 +17,9 @@ load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
+
+# Set Flask secret key for sessions
+app.secret_key = os.getenv('FLASK_SECRET_KEY', 'your-secret-key-change-in-production')
 
 # Configure OpenAI
 openai.api_key = os.getenv('OPENAI_API_KEY')
@@ -1185,34 +1188,45 @@ def admin_dashboard():
 def admin_login():
     """Admin login"""
     if request.method == 'POST':
-        data = request.get_json()
-        username = data.get('username')
-        password = data.get('password')
-        
-        # Simple admin authentication (in production, use proper auth)
-        # Define admin users - in production, use a proper user management system
-        admin_users = {
-            'admin': {
-                'password': os.getenv('ADMIN_PASSWORD', 'admin123'),
-                'name': 'Administrator'
-            },
-            'allan': {
-                'password': os.getenv('ALLAN_PASSWORD', 'allan123'),
-                'name': 'Allan Napier'
+        try:
+            data = request.get_json()
+            if not data:
+                return jsonify({'success': False, 'error': 'No JSON data received'}), 400
+                
+            username = data.get('username')
+            password = data.get('password')
+            
+            if not username or not password:
+                return jsonify({'success': False, 'error': 'Username and password required'}), 400
+            
+            # Simple admin authentication (in production, use proper auth)
+            # Define admin users - in production, use a proper user management system
+            admin_users = {
+                'admin': {
+                    'password': os.getenv('ADMIN_PASSWORD', 'admin123'),
+                    'name': 'Administrator'
+                },
+                'allan': {
+                    'password': os.getenv('ALLAN_PASSWORD', 'allan123'),
+                    'name': 'Allan Napier'
+                }
+                # Add more admin users here as needed
             }
-            # Add more admin users here as needed
-        }
-        
-        if username in admin_users and password == admin_users[username]['password']:
-            # Set admin session
-            session['admin_authenticated'] = True
-            session['admin_user'] = {
-                'name': admin_users[username]['name'], 
-                'username': username
-            }
-            return jsonify({'success': True, 'redirect': '/admin'})
-        else:
-            return jsonify({'success': False, 'error': 'Invalid credentials'}), 401
+            
+            if username in admin_users and password == admin_users[username]['password']:
+                # Set admin session
+                session['admin_authenticated'] = True
+                session['admin_user'] = {
+                    'name': admin_users[username]['name'], 
+                    'username': username
+                }
+                return jsonify({'success': True, 'redirect': '/admin'})
+            else:
+                return jsonify({'success': False, 'error': 'Invalid credentials'}), 401
+                
+        except Exception as e:
+            print(f"Admin login error: {str(e)}")
+            return jsonify({'success': False, 'error': 'Server error during login'}), 500
     
     return render_template('admin/login.html')
 
