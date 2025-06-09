@@ -1170,5 +1170,556 @@ def generate_certificate_data(course_id, course_data):
             'back_url': '/tutorials'
         }
 
+# Admin Routes
+
+@app.route('/admin')
+def admin_dashboard():
+    """Admin dashboard"""
+    # Check admin authentication
+    if not is_admin_authenticated():
+        return redirect('/admin/login')
+    
+    return render_template('admin/dashboard.html', admin_user=get_admin_user())
+
+@app.route('/admin/login', methods=['GET', 'POST'])
+def admin_login():
+    """Admin login"""
+    if request.method == 'POST':
+        data = request.get_json()
+        username = data.get('username')
+        password = data.get('password')
+        
+        # Simple admin authentication (in production, use proper auth)
+        if username == 'admin' and password == os.getenv('ADMIN_PASSWORD', 'admin123'):
+            # Set admin session
+            session['admin_authenticated'] = True
+            session['admin_user'] = {'name': 'Administrator', 'username': username}
+            return jsonify({'success': True, 'redirect': '/admin'})
+        else:
+            return jsonify({'success': False, 'error': 'Invalid credentials'}), 401
+    
+    return render_template('admin/login.html')
+
+@app.route('/admin/logout')
+def admin_logout():
+    """Admin logout"""
+    session.pop('admin_authenticated', None)
+    session.pop('admin_user', None)
+    return redirect('/admin/login')
+
+@app.route('/admin/courses')
+def admin_courses():
+    """Admin courses list"""
+    if not is_admin_authenticated():
+        return redirect('/admin/login')
+    
+    courses = load_all_courses()
+    return render_template('admin/courses.html', courses=courses, admin_user=get_admin_user())
+
+@app.route('/admin/courses/new')
+def admin_course_new():
+    """Create new course"""
+    if not is_admin_authenticated():
+        return redirect('/admin/login')
+    
+    return render_template('admin/course_editor.html', course=None, chapters=[], admin_user=get_admin_user())
+
+@app.route('/admin/courses/<int:course_id>/edit')
+def admin_course_edit(course_id):
+    """Edit existing course"""
+    if not is_admin_authenticated():
+        return redirect('/admin/login')
+    
+    course = load_course_data(course_id)
+    chapters = load_all_chapters(course_id)
+    
+    if not course:
+        return "Course not found", 404
+    
+    return render_template('admin/course_editor.html', 
+                         course=course, 
+                         chapters=chapters, 
+                         admin_user=get_admin_user())
+
+# Admin API Routes
+
+@app.route('/api/admin/courses', methods=['GET'])
+def api_admin_get_courses():
+    """Get all courses for admin"""
+    if not is_admin_authenticated():
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    courses = load_all_courses()
+    return jsonify({'success': True, 'courses': courses})
+
+@app.route('/api/admin/courses', methods=['POST'])
+def api_admin_create_course():
+    """Create new course"""
+    if not is_admin_authenticated():
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    try:
+        data = request.get_json()
+        
+        # Validate required fields
+        required_fields = ['title', 'slug', 'description']
+        for field in required_fields:
+            if not data.get(field):
+                return jsonify({'success': False, 'error': f'{field} is required'}), 400
+        
+        # Create course data
+        course_data = {
+            'id': generate_course_id(),
+            'title': data['title'],
+            'slug': data['slug'],
+            'subtitle': data.get('subtitle', ''),
+            'description': data['description'],
+            'difficulty': data.get('difficulty', 'beginner'),
+            'estimated_duration': int(data.get('estimated_duration', 8)),
+            'thumbnail': data.get('thumbnail', ''),
+            'status': data.get('status', 'draft'),
+            'featured': data.get('featured', False),
+            'tags': data.get('tags', []),
+            'prerequisites': data.get('prerequisites', ''),
+            'chapter_count': 0,
+            'created_date': datetime.now().strftime('%Y-%m-%d'),
+            'updated_date': datetime.now().strftime('%Y-%m-%d')
+        }
+        
+        # Save course
+        success = save_course_data(course_data)
+        
+        if success:
+            return jsonify({'success': True, 'course': course_data})
+        else:
+            return jsonify({'success': False, 'error': 'Failed to save course'}), 500
+            
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/admin/courses/<int:course_id>', methods=['PUT'])
+def api_admin_update_course(course_id):
+    """Update existing course"""
+    if not is_admin_authenticated():
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    try:
+        data = request.get_json()
+        
+        # Load existing course
+        course = load_course_data(course_id)
+        if not course:
+            return jsonify({'success': False, 'error': 'Course not found'}), 404
+        
+        # Update course data
+        course.update({
+            'title': data['title'],
+            'slug': data['slug'],
+            'subtitle': data.get('subtitle', ''),
+            'description': data['description'],
+            'difficulty': data.get('difficulty', 'beginner'),
+            'estimated_duration': int(data.get('estimated_duration', 8)),
+            'thumbnail': data.get('thumbnail', ''),
+            'status': data.get('status', 'draft'),
+            'featured': data.get('featured', False),
+            'tags': data.get('tags', []),
+            'prerequisites': data.get('prerequisites', ''),
+            'updated_date': datetime.now().strftime('%Y-%m-%d')
+        })
+        
+        # Save course
+        success = save_course_data(course)
+        
+        if success:
+            return jsonify({'success': True, 'course': course})
+        else:
+            return jsonify({'success': False, 'error': 'Failed to update course'}), 500
+            
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/admin/courses/<int:course_id>', methods=['DELETE'])
+def api_admin_delete_course(course_id):
+    """Delete course"""
+    if not is_admin_authenticated():
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    try:
+        success = delete_course_data(course_id)
+        
+        if success:
+            return jsonify({'success': True})
+        else:
+            return jsonify({'success': False, 'error': 'Failed to delete course'}), 500
+            
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/admin/courses/<int:course_id>/chapters', methods=['GET'])
+def api_admin_get_chapters(course_id):
+    """Get chapters for course"""
+    if not is_admin_authenticated():
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    chapters = load_all_chapters(course_id)
+    return jsonify({'success': True, 'chapters': chapters})
+
+@app.route('/api/admin/courses/<int:course_id>/chapters', methods=['POST'])
+def api_admin_create_chapter(course_id):
+    """Create new chapter"""
+    if not is_admin_authenticated():
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    try:
+        data = request.get_json()
+        
+        # Create chapter data
+        chapter_data = {
+            'id': generate_chapter_id(course_id),
+            'course_id': course_id,
+            'title': data['title'],
+            'chapter_number': int(data.get('chapter_number', 1)),
+            'estimated_duration': int(data.get('estimated_duration', 45)),
+            'difficulty': data.get('difficulty', 'beginner'),
+            'learning_objectives': data.get('learning_objectives', []),
+            'content': data.get('content', ''),
+            'has_test': data.get('has_test', False),
+            'has_practical': data.get('has_practical', False),
+            'test_questions': data.get('test_questions', []),
+            'practical_instructions': data.get('practical_instructions', ''),
+            'practical_starter_code': data.get('practical_starter_code', ''),
+            'practical_evaluation_criteria': data.get('practical_evaluation_criteria', ''),
+            'created_date': datetime.now().strftime('%Y-%m-%d'),
+            'updated_date': datetime.now().strftime('%Y-%m-%d')
+        }
+        
+        # Save chapter
+        success = save_chapter_data(chapter_data)
+        
+        if success:
+            # Update course chapter count
+            update_course_chapter_count(course_id)
+            return jsonify({'success': True, 'chapter': chapter_data})
+        else:
+            return jsonify({'success': False, 'error': 'Failed to save chapter'}), 500
+            
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/admin/courses/<int:course_id>/chapters/<int:chapter_id>', methods=['PUT'])
+def api_admin_update_chapter(course_id, chapter_id):
+    """Update existing chapter"""
+    if not is_admin_authenticated():
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    try:
+        data = request.get_json()
+        
+        # Load existing chapter
+        chapter = load_chapter_data(course_id, chapter_id)
+        if not chapter:
+            return jsonify({'success': False, 'error': 'Chapter not found'}), 404
+        
+        # Update chapter data
+        chapter.update({
+            'title': data['title'],
+            'chapter_number': int(data.get('chapter_number', 1)),
+            'estimated_duration': int(data.get('estimated_duration', 45)),
+            'difficulty': data.get('difficulty', 'beginner'),
+            'learning_objectives': data.get('learning_objectives', []),
+            'content': data.get('content', ''),
+            'has_test': data.get('has_test', False),
+            'has_practical': data.get('has_practical', False),
+            'test_questions': data.get('test_questions', []),
+            'practical_instructions': data.get('practical_instructions', ''),
+            'practical_starter_code': data.get('practical_starter_code', ''),
+            'practical_evaluation_criteria': data.get('practical_evaluation_criteria', ''),
+            'updated_date': datetime.now().strftime('%Y-%m-%d')
+        })
+        
+        # Save chapter
+        success = save_chapter_data(chapter)
+        
+        if success:
+            return jsonify({'success': True, 'chapter': chapter})
+        else:
+            return jsonify({'success': False, 'error': 'Failed to update chapter'}), 500
+            
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/admin/courses/<int:course_id>/chapters/<int:chapter_id>', methods=['DELETE'])
+def api_admin_delete_chapter(course_id, chapter_id):
+    """Delete chapter"""
+    if not is_admin_authenticated():
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    try:
+        success = delete_chapter_data(course_id, chapter_id)
+        
+        if success:
+            # Update course chapter count
+            update_course_chapter_count(course_id)
+            return jsonify({'success': True})
+        else:
+            return jsonify({'success': False, 'error': 'Failed to delete chapter'}), 500
+            
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/admin/courses/<int:course_id>/chapters/reorder', methods=['POST'])
+def api_admin_reorder_chapters(course_id):
+    """Reorder chapters"""
+    if not is_admin_authenticated():
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    try:
+        data = request.get_json()
+        chapter_order = data.get('chapter_order', [])
+        
+        success = reorder_chapters(course_id, chapter_order)
+        
+        if success:
+            return jsonify({'success': True})
+        else:
+            return jsonify({'success': False, 'error': 'Failed to reorder chapters'}), 500
+            
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# Admin Helper Functions
+
+def is_admin_authenticated():
+    """Check if admin is authenticated"""
+    return session.get('admin_authenticated', False)
+
+def get_admin_user():
+    """Get admin user data"""
+    return session.get('admin_user', {'name': 'Administrator'})
+
+def generate_course_id():
+    """Generate unique course ID"""
+    courses = load_all_courses()
+    if not courses:
+        return 1
+    return max(course['id'] for course in courses) + 1
+
+def generate_chapter_id(course_id):
+    """Generate unique chapter ID for course"""
+    chapters = load_all_chapters(course_id)
+    if not chapters:
+        return 1
+    return max(chapter['id'] for chapter in chapters) + 1
+
+def save_course_data(course_data):
+    """Save course data to file"""
+    try:
+        # Create tutorials directory if it doesn't exist
+        os.makedirs('tutorials', exist_ok=True)
+        
+        # Load existing courses
+        courses_file = os.path.join('tutorials', 'courses.json')
+        if os.path.exists(courses_file):
+            with open(courses_file, 'r') as f:
+                data = json.load(f)
+                courses = data.get('courses', [])
+        else:
+            courses = []
+        
+        # Update or add course
+        course_exists = False
+        for i, course in enumerate(courses):
+            if course['id'] == course_data['id']:
+                courses[i] = course_data
+                course_exists = True
+                break
+        
+        if not course_exists:
+            courses.append(course_data)
+        
+        # Save back to file
+        with open(courses_file, 'w') as f:
+            json.dump({'courses': courses}, f, indent=2)
+        
+        return True
+    except Exception as e:
+        print(f"Error saving course data: {str(e)}")
+        return False
+
+def save_chapter_data(chapter_data):
+    """Save chapter data to file"""
+    try:
+        # Create tutorials directory if it doesn't exist
+        os.makedirs('tutorials', exist_ok=True)
+        
+        course_id = chapter_data['course_id']
+        chapters_file = os.path.join('tutorials', f'course_{course_id}_chapters.json')
+        
+        # Load existing chapters
+        if os.path.exists(chapters_file):
+            with open(chapters_file, 'r') as f:
+                data = json.load(f)
+                chapters = data.get('chapters', [])
+        else:
+            chapters = []
+        
+        # Update or add chapter
+        chapter_exists = False
+        for i, chapter in enumerate(chapters):
+            if chapter['id'] == chapter_data['id']:
+                chapters[i] = chapter_data
+                chapter_exists = True
+                break
+        
+        if not chapter_exists:
+            chapters.append(chapter_data)
+        
+        # Sort chapters by chapter_number
+        chapters.sort(key=lambda x: x.get('chapter_number', 0))
+        
+        # Save back to file
+        with open(chapters_file, 'w') as f:
+            json.dump({'chapters': chapters}, f, indent=2)
+        
+        # Save chapter content to markdown file
+        save_chapter_content(course_id, chapter_data['id'], chapter_data.get('content', ''))
+        
+        # Save test questions
+        if chapter_data.get('test_questions'):
+            save_test_questions(course_id, chapter_data['id'], chapter_data['test_questions'])
+        
+        return True
+    except Exception as e:
+        print(f"Error saving chapter data: {str(e)}")
+        return False
+
+def save_chapter_content(course_id, chapter_id, content):
+    """Save chapter content to markdown file"""
+    try:
+        content_dir = os.path.join('tutorials', 'content')
+        os.makedirs(content_dir, exist_ok=True)
+        
+        content_file = os.path.join(content_dir, f'course_{course_id}_chapter_{chapter_id}.md')
+        
+        # Convert HTML to markdown if needed
+        # For now, save as-is
+        with open(content_file, 'w', encoding='utf-8') as f:
+            f.write(content)
+        
+        return True
+    except Exception as e:
+        print(f"Error saving chapter content: {str(e)}")
+        return False
+
+def save_test_questions(course_id, chapter_id, questions):
+    """Save test questions to file"""
+    try:
+        tests_dir = os.path.join('tutorials', 'tests')
+        os.makedirs(tests_dir, exist_ok=True)
+        
+        test_file = os.path.join(tests_dir, f'course_{course_id}_chapter_{chapter_id}.json')
+        
+        with open(test_file, 'w') as f:
+            json.dump({'questions': questions}, f, indent=2)
+        
+        return True
+    except Exception as e:
+        print(f"Error saving test questions: {str(e)}")
+        return False
+
+def delete_course_data(course_id):
+    """Delete course and all related data"""
+    try:
+        # Delete from courses.json
+        courses_file = os.path.join('tutorials', 'courses.json')
+        if os.path.exists(courses_file):
+            with open(courses_file, 'r') as f:
+                data = json.load(f)
+                courses = data.get('courses', [])
+            
+            courses = [c for c in courses if c['id'] != course_id]
+            
+            with open(courses_file, 'w') as f:
+                json.dump({'courses': courses}, f, indent=2)
+        
+        # Delete chapters file
+        chapters_file = os.path.join('tutorials', f'course_{course_id}_chapters.json')
+        if os.path.exists(chapters_file):
+            os.remove(chapters_file)
+        
+        return True
+    except Exception as e:
+        print(f"Error deleting course data: {str(e)}")
+        return False
+
+def delete_chapter_data(course_id, chapter_id):
+    """Delete chapter data"""
+    try:
+        chapters_file = os.path.join('tutorials', f'course_{course_id}_chapters.json')
+        
+        if os.path.exists(chapters_file):
+            with open(chapters_file, 'r') as f:
+                data = json.load(f)
+                chapters = data.get('chapters', [])
+            
+            chapters = [c for c in chapters if c['id'] != chapter_id]
+            
+            with open(chapters_file, 'w') as f:
+                json.dump({'chapters': chapters}, f, indent=2)
+        
+        # Delete content file
+        content_file = os.path.join('tutorials', 'content', f'course_{course_id}_chapter_{chapter_id}.md')
+        if os.path.exists(content_file):
+            os.remove(content_file)
+        
+        # Delete test file
+        test_file = os.path.join('tutorials', 'tests', f'course_{course_id}_chapter_{chapter_id}.json')
+        if os.path.exists(test_file):
+            os.remove(test_file)
+        
+        return True
+    except Exception as e:
+        print(f"Error deleting chapter data: {str(e)}")
+        return False
+
+def update_course_chapter_count(course_id):
+    """Update chapter count for course"""
+    try:
+        chapters = load_all_chapters(course_id)
+        course = load_course_data(course_id)
+        
+        if course:
+            course['chapter_count'] = len(chapters)
+            save_course_data(course)
+        
+        return True
+    except Exception as e:
+        print(f"Error updating chapter count: {str(e)}")
+        return False
+
+def reorder_chapters(course_id, chapter_order):
+    """Reorder chapters based on provided order"""
+    try:
+        chapters = load_all_chapters(course_id)
+        
+        # Update chapter numbers based on order
+        for i, chapter_id in enumerate(chapter_order):
+            for chapter in chapters:
+                if chapter['id'] == chapter_id:
+                    chapter['chapter_number'] = i + 1
+                    break
+        
+        # Save chapters
+        chapters_file = os.path.join('tutorials', f'course_{course_id}_chapters.json')
+        with open(chapters_file, 'w') as f:
+            json.dump({'chapters': chapters}, f, indent=2)
+        
+        return True
+    except Exception as e:
+        print(f"Error reordering chapters: {str(e)}")
+        return False
+
 if __name__ == '__main__':
+    # Set Flask secret key for sessions
+    app.secret_key = os.getenv('FLASK_SECRET_KEY', 'your-secret-key-change-in-production')
     app.run(debug=True)

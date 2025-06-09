@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Codebotiks</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <style>
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .dashboard-card {
+            background: var(--admin-surface);
+            border-radius: 12px;
+            box-shadow: var(--admin-shadow);
+            border: 1px solid var(--admin-border);
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+        
+        .dashboard-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--admin-shadow-lg);
+        }
+        
+        .card-header {
+            padding: 1.5rem 2rem;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-bottom: 1px solid var(--admin-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .card-title {
+            margin: 0;
+            color: var(--admin-text-primary);
+            font-size: 1.1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .card-content {
+            padding: 2rem;
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--admin-primary);
+            margin: 0;
+            line-height: 1;
+        }
+        
+        .stat-label {
+            color: var(--admin-text-secondary);
+            font-size: 0.9rem;
+            margin: 0.5rem 0 0 0;
+        }
+        
+        .stat-change {
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+        }
+        
+        .stat-change.positive {
+            color: var(--admin-success);
+        }
+        
+        .stat-change.negative {
+            color: var(--admin-danger);
+        }
+        
+        .quick-actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .action-item {
+            flex: 1;
+            min-width: 200px;
+            padding: 1.5rem;
+            background: var(--admin-surface);
+            border: 1px solid var(--admin-border);
+            border-radius: 8px;
+            text-decoration: none;
+            color: var(--admin-text-primary);
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .action-item:hover {
+            border-color: var(--admin-primary);
+            transform: translateY(-1px);
+        }
+        
+        .action-icon {
+            font-size: 2rem;
+            color: var(--admin-primary);
+        }
+        
+        .action-text h4 {
+            margin: 0 0 0.25rem 0;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        
+        .action-text p {
+            margin: 0;
+            font-size: 0.85rem;
+            color: var(--admin-text-secondary);
+        }
+        
+        .recent-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .recent-item {
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--admin-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .recent-item:last-child {
+            border-bottom: none;
+        }
+        
+        .recent-info h5 {
+            margin: 0 0 0.25rem 0;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+        
+        .recent-info p {
+            margin: 0;
+            font-size: 0.8rem;
+            color: var(--admin-text-secondary);
+        }
+        
+        .recent-status {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .status-published {
+            background: rgba(5, 150, 105, 0.1);
+            color: var(--admin-success);
+        }
+        
+        .status-draft {
+            background: rgba(100, 116, 139, 0.1);
+            color: var(--admin-secondary);
+        }
+        
+        .status-archived {
+            background: rgba(217, 119, 6, 0.1);
+            color: var(--admin-warning);
+        }
+        
+        .dashboard-welcome {
+            background: linear-gradient(135deg, var(--admin-primary) 0%, var(--admin-primary-hover) 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+        }
+        
+        .welcome-content h2 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+        
+        .welcome-content p {
+            margin: 0;
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .quick-actions {
+                flex-direction: column;
+            }
+            
+            .action-item {
+                min-width: auto;
+            }
+        }
+    </style>
+</head>
+<body class="admin-body">
+    <!-- Admin Header -->
+    <header class="admin-header">
+        <div class="admin-header-content">
+            <div class="admin-logo">
+                <h1>Codebotiks <span class="admin-badge">Admin</span></h1>
+            </div>
+            <nav class="admin-nav">
+                <a href="/admin" class="admin-nav-link active">Dashboard</a>
+                <a href="/admin/courses" class="admin-nav-link">Courses</a>
+                <a href="/admin/users" class="admin-nav-link">Users</a>
+                <a href="/" class="admin-nav-link">← Back to Site</a>
+            </nav>
+            <div class="admin-user">
+                <span class="admin-user-name">{{ admin_user.name or 'Admin' }}</span>
+                <a href="/admin/logout" class="admin-logout">Logout</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+        <div class="admin-container">
+            <!-- Welcome Section -->
+            <div class="dashboard-welcome">
+                <div class="welcome-content">
+                    <h2>Welcome back, {{ admin_user.name or 'Admin' }}! 👋</h2>
+                    <p>Here's what's happening with your courses and platform today.</p>
+                </div>
+            </div>
+
+            <!-- Statistics Grid -->
+            <div class="dashboard-grid">
+                <!-- Total Courses -->
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <h3 class="card-title">📚 Total Courses</h3>
+                    </div>
+                    <div class="card-content">
+                        <h2 class="stat-number" id="total-courses">-</h2>
+                        <p class="stat-label">Active courses</p>
+                        <p class="stat-change positive">↗️ +2 this month</p>
+                    </div>
+                </div>
+
+                <!-- Published Courses -->
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <h3 class="card-title">✅ Published Courses</h3>
+                    </div>
+                    <div class="card-content">
+                        <h2 class="stat-number" id="published-courses">-</h2>
+                        <p class="stat-label">Live on platform</p>
+                        <p class="stat-change positive">↗️ +1 this week</p>
+                    </div>
+                </div>
+
+                <!-- Total Chapters -->
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <h3 class="card-title">📖 Total Chapters</h3>
+                    </div>
+                    <div class="card-content">
+                        <h2 class="stat-number" id="total-chapters">-</h2>
+                        <p class="stat-label">Across all courses</p>
+                        <p class="stat-change positive">↗️ +5 this week</p>
+                    </div>
+                </div>
+
+                <!-- Active Students -->
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <h3 class="card-title">👥 Active Students</h3>
+                    </div>
+                    <div class="card-content">
+                        <h2 class="stat-number">247</h2>
+                        <p class="stat-label">Learning this month</p>
+                        <p class="stat-change positive">↗️ +12% from last month</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="editor-panel">
+                <div class="panel-header">
+                    <h3>⚡ Quick Actions</h3>
+                </div>
+                <div class="panel-content">
+                    <div class="quick-actions">
+                        <a href="/admin/courses/new" class="action-item">
+                            <div class="action-icon">➕</div>
+                            <div class="action-text">
+                                <h4>Create Course</h4>
+                                <p>Start building a new tutorial course</p>
+                            </div>
+                        </a>
+                        
+                        <a href="/admin/courses" class="action-item">
+                            <div class="action-icon">📚</div>
+                            <div class="action-text">
+                                <h4>Manage Courses</h4>
+                                <p>Edit existing courses and chapters</p>
+                            </div>
+                        </a>
+                        
+                        <a href="/tutorials" class="action-item">
+                            <div class="action-icon">👁️</div>
+                            <div class="action-text">
+                                <h4>Preview Site</h4>
+                                <p>See how students view the platform</p>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Courses -->
+            <div class="dashboard-grid">
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <h3 class="card-title">📝 Recent Courses</h3>
+                        <a href="/admin/courses" class="btn secondary small">View All</a>
+                    </div>
+                    <div class="card-content">
+                        <ul class="recent-list" id="recent-courses">
+                            <li class="recent-item">
+                                <div class="recent-info">
+                                    <h5>Loading courses...</h5>
+                                    <p>Please wait</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Platform Activity -->
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <h3 class="card-title">📊 Platform Activity</h3>
+                    </div>
+                    <div class="card-content">
+                        <ul class="recent-list">
+                            <li class="recent-item">
+                                <div class="recent-info">
+                                    <h5>Certificate Generated</h5>
+                                    <p>Python Fundamentals completed</p>
+                                </div>
+                                <span class="recent-status status-published">Today</span>
+                            </li>
+                            <li class="recent-item">
+                                <div class="recent-info">
+                                    <h5>New Chapter Created</h5>
+                                    <p>Functions and Scope</p>
+                                </div>
+                                <span class="recent-status status-draft">Yesterday</span>
+                            </li>
+                            <li class="recent-item">
+                                <div class="recent-info">
+                                    <h5>Course Published</h5>
+                                    <p>JavaScript Fundamentals</p>
+                                </div>
+                                <span class="recent-status status-published">2 days ago</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Status -->
+            <div class="editor-panel">
+                <div class="panel-header">
+                    <h3>🔧 System Status</h3>
+                </div>
+                <div class="panel-content">
+                    <div class="dashboard-grid">
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <span style="color: var(--admin-success); font-size: 1.5rem;">✅</span>
+                            <div>
+                                <h4 style="margin: 0; font-size: 1rem;">Course Editor</h4>
+                                <p style="margin: 0; color: var(--admin-text-secondary); font-size: 0.85rem;">All systems operational</p>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <span style="color: var(--admin-success); font-size: 1.5rem;">✅</span>
+                            <div>
+                                <h4 style="margin: 0; font-size: 1rem;">AI Evaluation</h4>
+                                <p style="margin: 0; color: var(--admin-text-secondary); font-size: 0.85rem;">OpenAI API connected</p>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <span style="color: var(--admin-success); font-size: 1.5rem;">✅</span>
+                            <div>
+                                <h4 style="margin: 0; font-size: 1rem;">Certificate Generation</h4>
+                                <p style="margin: 0; color: var(--admin-text-secondary); font-size: 0.85rem;">Ready to issue certificates</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Load dashboard data
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDashboardData();
+        });
+
+        async function loadDashboardData() {
+            try {
+                // Load courses data
+                const response = await fetch('/api/admin/courses');
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        updateCourseStats(data.courses);
+                        updateRecentCourses(data.courses);
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+            }
+        }
+
+        function updateCourseStats(courses) {
+            const totalCourses = courses.length;
+            const publishedCourses = courses.filter(c => c.status === 'published').length;
+            const totalChapters = courses.reduce((sum, course) => sum + (course.chapter_count || 0), 0);
+
+            document.getElementById('total-courses').textContent = totalCourses;
+            document.getElementById('published-courses').textContent = publishedCourses;
+            document.getElementById('total-chapters').textContent = totalChapters;
+        }
+
+        function updateRecentCourses(courses) {
+            const recentCoursesContainer = document.getElementById('recent-courses');
+            
+            if (courses.length === 0) {
+                recentCoursesContainer.innerHTML = `
+                    <li class="recent-item">
+                        <div class="recent-info">
+                            <h5>No courses yet</h5>
+                            <p>Create your first course to get started</p>
+                        </div>
+                        <span class="recent-status status-draft">Empty</span>
+                    </li>
+                `;
+                return;
+            }
+
+            // Show most recent 3 courses
+            const recentCourses = courses
+                .sort((a, b) => new Date(b.updated_date || b.created_date) - new Date(a.updated_date || a.created_date))
+                .slice(0, 3);
+
+            const coursesHTML = recentCourses.map(course => {
+                const statusClass = `status-${course.status || 'draft'}`;
+                const statusText = course.status || 'draft';
+                
+                return `
+                    <li class="recent-item">
+                        <div class="recent-info">
+                            <h5>${course.title}</h5>
+                            <p>${course.chapter_count || 0} chapters • ${course.difficulty || 'beginner'}</p>
+                        </div>
+                        <span class="recent-status ${statusClass}">${statusText}</span>
+                    </li>
+                `;
+            }).join('');
+
+            recentCoursesContainer.innerHTML = coursesHTML;
+        }
+    </script>
+</body>
+</html>
