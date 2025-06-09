@@ -1050,8 +1050,11 @@ body {
     border-radius: 12px;
     width: 90%;
     max-width: 400px;
+    max-height: 90vh;
+    overflow-y: auto;
     box-shadow: var(--shadow-lg);
     border: 1px solid var(--border-color);
+    margin: 2rem auto;
 }
 
 .modal-header {
@@ -1091,6 +1094,8 @@ body {
 
 .modal-body {
     padding: 1.5rem;
+    max-height: calc(90vh - 120px);
+    overflow-y: auto;
 }
 
 .form-group {
@@ -2333,6 +2338,9 @@ body {
 .test-modal-content {
     max-width: 700px;
     width: 90vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    margin: 2rem auto;
 }
 
 .test-questions {
@@ -2440,12 +2448,15 @@ body {
     max-width: 1000px;
     width: 95vw;
     max-height: 90vh;
+    overflow-y: auto;
+    margin: 2rem auto;
 }
 
 .practical-content {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+    max-height: none;
 }
 
 .practical-instructions {
@@ -2592,7 +2603,8 @@ body {
     .test-modal-content,
     .practical-modal-content {
         width: 95vw;
-        margin: 1rem;
+        margin: 1rem auto;
+        max-height: 85vh;
     }
     
     .practical-content {
@@ -2601,5 +2613,10 @@ body {
     
     .code-editor {
         height: 250px;
+    }
+    
+    .modal-body {
+        padding: 1rem;
+        max-height: calc(85vh - 100px);
     }
 }

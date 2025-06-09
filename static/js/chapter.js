@@ -373,6 +373,11 @@ function showTestResults(score, passed, feedback) {
             ${!passed ? '<button onclick="retakeTest()" class="btn secondary">Retake Test</button>' : ''}
         </div>
     `;
+    
+    // Scroll to results
+    setTimeout(() => {
+        testResults.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
 }
 
 // Reset test modal
@@ -534,6 +539,11 @@ async function runPracticalCode() {
     outputContainer.style.display = 'block';
     outputContent.textContent = 'Running code...';
     
+    // Scroll to output section
+    setTimeout(() => {
+        outputContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+    
     try {
         // Use the same code execution API as the main platform
         const response = await fetch('/api/execute-code', {
@@ -614,6 +624,11 @@ function showPracticalResults(evaluation, passed) {
             ${!passed ? '<button onclick="retryPractical()" class="btn secondary">Try Again</button>' : ''}
         </div>
     `;
+    
+    // Scroll to results
+    setTimeout(() => {
+        resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
 }
 
 // Retry practical
