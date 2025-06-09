@@ -268,7 +268,7 @@ function createCourseCardHTML(course) {
         <div class="course-card">
             <div class="course-card-header">
                 <h3>${course.title}</h3>
-                <p>${course.subtitle || course.description}</p>
+                <p>${course.subtitle || 'Start your coding journey with this comprehensive course'}</p>
             </div>
             <div class="course-card-body">
                 <div class="course-meta">
@@ -284,10 +284,6 @@ function createCourseCardHTML(course) {
                         <span>📚</span>
                         <span>${course.chapter_count} chapters</span>
                     </div>
-                </div>
-                
-                <div class="course-description">
-                    ${course.description}
                 </div>
                 
                 <div class="course-progress">
