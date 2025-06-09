@@ -837,8 +837,22 @@ function extractYouTubeId(url) {
 
 // AI Content Generation
 async function generateAIContent(contentType, inputElement) {
-    const generateBtn = inputElement.parentElement.querySelector('.ai-generate-btn');
-    const originalText = generateBtn.textContent;
+    // Handle special case for objectives where inputElement might be null
+    let generateBtn;
+    let originalText;
+    
+    if (contentType === 'chapter_objectives') {
+        generateBtn = document.querySelector('.ai-generate-objectives');
+        originalText = generateBtn ? generateBtn.textContent : 'Generate';
+    } else {
+        generateBtn = inputElement.parentElement.querySelector('.ai-generate-btn');
+        originalText = generateBtn ? generateBtn.textContent : 'Generate';
+    }
+    
+    if (!generateBtn) {
+        console.error('Generate button not found for content type:', contentType);
+        return;
+    }
     
     // Show loading state
     generateBtn.disabled = true;
@@ -848,7 +862,7 @@ async function generateAIContent(contentType, inputElement) {
     try {
         // Collect context from form
         const context = collectFormContext(contentType);
-        const currentText = inputElement.value;
+        const currentText = inputElement ? inputElement.value : '';
         
         const response = await fetch('/api/admin/generate-content', {
             method: 'POST',
@@ -872,10 +886,10 @@ async function generateAIContent(contentType, inputElement) {
                     const objectives = JSON.parse(data.content);
                     populateObjectives(objectives);
                 } catch (e) {
-                    // Fallback: treat as regular text
-                    inputElement.value = data.content;
+                    // Fallback: if parsing fails, treat as regular text and add as single objective
+                    populateObjectives([data.content]);
                 }
-            } else {
+            } else if (inputElement) {
                 inputElement.value = data.content;
             }
             
