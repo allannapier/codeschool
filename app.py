@@ -1288,6 +1288,16 @@ def admin_course_edit(course_id):
                          chapters=chapters, 
                          admin_user=get_admin_user())
 
+@app.route('/admin/users')
+def admin_users():
+    """Admin users list"""
+    if not is_admin_authenticated():
+        return redirect('/admin/login')
+    
+    # For now, show a placeholder page
+    # In the future, this could integrate with Supabase auth.users
+    return render_template('admin/users.html', admin_user=get_admin_user())
+
 # Admin API Routes
 
 @app.route('/api/admin/courses', methods=['GET'])
