@@ -1263,6 +1263,37 @@ def get_user_from_session():
     
     return session['temp_user_id']
 
+def ensure_user_exists(user_id):
+    """Create a user record if it doesn't exist"""
+    try:
+        if not supabase:
+            return False
+            
+        # Check if user exists
+        response = supabase.table('users').select('id').eq('id', user_id).execute()
+        
+        if not response.data:
+            # User doesn't exist, create a demo user record
+            user_data = {
+                'id': user_id,
+                'email': f'demo_user_{user_id[:8]}@example.com',
+                'created_at': datetime.now().isoformat()
+            }
+            
+            try:
+                create_response = supabase.table('users').insert(user_data).execute()
+                print(f"DEBUG: Created demo user record for {user_id}")
+                return create_response.data is not None
+            except Exception as e:
+                print(f"DEBUG: Could not create user record: {e}")
+                return False
+        
+        return True
+        
+    except Exception as e:
+        print(f"DEBUG: Error checking/creating user: {e}")
+        return False
+
 def save_user_progress(user_id, course_id, chapter_id, test_score=None, practical_passed=None):
     """Save user progress to Supabase"""
     try:
@@ -1271,6 +1302,10 @@ def save_user_progress(user_id, course_id, chapter_id, test_score=None, practica
         if not supabase:
             print("ERROR: Supabase not configured")
             return False
+        
+        # Ensure user exists (create if needed)
+        if not ensure_user_exists(user_id):
+            print("WARNING: Could not ensure user exists, attempting save anyway")
         
         # Get chapter title for the challenge_title field
         chapter_data = load_chapter_data(course_id, chapter_id)
