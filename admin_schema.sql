@@ -126,6 +126,41 @@ CREATE POLICY "Anyone can view chapters of published courses" ON chapters
 
 -- For admin access, we'll handle this in the Python code with service role key
 
+-- Create user progress table for tracking chapter completions
+CREATE TABLE IF NOT EXISTS user_progress (
+    id SERIAL PRIMARY KEY,
+    user_id UUID NOT NULL, -- Supabase user UUID
+    course_id INTEGER REFERENCES courses(id) ON DELETE CASCADE,
+    chapter_id INTEGER REFERENCES chapters(id) ON DELETE CASCADE,
+    completed_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    test_score INTEGER DEFAULT NULL, -- Percentage score on test (if applicable)
+    practical_passed BOOLEAN DEFAULT NULL, -- Whether practical exercise was passed
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    
+    -- Ensure user can only complete each chapter once
+    UNIQUE(user_id, course_id, chapter_id)
+);
+
+-- Create indexes for user progress
+CREATE INDEX IF NOT EXISTS idx_user_progress_user_id ON user_progress(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_progress_course_id ON user_progress(course_id);
+CREATE INDEX IF NOT EXISTS idx_user_progress_chapter_id ON user_progress(chapter_id);
+
+-- Enable RLS for user progress
+ALTER TABLE user_progress ENABLE ROW LEVEL SECURITY;
+
+-- Users can only see their own progress
+CREATE POLICY "Users can view own progress" ON user_progress
+    FOR SELECT USING (auth.uid() = user_id);
+
+-- Users can insert their own progress
+CREATE POLICY "Users can insert own progress" ON user_progress
+    FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- Users can update their own progress  
+CREATE POLICY "Users can update own progress" ON user_progress
+    FOR UPDATE USING (auth.uid() = user_id);
+
 -- Insert sample courses for development
 INSERT INTO courses (title, slug, subtitle, description, difficulty, estimated_duration, status, featured) VALUES
 ('Python Fundamentals', 'python-fundamentals', 'Learn the basics of Python programming', 'Master Python fundamentals including variables, functions, loops, and data structures. Perfect for beginners starting their programming journey.', 'beginner', 8, 'published', true),

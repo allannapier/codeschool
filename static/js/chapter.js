@@ -26,6 +26,11 @@ async function initChapter() {
     // Update UI with current data
     updateCourseProgress();
     updateChapterNavigation();
+    
+    // Check if chapter can be auto-completed (for chapters with no requirements)
+    setTimeout(() => {
+        checkAndCompleteChapter();
+    }, 2000);
 }
 
 // Set up hamburger menu functionality
@@ -130,7 +135,6 @@ function setupChapterNavigation() {
 function setupChapterActions() {
     const takeTestBtn = document.getElementById('take-test-btn');
     const startPracticalBtn = document.getElementById('start-practical-btn');
-    const markCompleteBtn = document.getElementById('mark-complete-btn');
     
     if (takeTestBtn) {
         takeTestBtn.addEventListener('click', openTestModal);
@@ -139,13 +143,6 @@ function setupChapterActions() {
     if (startPracticalBtn) {
         startPracticalBtn.addEventListener('click', openPracticalModal);
     }
-    
-    if (markCompleteBtn) {
-        markCompleteBtn.addEventListener('click', markChapterComplete);
-    }
-    
-    // Update button states based on completion
-    updateChapterActionButtons();
 }
 
 // Set up test modal functionality
@@ -230,18 +227,6 @@ function updateChapterNavigation() {
     setupChapterNavigation();
 }
 
-// Update chapter action buttons based on completion status
-function updateChapterActionButtons() {
-    const markCompleteBtn = document.getElementById('mark-complete-btn');
-    
-    if (markCompleteBtn) {
-        if (isChapterCompleted(chapterData.id)) {
-            markCompleteBtn.textContent = '✅ Completed';
-            markCompleteBtn.disabled = true;
-            markCompleteBtn.classList.add('success');
-        }
-    }
-}
 
 // Check if a chapter is completed
 function isChapterCompleted(chapterId) {
@@ -359,6 +344,8 @@ async function submitTest() {
 
 // Show test results
 function showTestResults(score, passed, feedback) {
+    console.log(`DEBUG: showTestResults called - score: ${score}, passed: ${passed}`);
+    
     const testContent = document.getElementById('test-content');
     const testResults = document.getElementById('test-results');
     
@@ -373,6 +360,20 @@ function showTestResults(score, passed, feedback) {
             ${!passed ? '<button onclick="retakeTest()" class="btn secondary">Retake Test</button>' : ''}
         </div>
     `;
+    
+    // Store test pass status
+    if (passed) {
+        console.log(`DEBUG: Test passed, storing in sessionStorage: test_passed_${chapterData.id}`);
+        sessionStorage.setItem(`test_passed_${chapterData.id}`, 'true');
+        
+        // Check if chapter can be completed
+        console.log('DEBUG: Test passed, checking chapter completion in 1 second...');
+        setTimeout(() => {
+            checkAndCompleteChapter();
+        }, 1000);
+    } else {
+        console.log('DEBUG: Test failed, not triggering chapter completion');
+    }
     
     // Scroll to results
     setTimeout(() => {
@@ -628,6 +629,15 @@ function showPracticalResults(evaluation, passed) {
         </div>
     `;
     
+    // Store practical pass status
+    if (passed) {
+        sessionStorage.setItem(`practical_passed_${chapterData.id}`, 'true');
+        // Check if chapter can be completed
+        setTimeout(() => {
+            checkAndCompleteChapter();
+        }, 1000);
+    }
+    
     // Scroll to results
     setTimeout(() => {
         resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -667,14 +677,65 @@ function retryPractical() {
     }
 }
 
-// Mark chapter as complete
-async function markChapterComplete() {
-    if (!window.authSystem || !window.authSystem.isLoggedIn()) {
-        alert('Please log in to track your progress.');
+// Check if chapter requirements are met and auto-complete if so
+async function checkAndCompleteChapter() {
+    console.log('DEBUG: checkAndCompleteChapter called');
+    
+    // Check if this chapter has any requirements
+    const hasTest = chapterData.has_test;
+    const hasPractical = chapterData.has_practical;
+    
+    console.log(`DEBUG: Chapter requirements - hasTest: ${hasTest}, hasPractical: ${hasPractical}`);
+    
+    // If no requirements, complete immediately
+    if (!hasTest && !hasPractical) {
+        console.log('DEBUG: No requirements, completing immediately');
+        await autoCompleteChapter();
         return;
     }
     
+    // Check if all requirements are satisfied
+    let testPassed = !hasTest; // If no test required, consider it passed
+    let practicalPassed = !hasPractical; // If no practical required, consider it passed
+    
+    // Check test status (you'd need to store this in session/local storage)
+    if (hasTest) {
+        testPassed = sessionStorage.getItem(`test_passed_${chapterData.id}`) === 'true';
+        console.log(`DEBUG: Test required - passed: ${testPassed}`);
+    }
+    
+    // Check practical status
+    if (hasPractical) {
+        practicalPassed = sessionStorage.getItem(`practical_passed_${chapterData.id}`) === 'true';
+        console.log(`DEBUG: Practical required - passed: ${practicalPassed}`);
+    }
+    
+    console.log(`DEBUG: Requirements check - testPassed: ${testPassed}, practicalPassed: ${practicalPassed}`);
+    
+    // If all requirements met, complete the chapter
+    if (testPassed && practicalPassed) {
+        console.log('DEBUG: All requirements met, calling autoCompleteChapter');
+        await autoCompleteChapter();
+    } else {
+        console.log('DEBUG: Requirements not met, not completing chapter');
+    }
+}
+
+// Automatically mark chapter as complete when all requirements are met
+async function autoCompleteChapter() {
+    console.log('DEBUG: autoCompleteChapter called');
+    
+    // Check if user is logged in (for production)
+    const isLoggedIn = window.authSystem && window.authSystem.isLoggedIn();
+    console.log(`DEBUG: User logged in: ${isLoggedIn}`);
+    
+    // For development, allow completion even if not logged in
+    // In production, you might want to require login
+    
     try {
+        console.log('DEBUG: Making API call to mark-complete');
+        console.log(`DEBUG: course_id: ${courseData.id}, chapter_id: ${chapterData.id}`);
+        
         const response = await fetch('/api/tutorials/mark-complete', {
             method: 'POST',
             headers: {
@@ -687,10 +748,13 @@ async function markChapterComplete() {
             })
         });
         
+        console.log('DEBUG: API response received:', response.status);
+        
         const result = await response.json();
+        console.log('DEBUG: API result:', result);
         
         if (result.success) {
-            updateChapterActionButtons();
+            console.log('DEBUG: Chapter completion successful');
             updateCourseProgress();
             updateChapterNavigation();
             
@@ -699,14 +763,14 @@ async function markChapterComplete() {
                 showCourseCompletionModal(result.certificate_url);
             } else {
                 if (window.showSuccess) {
-                    window.showSuccess('Chapter marked as complete! 🎉');
+                    window.showSuccess('Chapter completed! Great job! 🎉');
                 }
             }
         } else {
-            throw new Error(result.error || 'Failed to mark chapter complete');
+            console.error('DEBUG: Chapter completion failed:', result.error);
         }
     } catch (error) {
-        alert(`Error marking chapter complete: ${error.message}`);
+        console.error('DEBUG: Error auto-completing chapter:', error);
     }
 }
 

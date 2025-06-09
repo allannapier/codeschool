@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ course.title }} - Codebotiks</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/course.css') }}">
+    <script src="https://js.sentry-cdn.com/4b03ab7aee3d02db5ea9a72f16414e65.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/umd/supabase.js"></script>
+</head>
+<body>
+    <header class="main-header">
+        <div class="header-content">
+            <div class="header-left">
+                <div class="logo">
+                    <h1>Code<span class="logo-accent">botiks</span></h1>
+                    <span class="beta-tag">BETA</span>
+                </div>
+                <div class="tagline">
+                    <span>AI-Powered Code Learning Platform</span>
+                </div>
+            </div>
+            <div class="user-section">
+                <div class="header-actions">
+                    <a href="/tutorials" class="btn btn-outline">← Back to Tutorials</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="course-main">
+        <div class="course-container">
+            <!-- Course Header -->
+            <div class="course-header">
+                <div class="course-header-content">
+                    <h1 class="course-title">{{ course.title }}</h1>
+                    {% if course.subtitle %}
+                    <p class="course-subtitle">{{ course.subtitle }}</p>
+                    {% endif %}
+                    
+                    <div class="course-meta">
+                        <div class="course-meta-item">
+                            <span class="meta-icon">📊</span>
+                            <span>{{ course.difficulty|title }}</span>
+                        </div>
+                        <div class="course-meta-item">
+                            <span class="meta-icon">⏱️</span>
+                            <span>{{ course.estimated_duration }} hours</span>
+                        </div>
+                        <div class="course-meta-item">
+                            <span class="meta-icon">📚</span>
+                            <span>{{ chapters|length }} chapters</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Course Content -->
+            <div class="course-content">
+                {% if chapters and chapters|length > 0 %}
+                <!-- Course has chapters -->
+                <div class="chapters-section">
+                    <h2>Course Chapters</h2>
+                    <div class="chapters-list">
+                        {% for chapter in chapters %}
+                        <div class="chapter-card">
+                            <div class="chapter-number">{{ chapter.chapter_number }}</div>
+                            <div class="chapter-info">
+                                <h3 class="chapter-title">{{ chapter.title }}</h3>
+                                <div class="chapter-meta">
+                                    <span>{{ chapter.estimated_duration }} minutes</span>
+                                    <span>•</span>
+                                    <span>{{ chapter.difficulty|title }}</span>
+                                </div>
+                                {% if chapter.learning_objectives %}
+                                <ul class="chapter-objectives">
+                                    {% for objective in chapter.learning_objectives[:2] %}
+                                    <li>{{ objective }}</li>
+                                    {% endfor %}
+                                    {% if chapter.learning_objectives|length > 2 %}
+                                    <li>... and {{ chapter.learning_objectives|length - 2 }} more</li>
+                                    {% endif %}
+                                </ul>
+                                {% endif %}
+                            </div>
+                            <div class="chapter-actions">
+                                <a href="/tutorials/course/{{ course.id }}/chapter/{{ chapter.id }}" class="btn primary">Start Chapter</a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% else %}
+                <!-- No chapters yet -->
+                <div class="empty-course">
+                    <div class="empty-icon">🚧</div>
+                    <h2>Course Under Development</h2>
+                    <p>This course is currently being developed. Chapters and content will be added soon!</p>
+                    
+                    {% if course.description %}
+                    <div class="course-description">
+                        <h3>About This Course</h3>
+                        <p>{{ course.description }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    {% if course.prerequisites %}
+                    <div class="course-prerequisites">
+                        <h3>Prerequisites</h3>
+                        <p>{{ course.prerequisites }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="course-actions">
+                        <a href="/tutorials" class="btn primary">Browse Other Courses</a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Inject Supabase configuration
+        window.SUPABASE_CONFIG = {
+            url: '{{ supabase_url }}',
+            anonKey: '{{ supabase_anon_key }}'
+        };
+    </script>
+</body>
+</html>

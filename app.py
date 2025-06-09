@@ -532,6 +532,70 @@ def debug_config():
             'error': str(e)
         }), 500
 
+@app.route('/api/debug-progress', methods=['GET'])
+def debug_progress():
+    """
+    Debug endpoint to test progress tracking system
+    """
+    try:
+        debug_info = {
+            'supabase_configured': supabase is not None,
+            'supabase_url': os.getenv('SUPABASE_URL', 'Not set')[:50] + '...' if os.getenv('SUPABASE_URL') else 'Not set',
+        }
+        
+        if supabase:
+            try:
+                # Test basic connection
+                response = supabase.table('courses').select('id, title').limit(1).execute()
+                debug_info['courses_accessible'] = True
+                debug_info['sample_course'] = response.data[0] if response.data else None
+            except Exception as e:
+                debug_info['courses_accessible'] = False
+                debug_info['courses_error'] = str(e)
+            
+            try:
+                # Test user_progress table structure
+                response = supabase.table('user_progress').select('*').limit(1).execute()
+                debug_info['user_progress_accessible'] = True
+                debug_info['user_progress_sample'] = response.data[0] if response.data else 'Table exists but empty'
+            except Exception as e:
+                debug_info['user_progress_accessible'] = False
+                debug_info['user_progress_error'] = str(e)
+            
+            # Test a dummy save operation
+            try:
+                import uuid
+                test_user_id = str(uuid.uuid4())
+                test_data = {
+                    'user_id': test_user_id,
+                    'course_id': 1,
+                    'chapter_id': 1,
+                    'completed_at': datetime.now().isoformat(),
+                    'test_score': 85,
+                    'practical_passed': True
+                }
+                
+                # Try to insert test data
+                response = supabase.table('user_progress').insert(test_data).execute()
+                if response.data:
+                    debug_info['test_insert'] = 'Success'
+                    # Clean up test data
+                    supabase.table('user_progress').delete().eq('user_id', test_user_id).execute()
+                else:
+                    debug_info['test_insert'] = f'Failed: {response}'
+                    
+            except Exception as e:
+                debug_info['test_insert'] = f'Error: {str(e)}'
+        else:
+            debug_info['error'] = 'Supabase not configured'
+        
+        return jsonify(debug_info)
+        
+    except Exception as e:
+        return jsonify({
+            'error': str(e)
+        }), 500
+
 @app.route('/api/test-email', methods=['GET'])
 def test_email():
     """
@@ -611,8 +675,35 @@ def tutorials():
 
 @app.route('/tutorials/course/<int:course_id>')
 def course_overview(course_id):
-    # For now, redirect to first chapter
-    return redirect(f'/tutorials/course/{course_id}/chapter/1')
+    try:
+        # Load course data
+        course_data = load_course_data(course_id)
+        if not course_data:
+            return "Course not found", 404
+            
+        # Load all chapters for this course
+        all_chapters = load_all_chapters(course_id)
+        
+        # If course has chapters, redirect to the first one
+        if all_chapters and len(all_chapters) > 0:
+            # Sort chapters by chapter_number to ensure we get the first one
+            sorted_chapters = sorted(all_chapters, key=lambda x: x.get('chapter_number', 1))
+            first_chapter = sorted_chapters[0]
+            return redirect(f'/tutorials/course/{course_id}/chapter/{first_chapter["id"]}')
+        
+        # If no chapters, show course overview page
+        supabase_url = os.getenv('SUPABASE_URL', '')
+        supabase_anon_key = os.getenv('SUPABASE_ANON_KEY', '')
+        
+        return render_template('course_overview.html',
+                             course=course_data,
+                             chapters=all_chapters,
+                             supabase_url=supabase_url,
+                             supabase_anon_key=supabase_anon_key)
+                             
+    except Exception as e:
+        print(f"Error loading course overview: {str(e)}")
+        return "Error loading course", 500
 
 @app.route('/tutorials/course/<int:course_id>/chapter/<int:chapter_id>')
 def chapter_view(course_id, chapter_id):
@@ -641,11 +732,11 @@ def chapter_view(course_id, chapter_id):
                     next_chapter = all_chapters[i + 1]
                 break
         
-        # Load chapter content (markdown)
-        chapter_content = load_chapter_content(course_id, chapter_id)
+        # Load chapter content from database
+        chapter_content = chapter_data.get('content', '') if chapter_data else ''
         
-        # Load test questions if available
-        test_questions = load_test_questions(course_id, chapter_id)
+        # Load test questions from database
+        test_questions = chapter_data.get('test_questions', []) if chapter_data else []
         
         # Pass Supabase credentials
         supabase_url = os.getenv('SUPABASE_URL', '')
@@ -685,11 +776,20 @@ def get_tutorial_courses():
 def get_tutorial_progress():
     """Get user's tutorial progress"""
     try:
-        # This would integrate with your user system
-        # For now, return empty progress
+        # Get user ID from token
+        user_id = get_user_from_token() or get_user_from_session()
+        if not user_id:
+            return jsonify({
+                'success': True,
+                'progress': {}  # Return empty if not logged in
+            })
+        
+        # Load user progress from database
+        progress = load_user_progress(user_id)
+        
         return jsonify({
             'success': True,
-            'progress': {}
+            'progress': progress
         })
     except Exception as e:
         return jsonify({
@@ -706,8 +806,9 @@ def submit_tutorial_test():
         chapter_id = data.get('chapter_id')
         answers = data.get('answers', [])
         
-        # Load test questions and correct answers
-        test_questions = load_test_questions(course_id, chapter_id)
+        # Load test questions from database
+        chapter_data = load_chapter_data(course_id, chapter_id)
+        test_questions = chapter_data.get('test_questions', []) if chapter_data else []
         if not test_questions:
             return jsonify({
                 'success': False,
@@ -769,13 +870,14 @@ def submit_tutorial_practical():
             }), 404
         
         # AI evaluation prompt
-        prompt = f"""
-        Evaluate this {language} code for the practical exercise in Chapter {chapter_id}.
+        chapter_number = chapter_data.get('chapter_number', chapter_id)
+        practical_instructions = chapter_data.get('practical_instructions', 'Complete the coding exercise.')
         
-        Chapter Title: {chapter_data.get('title', 'Unknown')}
+        prompt = f"""
+        Evaluate this {language} code for the practical exercise in Chapter {chapter_number}: "{chapter_data.get('title', 'Unknown')}".
         
         Exercise Requirements:
-        {chapter_data.get('practical_description', 'Complete the coding exercise.')}
+        {practical_instructions}
         
         Submitted Code:
         ```{language}
@@ -830,22 +932,48 @@ def mark_chapter_complete():
         course_id = data.get('course_id')
         chapter_id = data.get('chapter_id')
         
-        # This would save to database
-        # For now, just return success
+        print(f"DEBUG: mark_chapter_complete called with course_id={course_id}, chapter_id={chapter_id}")
+        
+        # Get user ID from token (implement proper auth)
+        user_id = get_user_from_token() or get_user_from_session()
+        print(f"DEBUG: User ID resolved to: {user_id}")
+        
+        if not user_id:
+            print("ERROR: User not authenticated")
+            return jsonify({
+                'success': False,
+                'error': 'User not authenticated'
+            }), 401
+        
+        # Save progress to database
+        print("DEBUG: Calling save_user_progress...")
+        success = save_user_progress(user_id, course_id, chapter_id)
+        
+        if not success:
+            print("ERROR: save_user_progress returned False")
+            return jsonify({
+                'success': False,
+                'error': 'Failed to save progress'
+            }), 500
+        
         response_data = {
             'success': True,
             'message': 'Chapter marked as complete'
         }
         
         # Check if course is completed
-        course_completion = check_course_completion(course_id)
+        course_completion = check_course_completion(course_id, user_id)
         if course_completion['completed']:
             response_data['course_completed'] = True
             response_data['certificate_url'] = f'/tutorials/certificate/{course_id}'
         
+        print(f"DEBUG: Returning success response: {response_data}")
         return jsonify(response_data)
         
     except Exception as e:
+        print(f"ERROR: Exception in mark_chapter_complete: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({
             'success': False,
             'error': str(e)
@@ -1121,24 +1249,155 @@ def get_sample_test_questions(course_id, chapter_id):
     
     return []
 
+# User Progress Functions
+
+def get_user_from_session():
+    """Get user ID from session (fallback for non-Supabase auth)"""
+    # For development, we can use a session-based approach
+    # In production, this should integrate with Supabase auth
+    
+    # Generate a persistent demo user ID based on session
+    if 'temp_user_id' not in session:
+        import uuid
+        session['temp_user_id'] = str(uuid.uuid4())
+    
+    return session['temp_user_id']
+
+def save_user_progress(user_id, course_id, chapter_id, test_score=None, practical_passed=None):
+    """Save user progress to Supabase"""
+    try:
+        print(f"DEBUG: Attempting to save progress - user_id={user_id}, course_id={course_id}, chapter_id={chapter_id}")
+        
+        if not supabase:
+            print("ERROR: Supabase not configured")
+            return False
+        
+        # Get chapter title for the challenge_title field
+        chapter_data = load_chapter_data(course_id, chapter_id)
+        chapter_title = chapter_data.get('title', f'Chapter {chapter_id}') if chapter_data else f'Chapter {chapter_id}'
+        
+        # First, check if this progress already exists
+        existing_response = supabase.table('user_progress').select('*').eq('user_id', user_id).eq('course_id', course_id).eq('chapter_id', chapter_id).execute()
+        
+        if existing_response.data:
+            print(f"DEBUG: Progress already exists for user {user_id}, chapter {chapter_id}")
+            print(f"SUCCESS: Chapter already completed - no update needed")
+            return True
+        else:
+            # Insert new record
+            progress_data = {
+                'user_id': user_id,
+                'course_id': course_id,
+                'chapter_id': chapter_id,
+                'challenge_id': f'chapter_{course_id}_{chapter_id}',  # Make it more unique
+                'challenge_title': chapter_title,
+                'completed_at': datetime.now().isoformat(),
+                'test_score': test_score,
+                'practical_passed': practical_passed,
+                'status': 'completed'
+            }
+            
+            print(f"DEBUG: Progress data to save: {progress_data}")
+            
+            response = supabase.table('user_progress').insert(progress_data).execute()
+            
+            print(f"DEBUG: Supabase response: {response}")
+            
+            if response.data:
+                print(f"SUCCESS: Progress saved for user {user_id}, chapter {chapter_id}")
+                return True
+            else:
+                print(f"ERROR: Failed to save progress - no data returned: {response}")
+                return False
+            
+    except Exception as e:
+        print(f"ERROR: Exception saving user progress: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return False
+
+def load_user_progress(user_id):
+    """Load user progress from Supabase"""
+    try:
+        if not supabase:
+            print("Supabase not configured")
+            return {}
+        
+        response = supabase.table('user_progress').select('*').eq('user_id', user_id).execute()
+        
+        if response.data:
+            # Convert to the format expected by frontend
+            progress = {}
+            for record in response.data:
+                course_id = record.get('course_id')
+                chapter_id = record.get('chapter_id')
+                
+                # Skip records without course_id or chapter_id (old challenge-based records)
+                if not course_id or not chapter_id:
+                    continue
+                
+                if course_id not in progress:
+                    progress[course_id] = {}
+                
+                progress[course_id][chapter_id] = {
+                    'completed_at': record['completed_at'],
+                    'test_score': record.get('test_score'),
+                    'practical_passed': record.get('practical_passed'),
+                    'challenge_title': record.get('challenge_title', f'Chapter {chapter_id}')
+                }
+            
+            return progress
+        else:
+            return {}
+            
+    except Exception as e:
+        print(f"Error loading user progress: {str(e)}")
+        return {}
+
+def get_user_completed_chapters(user_id, course_id):
+    """Get list of completed chapter IDs for a user and course"""
+    try:
+        if not supabase:
+            return []
+        
+        response = supabase.table('user_progress').select('chapter_id').eq('user_id', user_id).eq('course_id', course_id).execute()
+        
+        if response.data:
+            # Filter out null chapter_ids
+            return [record['chapter_id'] for record in response.data if record.get('chapter_id')]
+        else:
+            return []
+            
+    except Exception as e:
+        print(f"Error getting completed chapters: {str(e)}")
+        return []
+
 # Certificate Generation Functions
 
-def check_course_completion(course_id):
+def check_course_completion(course_id, user_id=None):
     """Check if a course is completed based on chapter completion"""
     try:
         chapters = load_all_chapters(course_id)
         total_chapters = len(chapters)
         
-        # For now, we'll simulate completion
-        # In production, this would check the user's actual progress from database
-        completed_chapters = total_chapters  # Simulate all chapters completed
+        if not user_id:
+            return {
+                'completed': False,
+                'total_chapters': total_chapters,
+                'completed_chapters': 0,
+                'completion_percentage': 0
+            }
         
-        completion_percentage = (completed_chapters / total_chapters) * 100 if total_chapters > 0 else 0
+        # Get user's completed chapters for this course
+        completed_chapters = get_user_completed_chapters(user_id, course_id)
+        completed_count = len(completed_chapters)
+        
+        completion_percentage = (completed_count / total_chapters) * 100 if total_chapters > 0 else 0
         
         return {
             'completed': completion_percentage >= 100,
             'total_chapters': total_chapters,
-            'completed_chapters': completed_chapters,
+            'completed_chapters': completed_count,
             'completion_percentage': completion_percentage
         }
     except Exception as e:

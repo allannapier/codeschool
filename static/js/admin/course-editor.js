@@ -417,13 +417,10 @@ function populateChapterForm(chapter) {
     
     // Then populate test questions AFTER sections are visible
     if (chapter.test_questions && chapter.test_questions.length > 0) {
-        console.log('Loading test questions:', chapter.test_questions);
         // Clear any auto-generated questions first
         const testQuestions = document.getElementById('test-questions');
         testQuestions.innerHTML = '';
         populateTestQuestions(chapter.test_questions);
-    } else {
-        console.log('No test questions found in chapter data:', chapter.test_questions);
     }
     
     // Populate practical
@@ -613,12 +610,10 @@ function toggleCorrectAnswer(button) {
 
 // Populate test questions
 function populateTestQuestions(questions) {
-    console.log('populateTestQuestions called with:', questions);
     const testQuestions = document.getElementById('test-questions');
     testQuestions.innerHTML = '';
     
     questions.forEach((question, index) => {
-        console.log(`Adding question ${index + 1}:`, question);
         addTestQuestion();
         const questionElement = testQuestions.children[index];
         
