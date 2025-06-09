@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Courses - Codebotiks Admin</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <style>
+        .courses-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .course-card {
+            background: var(--admin-surface);
+            border-radius: 12px;
+            box-shadow: var(--admin-shadow);
+            border: 1px solid var(--admin-border);
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+        
+        .course-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--admin-shadow-lg);
+            border-color: var(--admin-primary);
+        }
+        
+        .course-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--admin-border);
+        }
+        
+        .course-title {
+            margin: 0 0 0.5rem 0;
+            color: var(--admin-text-primary);
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+        
+        .course-subtitle {
+            margin: 0 0 1rem 0;
+            color: var(--admin-text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        .course-meta {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+        
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.8rem;
+            color: var(--admin-text-muted);
+        }
+        
+        .course-status {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .status-published {
+            background: rgba(5, 150, 105, 0.1);
+            color: var(--admin-success);
+        }
+        
+        .status-draft {
+            background: rgba(100, 116, 139, 0.1);
+            color: var(--admin-secondary);
+        }
+        
+        .status-archived {
+            background: rgba(217, 119, 6, 0.1);
+            color: var(--admin-warning);
+        }
+        
+        .course-actions {
+            padding: 1rem 1.5rem;
+            background: var(--admin-background);
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .action-btn {
+            flex: 1;
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--admin-border);
+            background: var(--admin-surface);
+            color: var(--admin-text-primary);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-decoration: none;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+        
+        .action-btn:hover {
+            border-color: var(--admin-primary);
+            color: var(--admin-primary);
+        }
+        
+        .action-btn.primary {
+            background: var(--admin-primary);
+            color: white;
+            border-color: var(--admin-primary);
+        }
+        
+        .action-btn.primary:hover {
+            background: var(--admin-primary-hover);
+            color: white;
+        }
+        
+        .action-btn.danger {
+            color: var(--admin-danger);
+            border-color: rgba(220, 38, 38, 0.3);
+        }
+        
+        .action-btn.danger:hover {
+            background: rgba(220, 38, 38, 0.1);
+            border-color: var(--admin-danger);
+        }
+        
+        .courses-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            background: var(--admin-surface);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: var(--admin-shadow);
+            border: 1px solid var(--admin-border);
+        }
+        
+        .courses-title h2 {
+            margin: 0 0 0.5rem 0;
+            color: var(--admin-text-primary);
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        
+        .courses-subtitle {
+            color: var(--admin-text-secondary);
+            margin: 0;
+            font-size: 1.1rem;
+        }
+        
+        .courses-stats {
+            display: flex;
+            gap: 2rem;
+            text-align: center;
+        }
+        
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--admin-primary);
+            line-height: 1;
+        }
+        
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--admin-text-secondary);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--admin-text-secondary);
+            background: var(--admin-surface);
+            border-radius: 12px;
+            border: 2px dashed var(--admin-border);
+        }
+        
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+        
+        .empty-state h3 {
+            margin: 0 0 1rem 0;
+            color: var(--admin-text-primary);
+        }
+        
+        .empty-state p {
+            margin: 0 0 2rem 0;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        @media (max-width: 768px) {
+            .courses-header {
+                flex-direction: column;
+                gap: 1.5rem;
+                text-align: center;
+            }
+            
+            .courses-stats {
+                justify-content: center;
+            }
+            
+            .courses-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .course-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body class="admin-body">
+    <!-- Admin Header -->
+    <header class="admin-header">
+        <div class="admin-header-content">
+            <div class="admin-logo">
+                <h1>Codebotiks <span class="admin-badge">Admin</span></h1>
+            </div>
+            <nav class="admin-nav">
+                <a href="/admin" class="admin-nav-link">Dashboard</a>
+                <a href="/admin/courses" class="admin-nav-link active">Courses</a>
+                <a href="/admin/users" class="admin-nav-link">Users</a>
+                <a href="/" class="admin-nav-link">← Back to Site</a>
+            </nav>
+            <div class="admin-user">
+                <span class="admin-user-name">{{ admin_user.name or 'Admin' }}</span>
+                <a href="/admin/logout" class="admin-logout">Logout</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+        <div class="admin-container">
+            <!-- Courses Header -->
+            <div class="courses-header">
+                <div class="courses-title">
+                    <h2>Course Management</h2>
+                    <p class="courses-subtitle">Create, edit, and manage your tutorial courses</p>
+                </div>
+                <div class="courses-stats">
+                    <div class="stat-item">
+                        <div class="stat-number">{{ courses|length }}</div>
+                        <div class="stat-label">Total Courses</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">{{ courses|selectattr('status', 'equalto', 'published')|list|length }}</div>
+                        <div class="stat-label">Published</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">{{ courses|sum(attribute='chapter_count', start=0) }}</div>
+                        <div class="stat-label">Total Chapters</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="editor-panel">
+                <div class="panel-content" style="padding: 1.5rem;">
+                    <div style="display: flex; gap: 1rem; align-items: center;">
+                        <a href="/admin/courses/new" class="btn primary">
+                            ➕ Create New Course
+                        </a>
+                        <a href="/tutorials" class="btn secondary">
+                            👁️ Preview Site
+                        </a>
+                        <button onclick="location.reload()" class="btn secondary">
+                            🔄 Refresh
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Courses Grid -->
+            {% if courses %}
+                <div class="courses-grid">
+                    {% for course in courses %}
+                    <div class="course-card">
+                        <div class="course-header">
+                            <h3 class="course-title">{{ course.title }}</h3>
+                            {% if course.subtitle %}
+                                <p class="course-subtitle">{{ course.subtitle }}</p>
+                            {% endif %}
+                            
+                            <div class="course-meta">
+                                <span class="meta-item">
+                                    📚 {{ course.chapter_count or 0 }} chapters
+                                </span>
+                                <span class="meta-item">
+                                    ⏱️ {{ course.estimated_duration or 8 }}h
+                                </span>
+                                <span class="meta-item">
+                                    📊 {{ course.difficulty or 'beginner' }}
+                                </span>
+                            </div>
+                            
+                            <span class="course-status status-{{ course.status or 'draft' }}">
+                                {{ (course.status or 'draft')|title }}
+                            </span>
+                        </div>
+                        
+                        <div class="course-actions">
+                            <a href="/admin/courses/{{ course.id }}/edit" class="action-btn primary">
+                                ✏️ Edit
+                            </a>
+                            {% if course.status == 'published' %}
+                                <a href="/tutorials/course/{{ course.id }}" class="action-btn" target="_blank">
+                                    👁️ View
+                                </a>
+                            {% endif %}
+                            <button onclick="deleteCourse({{ course.id }}, '{{ course.title }}')" class="action-btn danger">
+                                🗑️ Delete
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">📚</div>
+                    <h3>No courses yet</h3>
+                    <p>Get started by creating your first tutorial course. You can add chapters, tests, and practical exercises to create engaging learning experiences.</p>
+                    <a href="/admin/courses/new" class="btn primary">Create Your First Course</a>
+                </div>
+            {% endif %}
+        </div>
+    </main>
+
+    <script>
+        async function deleteCourse(courseId, courseTitle) {
+            if (!confirm(`Are you sure you want to delete "${courseTitle}"? This will also delete all chapters and cannot be undone.`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/admin/courses/${courseId}`, {
+                    method: 'DELETE'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Reload the page to show updated list
+                    location.reload();
+                } else {
+                    alert('Failed to delete course: ' + (data.error || 'Unknown error'));
+                }
+            } catch (error) {
+                alert('Error deleting course: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>
