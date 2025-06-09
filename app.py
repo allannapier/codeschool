@@ -1281,22 +1281,8 @@ def save_user_progress(user_id, course_id, chapter_id, test_score=None, practica
         
         if existing_response.data:
             print(f"DEBUG: Progress already exists for user {user_id}, chapter {chapter_id}")
-            # Update existing record
-            update_data = {
-                'test_score': test_score,
-                'practical_passed': practical_passed,
-                'completed_at': datetime.now().isoformat(),
-                'status': 'completed'
-            }
-            
-            response = supabase.table('user_progress').update(update_data).eq('user_id', user_id).eq('course_id', course_id).eq('chapter_id', chapter_id).execute()
-            
-            if response.data:
-                print(f"SUCCESS: Progress updated for user {user_id}, chapter {chapter_id}")
-                return True
-            else:
-                print(f"ERROR: Failed to update progress: {response}")
-                return False
+            print(f"SUCCESS: Chapter already completed - no update needed")
+            return True
         else:
             # Insert new record
             progress_data = {
