@@ -1190,10 +1190,26 @@ def admin_login():
         password = data.get('password')
         
         # Simple admin authentication (in production, use proper auth)
-        if username == 'admin' and password == os.getenv('ADMIN_PASSWORD', 'admin123'):
+        # Define admin users - in production, use a proper user management system
+        admin_users = {
+            'admin': {
+                'password': os.getenv('ADMIN_PASSWORD', 'admin123'),
+                'name': 'Administrator'
+            },
+            'allan': {
+                'password': os.getenv('ALLAN_PASSWORD', 'allan123'),
+                'name': 'Allan Napier'
+            }
+            # Add more admin users here as needed
+        }
+        
+        if username in admin_users and password == admin_users[username]['password']:
             # Set admin session
             session['admin_authenticated'] = True
-            session['admin_user'] = {'name': 'Administrator', 'username': username}
+            session['admin_user'] = {
+                'name': admin_users[username]['name'], 
+                'username': username
+            }
             return jsonify({'success': True, 'redirect': '/admin'})
         else:
             return jsonify({'success': False, 'error': 'Invalid credentials'}), 401
