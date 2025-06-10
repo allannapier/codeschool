@@ -1026,14 +1026,23 @@ def generate_certificate(course_id):
         if not course_data:
             return "Course not found", 404
         
-        # Check if course is completed (for now, we'll allow viewing)
-        # In production, you'd verify the user has actually completed the course
-        
-        # Get user ID for personalized certificate
-        user_id = get_user_from_token() or get_user_from_session()
-        
-        # Generate certificate data
-        certificate_data = generate_certificate_data(course_id, course_data, user_id)
+        # For direct page access, we'll render the template with placeholder data
+        # The actual user data will be loaded via JavaScript
+        certificate_data = {
+            'student_name': 'Loading...',  # Will be replaced by JavaScript
+            'course_title': course_data.get('title', 'Unknown Course'),
+            'course_description': course_data.get('description', ''),
+            'course_duration': course_data.get('estimated_duration', 8),
+            'total_chapters': 0,  # Will be loaded by JavaScript
+            'chapters_completed': 0,  # Will be loaded by JavaScript
+            'completion_date': datetime.now().strftime('%B %d, %Y'),
+            'certificate_id': f"CB-{course_id}-LOADING",  # Will be replaced
+            'average_score': 85,
+            'back_url': f'/tutorials/course/{course_id}/chapter/1',
+            'course_id': course_id,  # Pass course_id to template for JavaScript
+            'supabase_url': os.getenv('SUPABASE_URL', ''),
+            'supabase_anon_key': os.getenv('SUPABASE_ANON_KEY', '')
+        }
         
         return render_template('certificate.html', **certificate_data)
         
@@ -1297,18 +1306,18 @@ def get_sample_test_questions(course_id, chapter_id):
 def get_user_from_session():
     """Get user ID from session (fallback for non-Supabase auth)"""
     # This should only be used when there's no proper auth token
-    # Return None to indicate no authenticated user
-    # In development, you could still generate a session-based ID, but it should be per-browser session
+    # For page navigation (like certificate access), we need a session-based fallback
     
-    # For now, return None to force proper authentication
-    # If you want to test without auth, uncomment the lines below:
+    # Check if we have a Supabase user ID stored in the session
+    # This would be set when user logs in
+    if 'supabase_user_id' in session:
+        return session['supabase_user_id']
     
-    # if 'temp_user_id' not in session:
-    #     import uuid
-    #     session['temp_user_id'] = str(uuid.uuid4())
-    # return session['temp_user_id']
-    
-    return None
+    # Fallback to temporary session-based ID for development
+    if 'temp_user_id' not in session:
+        import uuid
+        session['temp_user_id'] = str(uuid.uuid4())
+    return session['temp_user_id']
 
 def save_user_progress(user_id, course_id, chapter_id, test_score=None, practical_passed=None):
     """Save user progress to Supabase"""
