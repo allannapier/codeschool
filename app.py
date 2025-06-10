@@ -1012,8 +1012,11 @@ def generate_certificate(course_id):
         # Check if course is completed (for now, we'll allow viewing)
         # In production, you'd verify the user has actually completed the course
         
+        # Get user ID for personalized certificate
+        user_id = get_user_from_token() or get_user_from_session()
+        
         # Generate certificate data
-        certificate_data = generate_certificate_data(course_id, course_data)
+        certificate_data = generate_certificate_data(course_id, course_data, user_id)
         
         return render_template('certificate.html', **certificate_data)
         
@@ -1032,7 +1035,9 @@ def get_certificate_data(course_id):
                 'error': 'Course not found'
             }), 404
         
-        certificate_data = generate_certificate_data(course_id, course_data)
+        # Get user ID for personalized certificate
+        user_id = get_user_from_token() or get_user_from_session()
+        certificate_data = generate_certificate_data(course_id, course_data, user_id)
         
         return jsonify({
             'success': True,
@@ -1430,18 +1435,35 @@ def check_course_completion(course_id, user_id=None):
             'completion_percentage': 0
         }
 
-def generate_certificate_data(course_id, course_data):
+def generate_certificate_data(course_id, course_data, user_id=None):
     """Generate data for certificate display"""
     try:
         import uuid
         from datetime import datetime
         
+        # Get the authenticated user's name
+        student_name = 'Student'  # Default fallback
+        if user_id:
+            try:
+                # Try to get user name from users table if it exists
+                if supabase:
+                    user_response = supabase.table('users').select('name, email').eq('id', user_id).execute()
+                    if user_response.data and len(user_response.data) > 0:
+                        user_data = user_response.data[0]
+                        student_name = user_data.get('name') or user_data.get('email', 'Student')
+                    else:
+                        # Fallback: use email from session or generate a name
+                        student_name = f'User {user_id[:8]}'
+            except Exception as e:
+                print(f"DEBUG: Could not load user name: {e}")
+                student_name = 'Student'
+        
         # Get course completion data
-        completion_data = check_course_completion(course_id)
+        completion_data = check_course_completion(course_id, user_id)
         
         # Generate certificate data
         certificate_data = {
-            'student_name': 'John Doe',  # In production, get from authenticated user
+            'student_name': student_name,
             'course_title': course_data.get('title', 'Unknown Course'),
             'course_description': course_data.get('description', ''),
             'course_duration': course_data.get('estimated_duration', 8),

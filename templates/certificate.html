@@ -428,7 +428,6 @@
                 <div class="course-title">{{ course_title }}</div>
                 
                 <div class="completion-details">
-                    <p>{{ course_description }}</p>
                     <p><strong>Course Duration:</strong> {{ course_duration }} hours</p>
                     <p><strong>Chapters Completed:</strong> {{ chapters_completed }}/{{ total_chapters }}</p>
                     {% if average_score %}
@@ -439,12 +438,7 @@
             
             <!-- Footer -->
             <div class="certificate-footer">
-                <div class="signature-section">
-                    <div class="signature-line"></div>
-                    <div class="signature-title">Instructor</div>
-                </div>
-                
-                <div class="certificate-info">
+                <div class="certificate-info" style="width: 100%; text-align: center;">
                     <div><strong>Date of Completion:</strong> {{ completion_date }}</div>
                     <div class="certificate-id">Certificate ID: {{ certificate_id }}</div>
                 </div>
