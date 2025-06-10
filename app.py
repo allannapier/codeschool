@@ -1872,6 +1872,36 @@ Be specific but concise. This will guide AI evaluation of student work.
 Return only the criteria text.
 """
     
+    elif content_type == 'chapter_content':
+        chapter_title = context.get('chapter_title', '')
+        course_title = context.get('course_title', title)
+        chapter_number = context.get('chapter_number', 1)
+        course_difficulty = context.get('difficulty', difficulty)
+        
+        return f"""
+Create comprehensive educational content for Chapter {chapter_number}: "{chapter_title}" in the course "{course_title}".
+
+Course Level: {course_difficulty}
+Current content: "{current_text}"
+
+Generate engaging, educational content that includes:
+- Clear explanations of key concepts
+- Practical examples with code snippets where appropriate
+- Step-by-step instructions or walkthroughs
+- Important tips or best practices
+- Interactive elements like "Try it yourself" sections
+
+Structure the content with:
+- Proper HTML headings (h2, h3)
+- Well-formatted paragraphs
+- Code blocks using <pre><code> tags
+- Lists (ul/ol) for organized information
+- Callout boxes using <blockquote> for important notes
+
+Make it engaging and appropriate for {course_difficulty} level students.
+Return only HTML content that can be directly inserted into a rich text editor.
+"""
+    
     return None
 
 @app.route('/api/admin/courses', methods=['GET'])
