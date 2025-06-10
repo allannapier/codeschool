@@ -82,8 +82,8 @@
             <!-- Chapter Sidebar -->
             <aside class="chapter-sidebar">
                 <div class="course-info">
-                    <a href="/tutorials/course/{{ course.id }}" class="course-back-link">
-                        ← Back to {{ course.title }}
+                    <a href="/tutorials" class="course-back-link">
+                        ← Back to Tutorials
                     </a>
                     <h3>{{ course.title }}</h3>
                     <div class="course-progress">
@@ -244,7 +244,58 @@
         </div>
     </div>
 
-    <!-- All the same modals from tutorials.html (disclaimer, contact, auth, demo, cookies) -->
+    <!-- Auth Modal -->
+    <div id="auth-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="auth-title">Login to Track Progress</h2>
+                <button class="close-btn" id="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="auth-form" method="POST">
+                    <div class="form-group" id="name-group" style="display: none;">
+                        <label for="name">Full Name:</label>
+                        <input type="text" id="name" placeholder="Enter your full name">
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email:</label>
+                        <input type="email" id="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password:</label>
+                        <input type="password" id="password" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn primary" id="auth-submit">Login</button>
+                        <button type="button" class="btn secondary" id="toggle-auth">Need an account? Sign up</button>
+                    </div>
+                </form>
+                <div id="auth-error" class="error" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress Modal -->
+    <div id="progress-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Your Progress</h2>
+                <button class="close-btn" id="close-progress-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="progress-stats" class="progress-stats">
+                    <div class="stat-item">
+                        <span class="stat-number" id="completed-count">0</span>
+                        <span class="stat-label">Chapters Completed</span>
+                    </div>
+                </div>
+                <div id="progress-list" class="progress-list">
+                    <h3>Completed Chapters</h3>
+                    <div id="completed-chapters"></div>
+                </div>
+            </div>
+        </div>
+    </div>
     <!-- ... (keeping them brief but they would be the same) ... -->
 
     <footer class="main-footer">
@@ -277,6 +328,12 @@
                 url: '{{ supabase_url }}',
                 anonKey: '{{ supabase_anon_key }}'
             }
+        };
+        
+        // Also set global Supabase config for auth system
+        window.SUPABASE_CONFIG = {
+            url: '{{ supabase_url }}',
+            anonKey: '{{ supabase_anon_key }}'
         };
     </script>
     

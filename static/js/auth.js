@@ -87,25 +87,29 @@ async function initAuth() {
         authToggleBtn.style.display = 'inline-flex';
     }
 
-    // Add event listeners
-    authToggleBtn.addEventListener('click', handleAuthToggle);
-    closeModal.addEventListener('click', hideAuthModal);
-    authForm.addEventListener('submit', handleAuth);
-    toggleAuth.addEventListener('click', toggleAuthMode);
-    closeProgressModal.addEventListener('click', hideProgressModal);
+    // Add event listeners (only if elements exist)
+    if (authToggleBtn) authToggleBtn.addEventListener('click', handleAuthToggle);
+    if (closeModal) closeModal.addEventListener('click', hideAuthModal);
+    if (authForm) authForm.addEventListener('submit', handleAuth);
+    if (toggleAuth) toggleAuth.addEventListener('click', toggleAuthMode);
+    if (closeProgressModal) closeProgressModal.addEventListener('click', hideProgressModal);
 
-    // Close modal on outside click
-    authModal.addEventListener('click', (e) => {
-        if (e.target === authModal) {
-            hideAuthModal();
-        }
-    });
+    // Close modal on outside click (only if elements exist)
+    if (authModal) {
+        authModal.addEventListener('click', (e) => {
+            if (e.target === authModal) {
+                hideAuthModal();
+            }
+        });
+    }
     
-    progressModal.addEventListener('click', (e) => {
-        if (e.target === progressModal) {
-            hideProgressModal();
-        }
-    });
+    if (progressModal) {
+        progressModal.addEventListener('click', (e) => {
+            if (e.target === progressModal) {
+                hideProgressModal();
+            }
+        });
+    }
 
     // Check if user is already logged in
     try {
@@ -182,13 +186,23 @@ async function initAuth() {
 }
 
 function showAuthModal() {
-    authModal.style.display = 'flex';
-    document.getElementById('email').focus();
+    if (authModal) {
+        authModal.style.display = 'flex';
+        const emailInput = document.getElementById('email');
+        if (emailInput) emailInput.focus();
+    } else {
+        // If no auth modal exists, redirect to a page that has one
+        window.location.href = '/tutorials';
+    }
 }
 
 function hideAuthModal() {
-    authModal.style.display = 'none';
-    authForm.reset();
+    if (authModal) {
+        authModal.style.display = 'none';
+    }
+    if (authForm) {
+        authForm.reset();
+    }
     hideAuthError();
 }
 
@@ -198,14 +212,21 @@ function toggleAuthMode() {
 }
 
 function updateAuthModalUI() {
+    const nameGroup = document.getElementById('name-group');
+    const nameField = document.getElementById('name');
+    
     if (isLoginMode) {
-        authTitle.textContent = 'Login to Track Progress';
-        authSubmit.textContent = 'Login';
-        toggleAuth.textContent = 'Need an account? Sign up';
+        if (authTitle) authTitle.textContent = 'Login to Track Progress';
+        if (authSubmit) authSubmit.textContent = 'Login';
+        if (toggleAuth) toggleAuth.textContent = 'Need an account? Sign up';
+        if (nameGroup) nameGroup.style.display = 'none';
+        if (nameField) nameField.required = false;
     } else {
-        authTitle.textContent = 'Create Account';
-        authSubmit.textContent = 'Sign Up';
-        toggleAuth.textContent = 'Already have an account? Login';
+        if (authTitle) authTitle.textContent = 'Create Account';
+        if (authSubmit) authSubmit.textContent = 'Sign Up';
+        if (toggleAuth) toggleAuth.textContent = 'Already have an account? Login';
+        if (nameGroup) nameGroup.style.display = 'block';
+        if (nameField) nameField.required = true;
     }
 }
 
@@ -235,12 +256,30 @@ function handleAuthToggle() {
 async function handleAuth(e) {
     e.preventDefault();
     
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const nameInput = document.getElementById('name');
+    
+    if (!emailInput || !passwordInput) {
+        console.error('Auth form inputs not found');
+        return;
+    }
+    
+    const email = emailInput.value;
+    const password = passwordInput.value;
+    const name = nameInput ? nameInput.value : '';
+    
+    // Validate name field during signup
+    if (!isLoginMode && (!name || name.trim().length < 2)) {
+        showAuthError('Please enter your full name (at least 2 characters).');
+        return;
+    }
     
     hideAuthError();
-    authSubmit.disabled = true;
-    authSubmit.textContent = isLoginMode ? 'Logging in...' : 'Creating account...';
+    if (authSubmit) {
+        authSubmit.disabled = true;
+        authSubmit.textContent = isLoginMode ? 'Logging in...' : 'Creating account...';
+    }
     
     // Set flag to indicate user initiated this action
     userInitiatedLogin = true;
@@ -280,12 +319,16 @@ async function handleAuth(e) {
                     signUpOptions.options = {
                         emailRedirectTo: `${window.location.origin}/`,
                         data: {
-                            signup_source: 'codebotiks_web'
+                            signup_source: 'codebotiks_web',
+                            full_name: name.trim()
                         }
                     };
                 } else {
                     // v1 API
                     signUpOptions.redirectTo = `${window.location.origin}/`;
+                    signUpOptions.data = {
+                        full_name: name.trim()
+                    };
                 }
                 
                 result = await supabase.auth.signUp(signUpOptions);
@@ -298,12 +341,30 @@ async function handleAuth(e) {
             throw result.error;
         }
         
-        if (!isLoginMode && result.data.user && !result.data.session) {
-            // Account created but needs email confirmation
-            showAuthError('Account created! Please check your email for a confirmation link before logging in.');
-            // Auto-switch to login mode
-            isLoginMode = true;
-            updateAuthModalUI();
+        if (!isLoginMode && result.data.user) {
+            // Try to update the user's display name in Supabase auth
+            try {
+                if (result.data.user && name.trim()) {
+                    // Use Supabase's updateUser method to set display name
+                    await supabase.auth.updateUser({
+                        data: {
+                            full_name: name.trim(),
+                            display_name: name.trim()
+                        }
+                    });
+                }
+            } catch (nameError) {
+                console.warn('Could not update display name:', nameError);
+                // Don't fail the signup for this
+            }
+            
+            if (!result.data.session) {
+                // Account created but needs email confirmation
+                showAuthError('Account created! Please check your email for a confirmation link before logging in.');
+                // Auto-switch to login mode
+                isLoginMode = true;
+                updateAuthModalUI();
+            }
         }
         
     } catch (error) {
@@ -324,7 +385,9 @@ async function handleAuth(e) {
         // Reset flag on error since auth state change won't fire
         userInitiatedLogin = false;
     } finally {
-        authSubmit.disabled = false;
+        if (authSubmit) {
+            authSubmit.disabled = false;
+        }
         updateAuthModalUI();
     }
 }
@@ -354,12 +417,16 @@ async function handleLogout() {
 }
 
 function showAuthError(message) {
-    authError.textContent = message;
-    authError.style.display = 'block';
+    if (authError) {
+        authError.textContent = message;
+        authError.style.display = 'block';
+    }
 }
 
 function hideAuthError() {
-    authError.style.display = 'none';
+    if (authError) {
+        authError.style.display = 'none';
+    }
 }
 
 function showSuccess(message) {
@@ -458,6 +525,72 @@ async function getUserProgress() {
     }
 }
 
+// Get current access token
+async function getAccessToken() {
+    if (!currentUser) {
+        return null;
+    }
+    
+    // Try to ensure we have a supabase client
+    if (!supabase) {
+        try {
+            if (window.supabase && window.supabase.createClient && SUPABASE_URL && SUPABASE_ANON_KEY) {
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            }
+        } catch (error) {
+            // Silent fallback
+        }
+    }
+    
+    try {
+        let session = null;
+        
+        // Handle both v1 and v2 Supabase API
+        if (supabase && supabase.auth) {
+            if (supabase.auth.getSession) {
+                // v2 API
+                const { data: { session: sessionData } } = await supabase.auth.getSession();
+                session = sessionData;
+            } else if (supabase.auth.session) {
+                // v1 API - session() is a synchronous method
+                session = supabase.auth.session();
+            } else if (supabase.auth.user) {
+                // v1 API alternative - check current user
+                const user = supabase.auth.user();
+                if (user) {
+                    session = { user: user, access_token: user.access_token };
+                }
+            }
+        }
+        
+        let token = session && session.access_token ? session.access_token : null;
+        
+        // If we couldn't get token from session, try to get it from the current user object
+        if (!token && currentUser) {
+            // In some cases, the access token might be stored in the user object
+            if (currentUser.access_token) {
+                token = currentUser.access_token;
+            } else if (currentUser.jwt) {
+                token = currentUser.jwt;
+            } else if (currentUser.token) {
+                token = currentUser.token;
+            } else {
+                // Check if there's any token-like property
+                for (const key of Object.keys(currentUser)) {
+                    if (key.toLowerCase().includes('token') && typeof currentUser[key] === 'string' && currentUser[key].length > 20) {
+                        token = currentUser[key];
+                        break;
+                    }
+                }
+            }
+        }
+        
+        return token;
+    } catch (error) {
+        return null;
+    }
+}
+
 // Export functions for use in other files
 window.authSystem = {
     initAuth,
@@ -465,5 +598,6 @@ window.authSystem = {
     getUserProgress,
     getCurrentUser: () => currentUser,
     isLoggedIn: () => !!currentUser,
-    showProgressModal
+    showProgressModal,
+    getAccessToken
 };

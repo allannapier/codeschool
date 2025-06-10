@@ -40,13 +40,18 @@ else:
 
 # Optional: Add user context to API calls (requires Supabase JWT verification)
 def get_user_from_token():
-    """Extract user info from Supabase JWT token (optional)"""
+    """Extract user info from Supabase JWT token"""
     auth_header = request.headers.get('Authorization')
     if not auth_header or not auth_header.startswith('Bearer '):
         return None
     
     try:
         token = auth_header.split(' ')[1]
+        
+        # Skip if it's a placeholder token
+        if token == 'placeholder-token':
+            return None
+            
         # In production, you'd verify this JWT with Supabase
         # For now, we'll just decode without verification for user context
         decoded = jwt.decode(token, options={"verify_signature": False})
@@ -684,12 +689,33 @@ def course_overview(course_id):
         # Load all chapters for this course
         all_chapters = load_all_chapters(course_id)
         
-        # If course has chapters, redirect to the first one
+        # If course has chapters, redirect to the appropriate chapter based on progress
         if all_chapters and len(all_chapters) > 0:
-            # Sort chapters by chapter_number to ensure we get the first one
+            # Sort chapters by chapter_number
             sorted_chapters = sorted(all_chapters, key=lambda x: x.get('chapter_number', 1))
-            first_chapter = sorted_chapters[0]
-            return redirect(f'/tutorials/course/{course_id}/chapter/{first_chapter["id"]}')
+            
+            # Get user ID and check progress
+            user_id = get_user_from_token() or get_user_from_session()
+            if user_id:
+                # Get completed chapters for this user and course
+                completed_chapters = get_user_completed_chapters(user_id, course_id)
+                print(f"DEBUG: User {user_id} completed chapters: {completed_chapters}")
+                
+                # Find the first incomplete chapter
+                for chapter in sorted_chapters:
+                    if chapter['id'] not in completed_chapters:
+                        print(f"DEBUG: Redirecting to next incomplete chapter: {chapter['id']}")
+                        return redirect(f'/tutorials/course/{course_id}/chapter/{chapter["id"]}')
+                
+                # If all chapters are completed, go to the last chapter
+                last_chapter = sorted_chapters[-1]
+                print(f"DEBUG: All chapters completed, going to last chapter: {last_chapter['id']}")
+                return redirect(f'/tutorials/course/{course_id}/chapter/{last_chapter["id"]}')
+            else:
+                # No user session, start from beginning
+                first_chapter = sorted_chapters[0]
+                print(f"DEBUG: No user session, starting from first chapter: {first_chapter['id']}")
+                return redirect(f'/tutorials/course/{course_id}/chapter/{first_chapter["id"]}')
         
         # If no chapters, show course overview page
         supabase_url = os.getenv('SUPABASE_URL', '')
@@ -778,6 +804,7 @@ def get_tutorial_progress():
     try:
         # Get user ID from token
         user_id = get_user_from_token() or get_user_from_session()
+        
         if not user_id:
             return jsonify({
                 'success': True,
@@ -931,26 +958,22 @@ def mark_chapter_complete():
         data = request.get_json()
         course_id = data.get('course_id')
         chapter_id = data.get('chapter_id')
-        
-        print(f"DEBUG: mark_chapter_complete called with course_id={course_id}, chapter_id={chapter_id}")
+        test_score = data.get('test_score')
+        practical_passed = data.get('practical_passed')
         
         # Get user ID from token (implement proper auth)
         user_id = get_user_from_token() or get_user_from_session()
-        print(f"DEBUG: User ID resolved to: {user_id}")
         
         if not user_id:
-            print("ERROR: User not authenticated")
             return jsonify({
                 'success': False,
                 'error': 'User not authenticated'
             }), 401
         
-        # Save progress to database
-        print("DEBUG: Calling save_user_progress...")
-        success = save_user_progress(user_id, course_id, chapter_id)
+        # Save progress to database with test score and practical status
+        success = save_user_progress(user_id, course_id, chapter_id, test_score, practical_passed)
         
         if not success:
-            print("ERROR: save_user_progress returned False")
             return jsonify({
                 'success': False,
                 'error': 'Failed to save progress'
@@ -967,13 +990,9 @@ def mark_chapter_complete():
             response_data['course_completed'] = True
             response_data['certificate_url'] = f'/tutorials/certificate/{course_id}'
         
-        print(f"DEBUG: Returning success response: {response_data}")
         return jsonify(response_data)
         
     except Exception as e:
-        print(f"ERROR: Exception in mark_chapter_complete: {str(e)}")
-        import traceback
-        traceback.print_exc()
         return jsonify({
             'success': False,
             'error': str(e)
@@ -988,11 +1007,23 @@ def generate_certificate(course_id):
         if not course_data:
             return "Course not found", 404
         
-        # Check if course is completed (for now, we'll allow viewing)
-        # In production, you'd verify the user has actually completed the course
-        
-        # Generate certificate data
-        certificate_data = generate_certificate_data(course_id, course_data)
+        # For direct page access, we'll render the template with placeholder data
+        # The actual user data will be loaded via JavaScript
+        certificate_data = {
+            'student_name': 'Loading...',  # Will be replaced by JavaScript
+            'course_title': course_data.get('title', 'Unknown Course'),
+            'course_description': course_data.get('description', ''),
+            'course_duration': course_data.get('estimated_duration', 8),
+            'total_chapters': 0,  # Will be loaded by JavaScript
+            'chapters_completed': 0,  # Will be loaded by JavaScript
+            'completion_date': datetime.now().strftime('%B %d, %Y'),
+            'certificate_id': f"CB-{course_id}-LOADING",  # Will be replaced
+            'average_score': 85,
+            'back_url': f'/tutorials/course/{course_id}/chapter/1',
+            'course_id': course_id,  # Pass course_id to template for JavaScript
+            'supabase_url': os.getenv('SUPABASE_URL', ''),
+            'supabase_anon_key': os.getenv('SUPABASE_ANON_KEY', '')
+        }
         
         return render_template('certificate.html', **certificate_data)
         
@@ -1011,7 +1042,9 @@ def get_certificate_data(course_id):
                 'error': 'Course not found'
             }), 404
         
-        certificate_data = generate_certificate_data(course_id, course_data)
+        # Get user ID for personalized certificate
+        user_id = get_user_from_token() or get_user_from_session()
+        certificate_data = generate_certificate_data(course_id, course_data, user_id)
         
         return jsonify({
             'success': True,
@@ -1253,23 +1286,24 @@ def get_sample_test_questions(course_id, chapter_id):
 
 def get_user_from_session():
     """Get user ID from session (fallback for non-Supabase auth)"""
-    # For development, we can use a session-based approach
-    # In production, this should integrate with Supabase auth
+    # This should only be used when there's no proper auth token
+    # For page navigation (like certificate access), we need a session-based fallback
     
-    # Generate a persistent demo user ID based on session
+    # Check if we have a Supabase user ID stored in the session
+    # This would be set when user logs in
+    if 'supabase_user_id' in session:
+        return session['supabase_user_id']
+    
+    # Fallback to temporary session-based ID for development
     if 'temp_user_id' not in session:
         import uuid
         session['temp_user_id'] = str(uuid.uuid4())
-    
     return session['temp_user_id']
 
 def save_user_progress(user_id, course_id, chapter_id, test_score=None, practical_passed=None):
     """Save user progress to Supabase"""
     try:
-        print(f"DEBUG: Attempting to save progress - user_id={user_id}, course_id={course_id}, chapter_id={chapter_id}")
-        
         if not supabase:
-            print("ERROR: Supabase not configured")
             return False
         
         # Get chapter title for the challenge_title field
@@ -1280,9 +1314,7 @@ def save_user_progress(user_id, course_id, chapter_id, test_score=None, practica
         existing_response = supabase.table('user_progress').select('*').eq('user_id', user_id).eq('course_id', course_id).eq('chapter_id', chapter_id).execute()
         
         if existing_response.data:
-            print(f"DEBUG: Progress already exists for user {user_id}, chapter {chapter_id}")
-            print(f"SUCCESS: Chapter already completed - no update needed")
-            return True
+            return True  # Return True because the chapter is indeed completed
         else:
             # Insert new record
             progress_data = {
@@ -1297,23 +1329,11 @@ def save_user_progress(user_id, course_id, chapter_id, test_score=None, practica
                 'status': 'completed'
             }
             
-            print(f"DEBUG: Progress data to save: {progress_data}")
-            
             response = supabase.table('user_progress').insert(progress_data).execute()
             
-            print(f"DEBUG: Supabase response: {response}")
-            
-            if response.data:
-                print(f"SUCCESS: Progress saved for user {user_id}, chapter {chapter_id}")
-                return True
-            else:
-                print(f"ERROR: Failed to save progress - no data returned: {response}")
-                return False
+            return bool(response.data)
             
     except Exception as e:
-        print(f"ERROR: Exception saving user progress: {str(e)}")
-        import traceback
-        traceback.print_exc()
         return False
 
 def load_user_progress(user_id):
@@ -1409,18 +1429,156 @@ def check_course_completion(course_id, user_id=None):
             'completion_percentage': 0
         }
 
-def generate_certificate_data(course_id, course_data):
+def generate_certificate_data(course_id, course_data, user_id=None):
     """Generate data for certificate display"""
     try:
         import uuid
         from datetime import datetime
         
+        # Get the authenticated user's name
+        student_name = 'Student'  # Default fallback
+        if user_id:
+            try:
+                # First, try to get user info from the current request's auth token
+                auth_header = request.headers.get('Authorization')
+                if auth_header and auth_header.startswith('Bearer '):
+                    try:
+                        token = auth_header.split(' ')[1]
+                        if token != 'placeholder-token':
+                            # Decode JWT token to get user metadata
+                            import jwt
+                            decoded = jwt.decode(token, options={"verify_signature": False})
+                            
+                            # Check for name in JWT token
+                            jwt_names = [
+                                decoded.get('user_metadata', {}).get('display_name'),
+                                decoded.get('user_metadata', {}).get('full_name'),
+                                decoded.get('user_metadata', {}).get('name'),
+                                decoded.get('raw_user_meta_data', {}).get('display_name'),
+                                decoded.get('raw_user_meta_data', {}).get('full_name'),
+                                decoded.get('raw_user_meta_data', {}).get('name'),
+                                decoded.get('display_name'),
+                                decoded.get('full_name'),
+                                decoded.get('name')
+                            ]
+                            
+                            for name_option in jwt_names:
+                                if name_option and name_option.strip():
+                                    student_name = name_option.strip()
+                                    break
+                    except Exception:
+                        pass
+                
+                # If no name found in JWT, try Supabase auth admin API
+                if student_name == 'Student' and supabase:
+                    try:
+                        auth_response = supabase.auth.admin.get_user_by_id(user_id)
+                        
+                        if auth_response and hasattr(auth_response, 'user') and auth_response.user:
+                            user = auth_response.user
+                            
+                            # Handle different ways the user object might be structured
+                            user_metadata = {}
+                            raw_user_metadata = {}
+                            
+                            # Try different ways to access user metadata
+                            if hasattr(user, 'user_metadata'):
+                                user_metadata = user.user_metadata or {}
+                            elif hasattr(user, 'user_meta_data'):
+                                user_metadata = user.user_meta_data or {}
+                            elif isinstance(user, dict) and 'user_metadata' in user:
+                                user_metadata = user['user_metadata'] or {}
+                            elif isinstance(user, dict) and 'user_meta_data' in user:
+                                user_metadata = user['user_meta_data'] or {}
+                            
+                            if hasattr(user, 'raw_user_meta_data'):
+                                raw_user_metadata = user.raw_user_meta_data or {}
+                            elif isinstance(user, dict) and 'raw_user_meta_data' in user:
+                                raw_user_metadata = user['raw_user_meta_data'] or {}
+                            
+                            # If user is a dict, try to get metadata from it directly
+                            if isinstance(user, dict):
+                                # Sometimes metadata is stored directly in the user dict
+                                for key in ['full_name', 'display_name', 'name']:
+                                    if key in user and user[key]:
+                                        user_metadata[key] = user[key]
+                            
+                            # Check various possible name fields
+                            possible_names = [
+                                user_metadata.get('display_name'),
+                                user_metadata.get('full_name'),
+                                user_metadata.get('name'),
+                                raw_user_metadata.get('display_name'),
+                                raw_user_metadata.get('full_name'),
+                                raw_user_metadata.get('name')
+                            ]
+                            
+                            # If user is a dict, also check direct properties
+                            if isinstance(user, dict):
+                                possible_names.extend([
+                                    user.get('display_name'),
+                                    user.get('full_name'),
+                                    user.get('name')
+                                ])
+                            
+                            # Add email username as fallback
+                            email = None
+                            if hasattr(user, 'email'):
+                                email = user.email
+                            elif isinstance(user, dict) and 'email' in user:
+                                email = user['email']
+                            
+                            if email:
+                                possible_names.append(email.split('@')[0])
+                            
+                            for name_option in possible_names:
+                                if name_option and name_option.strip():
+                                    student_name = name_option.strip()
+                                    break
+                            else:
+                                # Final fallback to email or user ID
+                                student_name = getattr(user, 'email', f'User {user_id[:8]}')
+                                
+                    except Exception:
+                        # Try to get user name from users table as fallback
+                        try:
+                            user_response = supabase.table('users').select('name, email').eq('id', user_id).execute()
+                            
+                            if user_response.data and len(user_response.data) > 0:
+                                user_data = user_response.data[0]
+                                student_name = user_data.get('name') or user_data.get('email', f'User {user_id[:8]}')
+                            else:
+                                student_name = f'User {user_id[:8]}'
+                        except Exception:
+                            student_name = f'User {user_id[:8]}'
+                            
+            except Exception:
+                student_name = 'Student'
+        
         # Get course completion data
-        completion_data = check_course_completion(course_id)
+        completion_data = check_course_completion(course_id, user_id)
+        
+        # Calculate average test score from user progress
+        average_score = None
+        if user_id:
+            try:
+                progress = load_user_progress(user_id)
+                course_progress = progress.get(str(course_id), {})
+                
+                test_scores = []
+                for chapter_id, chapter_progress in course_progress.items():
+                    test_score = chapter_progress.get('test_score')
+                    if test_score is not None:
+                        test_scores.append(test_score)
+                
+                if test_scores:
+                    average_score = round(sum(test_scores) / len(test_scores))
+            except Exception:
+                pass
         
         # Generate certificate data
         certificate_data = {
-            'student_name': 'John Doe',  # In production, get from authenticated user
+            'student_name': student_name,
             'course_title': course_data.get('title', 'Unknown Course'),
             'course_description': course_data.get('description', ''),
             'course_duration': course_data.get('estimated_duration', 8),
@@ -1428,8 +1586,8 @@ def generate_certificate_data(course_id, course_data):
             'chapters_completed': completion_data['completed_chapters'],
             'completion_date': datetime.now().strftime('%B %d, %Y'),
             'certificate_id': f"CB-{course_id}-{str(uuid.uuid4())[:8].upper()}",
-            'average_score': 85,  # In production, calculate from actual test scores
-            'back_url': f'/tutorials/course/{course_id}/chapter/1'
+            'average_score': average_score,  # Calculated from actual test scores
+            'back_url': f'/tutorials/course/{course_id}'
         }
         
         return certificate_data
@@ -1712,6 +1870,36 @@ Write clear criteria that an AI should use to evaluate student code submissions.
 
 Be specific but concise. This will guide AI evaluation of student work.
 Return only the criteria text.
+"""
+    
+    elif content_type == 'chapter_content':
+        chapter_title = context.get('chapter_title', '')
+        course_title = context.get('course_title', title)
+        chapter_number = context.get('chapter_number', 1)
+        course_difficulty = context.get('difficulty', difficulty)
+        
+        return f"""
+Create comprehensive educational content for Chapter {chapter_number}: "{chapter_title}" in the course "{course_title}".
+
+Course Level: {course_difficulty}
+Current content: "{current_text}"
+
+Generate engaging, educational content that includes:
+- Clear explanations of key concepts
+- Practical examples with code snippets where appropriate
+- Step-by-step instructions or walkthroughs
+- Important tips or best practices
+- Interactive elements like "Try it yourself" sections
+
+Structure the content with:
+- Proper HTML headings (h2, h3)
+- Well-formatted paragraphs
+- Code blocks using <pre><code> tags
+- Lists (ul/ol) for organized information
+- Callout boxes using <blockquote> for important notes
+
+Make it engaging and appropriate for {course_difficulty} level students.
+Return only HTML content that can be directly inserted into a rich text editor.
 """
     
     return None

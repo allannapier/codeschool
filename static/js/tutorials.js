@@ -161,6 +161,9 @@ async function loadCourses() {
             // Load user progress if logged in
             if (window.authSystem && window.authSystem.isLoggedIn()) {
                 await loadUserProgress();
+            } else {
+                // Try loading progress anyway (will return empty if not authenticated)
+                await loadUserProgress();
             }
             
             displayCourses();
@@ -182,15 +185,19 @@ async function loadCourses() {
 // Load user progress for tutorials
 async function loadUserProgress() {
     try {
+        const token = await getAuthToken();
+        
         const response = await fetch('/api/tutorials/progress', {
             headers: {
-                'Authorization': `Bearer ${await getAuthToken()}`
+                'Authorization': `Bearer ${token}`
             }
         });
         
         if (response.ok) {
             const data = await response.json();
             userProgress = data.progress || {};
+        } else {
+            userProgress = {};
         }
     } catch (error) {
         console.warn('Could not load user progress:', error);
@@ -198,12 +205,24 @@ async function loadUserProgress() {
     }
 }
 
-// Get auth token (this would need to be implemented based on your auth system)
+// Get auth token from Supabase session
 async function getAuthToken() {
-    // This is a placeholder - implement based on your Supabase auth system
-    if (window.authSystem && window.authSystem.getCurrentUser()) {
-        // Return Supabase session token
-        return 'placeholder-token';
+    try {
+        // Check if auth system is available and user is logged in
+        if (!window.authSystem || !window.authSystem.getCurrentUser()) {
+            return null;
+        }
+        
+        // Use the auth system's getAccessToken method
+        if (window.authSystem.getAccessToken) {
+            const token = await window.authSystem.getAccessToken();
+            if (token) {
+                return token;
+            }
+        }
+        
+    } catch (error) {
+        console.warn('Could not get auth token:', error);
     }
     return null;
 }
@@ -481,8 +500,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (window.authSystem && window.authSystem.initAuth) {
         try {
             await window.authSystem.initAuth();
+            
+            // After auth is initialized, reload progress if user is logged in
+            if (window.authSystem.isLoggedIn()) {
+                await loadUserProgress();
+                displayCourses(); // Refresh the course display with updated progress
+            }
         } catch (error) {
-            // Silent fallback
+            console.warn('Auth system initialization failed:', error);
         }
     }
 });

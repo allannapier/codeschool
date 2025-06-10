@@ -428,7 +428,6 @@
                 <div class="course-title">{{ course_title }}</div>
                 
                 <div class="completion-details">
-                    <p>{{ course_description }}</p>
                     <p><strong>Course Duration:</strong> {{ course_duration }} hours</p>
                     <p><strong>Chapters Completed:</strong> {{ chapters_completed }}/{{ total_chapters }}</p>
                     {% if average_score %}
@@ -439,12 +438,7 @@
             
             <!-- Footer -->
             <div class="certificate-footer">
-                <div class="signature-section">
-                    <div class="signature-line"></div>
-                    <div class="signature-title">Instructor</div>
-                </div>
-                
-                <div class="certificate-info">
+                <div class="certificate-info" style="width: 100%; text-align: center;">
                     <div><strong>Date of Completion:</strong> {{ completion_date }}</div>
                     <div class="certificate-id">Certificate ID: {{ certificate_id }}</div>
                 </div>
@@ -452,7 +446,66 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/umd/supabase.js"></script>
     <script>
+        // Inject Supabase config for auth
+        window.SUPABASE_CONFIG = {
+            url: '{{ supabase_url }}',
+            anonKey: '{{ supabase_anon_key }}'
+        };
+        
+        const COURSE_ID = {{ course_id }};
+        
+        // Load certificate data after auth is ready
+        async function loadCertificateData() {
+            try {
+                // Wait for auth system to be ready
+                if (window.authSystem && window.authSystem.isLoggedIn()) {
+                    const token = await window.authSystem.getAccessToken();
+                    if (token) {
+                        const response = await fetch(`/api/tutorials/certificate/${COURSE_ID}`, {
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        });
+                        
+                        if (response.ok) {
+                            const data = await response.json();
+                            if (data.success) {
+                                updateCertificateData(data.certificate);
+                            }
+                        }
+                    }
+                }
+            } catch (error) {
+                console.warn('Could not load certificate data:', error);
+            }
+        }
+        
+        // Update certificate with actual data
+        function updateCertificateData(data) {
+            // Update student name
+            const studentNameEl = document.querySelector('.student-name');
+            if (studentNameEl && data.student_name !== 'Student') {
+                studentNameEl.textContent = data.student_name;
+            }
+            
+            // Update certificate ID
+            const certIdEl = document.querySelector('.certificate-id');
+            if (certIdEl && data.certificate_id !== 'CB-ERROR') {
+                certIdEl.textContent = `Certificate ID: ${data.certificate_id}`;
+            }
+            
+            // Update completion stats if available
+            const completionDetails = document.querySelector('.completion-details');
+            if (completionDetails && data.chapters_completed && data.total_chapters) {
+                const chaptersCompleted = completionDetails.querySelector('p:nth-child(2)');
+                if (chaptersCompleted) {
+                    chaptersCompleted.innerHTML = `<strong>Chapters Completed:</strong> ${data.chapters_completed}/${data.total_chapters}`;
+                }
+            }
+        }
+        
         function downloadCertificate() {
             // Create a more print-friendly version
             const originalActions = document.querySelector('.certificate-actions');
@@ -494,8 +547,8 @@
             }
         }
         
-        // Add some subtle animations
-        document.addEventListener('DOMContentLoaded', () => {
+        // Add some subtle animations and load certificate data
+        document.addEventListener('DOMContentLoaded', async () => {
             const certificate = document.querySelector('.certificate');
             certificate.style.opacity = '0';
             certificate.style.transform = 'scale(0.95)';
@@ -505,7 +558,26 @@
                 certificate.style.opacity = '1';
                 certificate.style.transform = 'scale(1)';
             }, 100);
+            
+            // Initialize auth system and load certificate data
+            setTimeout(async () => {
+                // Wait for Supabase to be ready
+                if (window.supabase && window.SUPABASE_CONFIG?.url) {
+                    // Initialize auth if available
+                    if (window.authSystem && window.authSystem.initAuth) {
+                        try {
+                            await window.authSystem.initAuth();
+                            await loadCertificateData();
+                        } catch (error) {
+                            console.warn('Auth initialization failed:', error);
+                        }
+                    }
+                }
+            }, 1000);
         });
     </script>
+    
+    <!-- Load auth system -->
+    <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
 </body>
 </html>

@@ -1010,3 +1010,59 @@ document.addEventListener('keydown', function(event) {
         }
     }
 });
+
+// Generate chapter content using AI
+async function generateChapterContent() {
+    if (!richEditor) {
+        showMessage('Rich editor not initialized', 'error');
+        return;
+    }
+    
+    // Find the generate button and show loading state
+    const generateBtn = document.querySelector('button[onclick="generateChapterContent()"]');
+    if (!generateBtn) {
+        showMessage('Generate button not found', 'error');
+        return;
+    }
+    
+    const originalText = generateBtn.textContent;
+    generateBtn.disabled = true;
+    generateBtn.textContent = '🤖 Generating...';
+    generateBtn.style.opacity = '0.6';
+    
+    try {
+        // Collect context from form
+        const context = collectFormContext('chapter_content');
+        const currentContent = richEditor.root.innerHTML;
+        
+        const response = await fetch('/api/admin/generate-content', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                type: 'chapter_content',
+                context: context,
+                current_text: currentContent
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Set the generated content in the rich editor
+            richEditor.root.innerHTML = data.content;
+            showMessage('Chapter content generated successfully!', 'success');
+        } else {
+            showMessage('Failed to generate content: ' + (data.error || 'Unknown error'), 'error');
+        }
+        
+    } catch (error) {
+        showMessage('Error generating content: ' + error.message, 'error');
+    } finally {
+        // Restore button state
+        generateBtn.disabled = false;
+        generateBtn.textContent = originalText;
+        generateBtn.style.opacity = '1';
+    }
+}

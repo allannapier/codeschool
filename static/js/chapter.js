@@ -27,10 +27,11 @@ async function initChapter() {
     updateCourseProgress();
     updateChapterNavigation();
     
-    // Check if chapter can be auto-completed (for chapters with no requirements)
-    setTimeout(() => {
-        checkAndCompleteChapter();
-    }, 2000);
+    // Clear session storage for test/practical results when page loads
+    // This ensures tests start fresh each time
+    clearSessionStorage();
+    
+    // Note: User progress will be loaded after auth system is initialized
 }
 
 // Set up hamburger menu functionality
@@ -228,10 +229,14 @@ function updateChapterNavigation() {
 }
 
 
-// Check if a chapter is completed
+// Check if a chapter is completed based on actual requirements
 function isChapterCompleted(chapterId) {
-    // This would check against user progress data
-    // For now, return false - implement with actual progress tracking
+    // Check if this specific chapter has been completed
+    // This should check the loaded user progress data, not session storage
+    if (window.userProgress && courseData && courseData.id) {
+        const courseProgress = window.userProgress[courseData.id];
+        return courseProgress && courseProgress[chapterId];
+    }
     return false;
 }
 
@@ -344,8 +349,6 @@ async function submitTest() {
 
 // Show test results
 function showTestResults(score, passed, feedback) {
-    console.log(`DEBUG: showTestResults called - score: ${score}, passed: ${passed}`);
-    
     const testContent = document.getElementById('test-content');
     const testResults = document.getElementById('test-results');
     
@@ -363,16 +366,12 @@ function showTestResults(score, passed, feedback) {
     
     // Store test pass status
     if (passed) {
-        console.log(`DEBUG: Test passed, storing in sessionStorage: test_passed_${chapterData.id}`);
         sessionStorage.setItem(`test_passed_${chapterData.id}`, 'true');
         
         // Check if chapter can be completed
-        console.log('DEBUG: Test passed, checking chapter completion in 1 second...');
         setTimeout(() => {
             checkAndCompleteChapter();
         }, 1000);
-    } else {
-        console.log('DEBUG: Test failed, not triggering chapter completion');
     }
     
     // Scroll to results
@@ -632,9 +631,9 @@ function showPracticalResults(evaluation, passed) {
     // Store practical pass status
     if (passed) {
         sessionStorage.setItem(`practical_passed_${chapterData.id}`, 'true');
-        // Check if chapter can be completed
+        // Check if chapter can be completed after practical pass
         setTimeout(() => {
-            checkAndCompleteChapter();
+            checkAndCompleteChapter('practicalPass');
         }, 1000);
     }
     
@@ -677,64 +676,99 @@ function retryPractical() {
     }
 }
 
+// Clear session storage for test/practical results
+function clearSessionStorage() {
+    if (chapterData && chapterData.id) {
+        sessionStorage.removeItem(`test_passed_${chapterData.id}`);
+        sessionStorage.removeItem(`practical_passed_${chapterData.id}`);
+    }
+}
+
+// Load user progress for current chapter to update UI
+async function loadUserProgressForChapter() {
+    try {
+        const response = await fetch('/api/tutorials/progress', {
+            headers: {
+                'Authorization': `Bearer ${await getAuthToken()}`
+            }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            window.userProgress = data.progress || {};
+            
+            // Update UI based on actual completion status
+            updateCourseProgress();
+            updateChapterNavigation();
+        }
+    } catch (error) {
+        console.warn('Could not load user progress:', error);
+    }
+}
+
 // Check if chapter requirements are met and auto-complete if so
-async function checkAndCompleteChapter() {
-    console.log('DEBUG: checkAndCompleteChapter called');
-    
+// This should ONLY be called after a user successfully completes a test or practical
+async function checkAndCompleteChapter(triggerSource = 'unknown') {
     // Check if this chapter has any requirements
     const hasTest = chapterData.has_test;
     const hasPractical = chapterData.has_practical;
     
-    console.log(`DEBUG: Chapter requirements - hasTest: ${hasTest}, hasPractical: ${hasPractical}`);
-    
-    // If no requirements, complete immediately
-    if (!hasTest && !hasPractical) {
-        console.log('DEBUG: No requirements, completing immediately');
+    // If no requirements, complete immediately only if triggered by user action
+    if (!hasTest && !hasPractical && triggerSource !== 'pageLoad') {
         await autoCompleteChapter();
         return;
     }
     
-    // Check if all requirements are satisfied
+    // Don't auto-complete on page load - only when user actually completes requirements
+    if (triggerSource === 'pageLoad') {
+        return;
+    }
+    
+    // Check if all requirements are satisfied in current session
     let testPassed = !hasTest; // If no test required, consider it passed
     let practicalPassed = !hasPractical; // If no practical required, consider it passed
     
-    // Check test status (you'd need to store this in session/local storage)
+    // Check test status from current session only
     if (hasTest) {
         testPassed = sessionStorage.getItem(`test_passed_${chapterData.id}`) === 'true';
-        console.log(`DEBUG: Test required - passed: ${testPassed}`);
     }
     
-    // Check practical status
+    // Check practical status from current session only
     if (hasPractical) {
         practicalPassed = sessionStorage.getItem(`practical_passed_${chapterData.id}`) === 'true';
-        console.log(`DEBUG: Practical required - passed: ${practicalPassed}`);
     }
     
-    console.log(`DEBUG: Requirements check - testPassed: ${testPassed}, practicalPassed: ${practicalPassed}`);
-    
-    // If all requirements met, complete the chapter
+    // If all requirements met in current session, complete the chapter
     if (testPassed && practicalPassed) {
-        console.log('DEBUG: All requirements met, calling autoCompleteChapter');
         await autoCompleteChapter();
-    } else {
-        console.log('DEBUG: Requirements not met, not completing chapter');
     }
 }
 
 // Automatically mark chapter as complete when all requirements are met
 async function autoCompleteChapter() {
-    console.log('DEBUG: autoCompleteChapter called');
-    
     // Check if user is logged in (for production)
     const isLoggedIn = window.authSystem && window.authSystem.isLoggedIn();
-    console.log(`DEBUG: User logged in: ${isLoggedIn}`);
     
     // For development, allow completion even if not logged in
     // In production, you might want to require login
     
     try {
-        console.log('DEBUG: Making API call to mark-complete');
-        console.log(`DEBUG: course_id: ${courseData.id}, chapter_id: ${chapterData.id}`);
+        // Get the test score from the last test results if available
+        let testScore = null;
+        const testResults = document.getElementById('test-results');
+        if (testResults && testResults.style.display !== 'none') {
+            const scoreElement = testResults.querySelector('.test-score');
+            if (scoreElement) {
+                const scoreText = scoreElement.textContent;
+                const scoreMatch = scoreText.match(/(\d+)%/);
+                if (scoreMatch) {
+                    testScore = parseInt(scoreMatch[1]);
+                }
+            }
+        }
+        
+        // Check if practical was passed
+        const practicalPassed = sessionStorage.getItem(`practical_passed_${chapterData.id}`) === 'true';
         
         const response = await fetch('/api/tutorials/mark-complete', {
             method: 'POST',
@@ -744,33 +778,25 @@ async function autoCompleteChapter() {
             },
             body: JSON.stringify({
                 course_id: courseData.id,
-                chapter_id: chapterData.id
+                chapter_id: chapterData.id,
+                test_score: testScore,
+                practical_passed: practicalPassed
             })
         });
         
-        console.log('DEBUG: API response received:', response.status);
-        
         const result = await response.json();
-        console.log('DEBUG: API result:', result);
         
         if (result.success) {
-            console.log('DEBUG: Chapter completion successful');
             updateCourseProgress();
             updateChapterNavigation();
             
             // Check if course is completed
             if (result.course_completed) {
                 showCourseCompletionModal(result.certificate_url);
-            } else {
-                if (window.showSuccess) {
-                    window.showSuccess('Chapter completed! Great job! 🎉');
-                }
             }
-        } else {
-            console.error('DEBUG: Chapter completion failed:', result.error);
         }
     } catch (error) {
-        console.error('DEBUG: Error auto-completing chapter:', error);
+        console.error('Error auto-completing chapter:', error);
     }
 }
 
@@ -894,10 +920,24 @@ function createConfettiEffect() {
     }
 }
 
-// Get auth token (placeholder - implement based on your auth system)
+// Get auth token from Supabase session
 async function getAuthToken() {
-    // This would integrate with your Supabase auth system
-    return 'placeholder-token';
+    try {
+        // Check if auth system is available and user is logged in
+        if (!window.authSystem || !window.authSystem.getCurrentUser()) {
+            return null;
+        }
+        
+        // Use the auth system's getAccessToken method
+        if (window.authSystem.getAccessToken) {
+            const token = await window.authSystem.getAccessToken();
+            return token;
+        }
+        
+    } catch (error) {
+        console.warn('Could not get auth token:', error);
+    }
+    return null;
 }
 
 // Provide showSuccess function for auth system
@@ -921,7 +961,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Initialize auth system
     const waitForSupabase = () => {
         return new Promise((resolve) => {
-            if (window.supabase && window.TUTORIAL_DATA?.supabaseConfig?.url) {
+            if (window.supabase && (window.SUPABASE_CONFIG?.url || window.TUTORIAL_DATA?.supabaseConfig?.url)) {
                 resolve();
             } else {
                 window.addEventListener('supabaseReady', () => {
@@ -935,11 +975,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
     
     await waitForSupabase();
-    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Give more time for auth system to initialize
+    await new Promise(resolve => setTimeout(resolve, 1000));
     
     if (window.authSystem && window.authSystem.initAuth) {
         try {
             await window.authSystem.initAuth();
+            console.log('DEBUG: Auth system initialized successfully');
+            
+            // Wait a bit more for the auth state to settle
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Load user progress after auth is ready
+            if (window.authSystem.isLoggedIn()) {
+                await loadUserProgressForChapter();
+            }
         } catch (error) {
             // Silent fallback
         }
