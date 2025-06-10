@@ -87,25 +87,29 @@ async function initAuth() {
         authToggleBtn.style.display = 'inline-flex';
     }
 
-    // Add event listeners
-    authToggleBtn.addEventListener('click', handleAuthToggle);
-    closeModal.addEventListener('click', hideAuthModal);
-    authForm.addEventListener('submit', handleAuth);
-    toggleAuth.addEventListener('click', toggleAuthMode);
-    closeProgressModal.addEventListener('click', hideProgressModal);
+    // Add event listeners (only if elements exist)
+    if (authToggleBtn) authToggleBtn.addEventListener('click', handleAuthToggle);
+    if (closeModal) closeModal.addEventListener('click', hideAuthModal);
+    if (authForm) authForm.addEventListener('submit', handleAuth);
+    if (toggleAuth) toggleAuth.addEventListener('click', toggleAuthMode);
+    if (closeProgressModal) closeProgressModal.addEventListener('click', hideProgressModal);
 
-    // Close modal on outside click
-    authModal.addEventListener('click', (e) => {
-        if (e.target === authModal) {
-            hideAuthModal();
-        }
-    });
+    // Close modal on outside click (only if elements exist)
+    if (authModal) {
+        authModal.addEventListener('click', (e) => {
+            if (e.target === authModal) {
+                hideAuthModal();
+            }
+        });
+    }
     
-    progressModal.addEventListener('click', (e) => {
-        if (e.target === progressModal) {
-            hideProgressModal();
-        }
-    });
+    if (progressModal) {
+        progressModal.addEventListener('click', (e) => {
+            if (e.target === progressModal) {
+                hideProgressModal();
+            }
+        });
+    }
 
     // Check if user is already logged in
     try {
@@ -182,13 +186,23 @@ async function initAuth() {
 }
 
 function showAuthModal() {
-    authModal.style.display = 'flex';
-    document.getElementById('email').focus();
+    if (authModal) {
+        authModal.style.display = 'flex';
+        const emailInput = document.getElementById('email');
+        if (emailInput) emailInput.focus();
+    } else {
+        // If no auth modal exists, redirect to a page that has one
+        window.location.href = '/tutorials';
+    }
 }
 
 function hideAuthModal() {
-    authModal.style.display = 'none';
-    authForm.reset();
+    if (authModal) {
+        authModal.style.display = 'none';
+    }
+    if (authForm) {
+        authForm.reset();
+    }
     hideAuthError();
 }
 
@@ -202,15 +216,15 @@ function updateAuthModalUI() {
     const nameField = document.getElementById('name');
     
     if (isLoginMode) {
-        authTitle.textContent = 'Login to Track Progress';
-        authSubmit.textContent = 'Login';
-        toggleAuth.textContent = 'Need an account? Sign up';
+        if (authTitle) authTitle.textContent = 'Login to Track Progress';
+        if (authSubmit) authSubmit.textContent = 'Login';
+        if (toggleAuth) toggleAuth.textContent = 'Need an account? Sign up';
         if (nameGroup) nameGroup.style.display = 'none';
         if (nameField) nameField.required = false;
     } else {
-        authTitle.textContent = 'Create Account';
-        authSubmit.textContent = 'Sign Up';
-        toggleAuth.textContent = 'Already have an account? Login';
+        if (authTitle) authTitle.textContent = 'Create Account';
+        if (authSubmit) authSubmit.textContent = 'Sign Up';
+        if (toggleAuth) toggleAuth.textContent = 'Already have an account? Login';
         if (nameGroup) nameGroup.style.display = 'block';
         if (nameField) nameField.required = true;
     }
@@ -242,9 +256,18 @@ function handleAuthToggle() {
 async function handleAuth(e) {
     e.preventDefault();
     
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-    const name = document.getElementById('name').value;
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const nameInput = document.getElementById('name');
+    
+    if (!emailInput || !passwordInput) {
+        console.error('Auth form inputs not found');
+        return;
+    }
+    
+    const email = emailInput.value;
+    const password = passwordInput.value;
+    const name = nameInput ? nameInput.value : '';
     
     // Validate name field during signup
     if (!isLoginMode && (!name || name.trim().length < 2)) {
@@ -253,8 +276,10 @@ async function handleAuth(e) {
     }
     
     hideAuthError();
-    authSubmit.disabled = true;
-    authSubmit.textContent = isLoginMode ? 'Logging in...' : 'Creating account...';
+    if (authSubmit) {
+        authSubmit.disabled = true;
+        authSubmit.textContent = isLoginMode ? 'Logging in...' : 'Creating account...';
+    }
     
     // Set flag to indicate user initiated this action
     userInitiatedLogin = true;
@@ -360,7 +385,9 @@ async function handleAuth(e) {
         // Reset flag on error since auth state change won't fire
         userInitiatedLogin = false;
     } finally {
-        authSubmit.disabled = false;
+        if (authSubmit) {
+            authSubmit.disabled = false;
+        }
         updateAuthModalUI();
     }
 }
@@ -390,12 +417,16 @@ async function handleLogout() {
 }
 
 function showAuthError(message) {
-    authError.textContent = message;
-    authError.style.display = 'block';
+    if (authError) {
+        authError.textContent = message;
+        authError.style.display = 'block';
+    }
 }
 
 function hideAuthError() {
-    authError.style.display = 'none';
+    if (authError) {
+        authError.style.display = 'none';
+    }
 }
 
 function showSuccess(message) {
