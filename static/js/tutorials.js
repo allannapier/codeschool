@@ -193,9 +193,15 @@ async function loadCourses() {
 async function loadUserProgress() {
     try {
         console.log('DEBUG: Loading user progress...');
+        console.log('DEBUG: Auth system available:', !!window.authSystem);
+        console.log('DEBUG: User logged in:', !!(window.authSystem && window.authSystem.isLoggedIn()));
+        
+        const token = await getAuthToken();
+        console.log('DEBUG: Got auth token:', !!token);
+        
         const response = await fetch('/api/tutorials/progress', {
             headers: {
-                'Authorization': `Bearer ${await getAuthToken()}`
+                'Authorization': `Bearer ${token}`
             }
         });
         
@@ -205,8 +211,16 @@ async function loadUserProgress() {
             const data = await response.json();
             userProgress = data.progress || {};
             console.log('DEBUG: Loaded user progress:', userProgress);
+            console.log('DEBUG: Progress object keys:', Object.keys(userProgress));
+            
+            // Log each course's progress
+            for (const [courseId, courseProgress] of Object.entries(userProgress)) {
+                console.log(`DEBUG: Course ${courseId} progress:`, Object.keys(courseProgress));
+            }
         } else {
             console.log('DEBUG: Progress API failed:', response.status);
+            const errorData = await response.json();
+            console.log('DEBUG: Error response:', errorData);
             userProgress = {};
         }
     } catch (error) {
@@ -520,8 +534,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (window.authSystem && window.authSystem.initAuth) {
         try {
             await window.authSystem.initAuth();
+            
+            // After auth is initialized, reload progress if user is logged in
+            if (window.authSystem.isLoggedIn()) {
+                console.log('DEBUG: Auth system ready and user logged in, reloading progress...');
+                await loadUserProgress();
+                displayCourses(); // Refresh the course display with updated progress
+            }
         } catch (error) {
-            // Silent fallback
+            console.warn('Auth system initialization failed:', error);
         }
     }
 });
