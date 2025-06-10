@@ -198,14 +198,21 @@ function toggleAuthMode() {
 }
 
 function updateAuthModalUI() {
+    const nameGroup = document.getElementById('name-group');
+    const nameField = document.getElementById('name');
+    
     if (isLoginMode) {
         authTitle.textContent = 'Login to Track Progress';
         authSubmit.textContent = 'Login';
         toggleAuth.textContent = 'Need an account? Sign up';
+        if (nameGroup) nameGroup.style.display = 'none';
+        if (nameField) nameField.required = false;
     } else {
         authTitle.textContent = 'Create Account';
         authSubmit.textContent = 'Sign Up';
         toggleAuth.textContent = 'Already have an account? Login';
+        if (nameGroup) nameGroup.style.display = 'block';
+        if (nameField) nameField.required = true;
     }
 }
 
@@ -237,6 +244,13 @@ async function handleAuth(e) {
     
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
+    const name = document.getElementById('name').value;
+    
+    // Validate name field during signup
+    if (!isLoginMode && (!name || name.trim().length < 2)) {
+        showAuthError('Please enter your full name (at least 2 characters).');
+        return;
+    }
     
     hideAuthError();
     authSubmit.disabled = true;
@@ -280,12 +294,16 @@ async function handleAuth(e) {
                     signUpOptions.options = {
                         emailRedirectTo: `${window.location.origin}/`,
                         data: {
-                            signup_source: 'codebotiks_web'
+                            signup_source: 'codebotiks_web',
+                            full_name: name.trim()
                         }
                     };
                 } else {
                     // v1 API
                     signUpOptions.redirectTo = `${window.location.origin}/`;
+                    signUpOptions.data = {
+                        full_name: name.trim()
+                    };
                 }
                 
                 result = await supabase.auth.signUp(signUpOptions);
@@ -298,12 +316,30 @@ async function handleAuth(e) {
             throw result.error;
         }
         
-        if (!isLoginMode && result.data.user && !result.data.session) {
-            // Account created but needs email confirmation
-            showAuthError('Account created! Please check your email for a confirmation link before logging in.');
-            // Auto-switch to login mode
-            isLoginMode = true;
-            updateAuthModalUI();
+        if (!isLoginMode && result.data.user) {
+            // Try to update the user's display name in Supabase auth
+            try {
+                if (result.data.user && name.trim()) {
+                    // Use Supabase's updateUser method to set display name
+                    await supabase.auth.updateUser({
+                        data: {
+                            full_name: name.trim(),
+                            display_name: name.trim()
+                        }
+                    });
+                }
+            } catch (nameError) {
+                console.warn('Could not update display name:', nameError);
+                // Don't fail the signup for this
+            }
+            
+            if (!result.data.session) {
+                // Account created but needs email confirmation
+                showAuthError('Account created! Please check your email for a confirmation link before logging in.');
+                // Auto-switch to login mode
+                isLoginMode = true;
+                updateAuthModalUI();
+            }
         }
         
     } catch (error) {

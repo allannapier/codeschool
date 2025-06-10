@@ -1447,27 +1447,63 @@ def generate_certificate_data(course_id, course_data, user_id=None):
             try:
                 print(f"DEBUG: Attempting to get user name for user_id: {user_id}")
                 
-                # Try to get user name from users table if it exists
+                # Try to get user from Supabase auth admin API
                 if supabase:
-                    print("DEBUG: Attempting to query users table...")
-                    user_response = supabase.table('users').select('name, email').eq('id', user_id).execute()
-                    print(f"DEBUG: Users table response: {user_response}")
-                    
-                    if user_response.data and len(user_response.data) > 0:
-                        user_data = user_response.data[0]
-                        student_name = user_data.get('name') or user_data.get('email', 'Student')
-                        print(f"DEBUG: Found user data: {user_data}, using name: {student_name}")
-                    else:
-                        print("DEBUG: No user data found in users table")
-                        # Try to get name from Supabase auth users if accessible
+                    try:
+                        print("DEBUG: Attempting to get user from Supabase auth...")
+                        auth_response = supabase.auth.admin.get_user_by_id(user_id)
+                        print(f"DEBUG: Auth response: {auth_response}")
+                        
+                        if auth_response and hasattr(auth_response, 'user') and auth_response.user:
+                            user = auth_response.user
+                            print(f"DEBUG: Got user object: {user}")
+                            
+                            # Try to get display name or full name from user metadata
+                            user_metadata = getattr(user, 'user_metadata', {})
+                            raw_user_metadata = getattr(user, 'raw_user_meta_data', {})
+                            
+                            print(f"DEBUG: User metadata: {user_metadata}")
+                            print(f"DEBUG: Raw user metadata: {raw_user_metadata}")
+                            
+                            # Check various possible name fields
+                            possible_names = [
+                                user_metadata.get('display_name'),
+                                user_metadata.get('full_name'),
+                                raw_user_metadata.get('display_name'),
+                                raw_user_metadata.get('full_name'),
+                                getattr(user, 'email', '').split('@')[0]  # Fallback to email username
+                            ]
+                            
+                            for name_option in possible_names:
+                                if name_option and name_option.strip():
+                                    student_name = name_option.strip()
+                                    print(f"DEBUG: Using name: {student_name}")
+                                    break
+                            else:
+                                # Final fallback to email or user ID
+                                student_name = getattr(user, 'email', f'User {user_id[:8]}')
+                                print(f"DEBUG: Using fallback name: {student_name}")
+                                
+                    except Exception as auth_e:
+                        print(f"DEBUG: Could not get user from auth: {auth_e}")
+                        import traceback
+                        traceback.print_exc()
+                        
+                        # Try to get user name from users table as fallback
                         try:
-                            auth_response = supabase.auth.admin.get_user_by_id(user_id)
-                            if auth_response and hasattr(auth_response, 'user') and auth_response.user:
-                                student_name = auth_response.user.email or f'User {user_id[:8]}'
-                                print(f"DEBUG: Got name from auth: {student_name}")
-                        except Exception as auth_e:
-                            print(f"DEBUG: Could not get user from auth: {auth_e}")
-                            # Final fallback: use partial user ID
+                            print("DEBUG: Fallback - attempting to query users table...")
+                            user_response = supabase.table('users').select('name, email').eq('id', user_id).execute()
+                            print(f"DEBUG: Users table response: {user_response}")
+                            
+                            if user_response.data and len(user_response.data) > 0:
+                                user_data = user_response.data[0]
+                                student_name = user_data.get('name') or user_data.get('email', f'User {user_id[:8]}')
+                                print(f"DEBUG: Found user data in table: {user_data}, using name: {student_name}")
+                            else:
+                                student_name = f'User {user_id[:8]}'
+                                print(f"DEBUG: No user data found, using: {student_name}")
+                        except Exception as table_e:
+                            print(f"DEBUG: Could not query users table: {table_e}")
                             student_name = f'User {user_id[:8]}'
                             
             except Exception as e:
