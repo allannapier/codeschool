@@ -40,13 +40,18 @@ else:
 
 # Optional: Add user context to API calls (requires Supabase JWT verification)
 def get_user_from_token():
-    """Extract user info from Supabase JWT token (optional)"""
+    """Extract user info from Supabase JWT token"""
     auth_header = request.headers.get('Authorization')
     if not auth_header or not auth_header.startswith('Bearer '):
         return None
     
     try:
         token = auth_header.split(' ')[1]
+        
+        # Skip if it's a placeholder token
+        if token == 'placeholder-token':
+            return None
+            
         # In production, you'd verify this JWT with Supabase
         # For now, we'll just decode without verification for user context
         decoded = jwt.decode(token, options={"verify_signature": False})
@@ -798,8 +803,16 @@ def get_tutorial_progress():
     """Get user's tutorial progress"""
     try:
         # Get user ID from token
-        user_id = get_user_from_token() or get_user_from_session()
+        user_id_from_token = get_user_from_token()
+        user_id_from_session = get_user_from_session()
+        user_id = user_id_from_token or user_id_from_session
+        
+        print(f"DEBUG: get_tutorial_progress - user_id_from_token: {user_id_from_token}")
+        print(f"DEBUG: get_tutorial_progress - user_id_from_session: {user_id_from_session}")
+        print(f"DEBUG: get_tutorial_progress - final user_id: {user_id}")
+        
         if not user_id:
+            print("DEBUG: No user ID found, returning empty progress")
             return jsonify({
                 'success': True,
                 'progress': {}  # Return empty if not logged in
@@ -807,12 +820,16 @@ def get_tutorial_progress():
         
         # Load user progress from database
         progress = load_user_progress(user_id)
+        print(f"DEBUG: get_tutorial_progress - loaded progress: {progress}")
         
         return jsonify({
             'success': True,
             'progress': progress
         })
     except Exception as e:
+        print(f"ERROR: get_tutorial_progress failed: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({
             'success': False,
             'error': str(e)
@@ -1279,15 +1296,19 @@ def get_sample_test_questions(course_id, chapter_id):
 
 def get_user_from_session():
     """Get user ID from session (fallback for non-Supabase auth)"""
-    # For development, we can use a session-based approach
-    # In production, this should integrate with Supabase auth
+    # This should only be used when there's no proper auth token
+    # Return None to indicate no authenticated user
+    # In development, you could still generate a session-based ID, but it should be per-browser session
     
-    # Generate a persistent demo user ID based on session
-    if 'temp_user_id' not in session:
-        import uuid
-        session['temp_user_id'] = str(uuid.uuid4())
+    # For now, return None to force proper authentication
+    # If you want to test without auth, uncomment the lines below:
     
-    return session['temp_user_id']
+    # if 'temp_user_id' not in session:
+    #     import uuid
+    #     session['temp_user_id'] = str(uuid.uuid4())
+    # return session['temp_user_id']
+    
+    return None
 
 def save_user_progress(user_id, course_id, chapter_id, test_score=None, practical_passed=None):
     """Save user progress to Supabase"""

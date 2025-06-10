@@ -215,12 +215,29 @@ async function loadUserProgress() {
     }
 }
 
-// Get auth token (this would need to be implemented based on your auth system)
+// Get auth token from Supabase session
 async function getAuthToken() {
-    // This is a placeholder - implement based on your Supabase auth system
-    if (window.authSystem && window.authSystem.getCurrentUser()) {
-        // Return Supabase session token
-        return 'placeholder-token';
+    try {
+        if (window.supabase && window.authSystem && window.authSystem.getCurrentUser()) {
+            // Get the current session from Supabase
+            let session = null;
+            
+            // Handle both v1 and v2 Supabase API
+            if (window.supabase.auth.getSession) {
+                // v2 API
+                const { data: { session: sessionData } } = await window.supabase.auth.getSession();
+                session = sessionData;
+            } else if (window.supabase.auth.session) {
+                // v1 API
+                session = window.supabase.auth.session();
+            }
+            
+            if (session && session.access_token) {
+                return session.access_token;
+            }
+        }
+    } catch (error) {
+        console.warn('Could not get auth token:', error);
     }
     return null;
 }
