@@ -31,10 +31,7 @@ async function initChapter() {
     // This ensures tests start fresh each time
     clearSessionStorage();
     
-    // Load user progress for this chapter to update UI
-    if (window.authSystem && window.authSystem.isLoggedIn()) {
-        loadUserProgressForChapter();
-    }
+    // Note: User progress will be loaded after auth system is initialized
 }
 
 // Set up hamburger menu functionality
@@ -940,6 +937,15 @@ function createConfettiEffect() {
 // Get auth token from Supabase session
 async function getAuthToken() {
     try {
+        console.log('DEBUG: getAuthToken called');
+        console.log('DEBUG: window.supabase available:', !!window.supabase);
+        console.log('DEBUG: window.authSystem available:', !!window.authSystem);
+        
+        if (window.authSystem) {
+            const currentUser = window.authSystem.getCurrentUser();
+            console.log('DEBUG: current user:', currentUser);
+        }
+        
         if (window.supabase && window.authSystem && window.authSystem.getCurrentUser()) {
             // Get the current session from Supabase
             let session = null;
@@ -949,18 +955,26 @@ async function getAuthToken() {
                 // v2 API
                 const { data: { session: sessionData } } = await window.supabase.auth.getSession();
                 session = sessionData;
+                console.log('DEBUG: v2 session:', session);
             } else if (window.supabase.auth.session) {
                 // v1 API
                 session = window.supabase.auth.session();
+                console.log('DEBUG: v1 session:', session);
             }
             
             if (session && session.access_token) {
+                console.log('DEBUG: returning access token:', session.access_token.substring(0, 20) + '...');
                 return session.access_token;
+            } else {
+                console.log('DEBUG: no valid session or access token');
             }
+        } else {
+            console.log('DEBUG: missing supabase or auth system or user not logged in');
         }
     } catch (error) {
         console.warn('Could not get auth token:', error);
     }
+    console.log('DEBUG: returning null token');
     return null;
 }
 
@@ -985,7 +999,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Initialize auth system
     const waitForSupabase = () => {
         return new Promise((resolve) => {
-            if (window.supabase && window.TUTORIAL_DATA?.supabaseConfig?.url) {
+            if (window.supabase && (window.SUPABASE_CONFIG?.url || window.TUTORIAL_DATA?.supabaseConfig?.url)) {
                 resolve();
             } else {
                 window.addEventListener('supabaseReady', () => {
@@ -999,13 +1013,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
     
     await waitForSupabase();
-    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Give more time for auth system to initialize
+    await new Promise(resolve => setTimeout(resolve, 1000));
     
     if (window.authSystem && window.authSystem.initAuth) {
         try {
             await window.authSystem.initAuth();
+            console.log('DEBUG: Auth system initialized successfully');
+            
+            // Wait a bit more for the auth state to settle
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Load user progress after auth is ready
+            if (window.authSystem.isLoggedIn()) {
+                console.log('DEBUG: User is logged in, loading progress for chapter');
+                await loadUserProgressForChapter();
+            } else {
+                console.log('DEBUG: User is not logged in');
+            }
         } catch (error) {
-            // Silent fallback
+            console.warn('Auth system initialization failed:', error);
         }
+    } else {
+        console.warn('Auth system not available');
     }
 });

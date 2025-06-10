@@ -278,6 +278,12 @@
                 anonKey: '{{ supabase_anon_key }}'
             }
         };
+        
+        // Also set global Supabase config for auth system
+        window.SUPABASE_CONFIG = {
+            url: '{{ supabase_url }}',
+            anonKey: '{{ supabase_anon_key }}'
+        };
     </script>
     
     <script src="https://unpkg.com/monaco-editor@0.45.0/min/vs/loader.js"></script>
