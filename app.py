@@ -1445,17 +1445,35 @@ def generate_certificate_data(course_id, course_data, user_id=None):
         student_name = 'Student'  # Default fallback
         if user_id:
             try:
+                print(f"DEBUG: Attempting to get user name for user_id: {user_id}")
+                
                 # Try to get user name from users table if it exists
                 if supabase:
+                    print("DEBUG: Attempting to query users table...")
                     user_response = supabase.table('users').select('name, email').eq('id', user_id).execute()
+                    print(f"DEBUG: Users table response: {user_response}")
+                    
                     if user_response.data and len(user_response.data) > 0:
                         user_data = user_response.data[0]
                         student_name = user_data.get('name') or user_data.get('email', 'Student')
+                        print(f"DEBUG: Found user data: {user_data}, using name: {student_name}")
                     else:
-                        # Fallback: use email from session or generate a name
-                        student_name = f'User {user_id[:8]}'
+                        print("DEBUG: No user data found in users table")
+                        # Try to get name from Supabase auth users if accessible
+                        try:
+                            auth_response = supabase.auth.admin.get_user_by_id(user_id)
+                            if auth_response and hasattr(auth_response, 'user') and auth_response.user:
+                                student_name = auth_response.user.email or f'User {user_id[:8]}'
+                                print(f"DEBUG: Got name from auth: {student_name}")
+                        except Exception as auth_e:
+                            print(f"DEBUG: Could not get user from auth: {auth_e}")
+                            # Final fallback: use partial user ID
+                            student_name = f'User {user_id[:8]}'
+                            
             except Exception as e:
                 print(f"DEBUG: Could not load user name: {e}")
+                import traceback
+                traceback.print_exc()
                 student_name = 'Student'
         
         # Get course completion data
