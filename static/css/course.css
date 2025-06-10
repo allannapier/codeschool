@@ -1,0 +1,371 @@
+/* Basic body and container styling for the course page */
+body.course-page {
+    font-family: 'Arial', sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+.course-container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    border-radius: 8px;
+}
+
+/* Course Header */
+.course-header {
+    padding-bottom: 20px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.course-header h1 {
+    color: #333;
+    margin-top: 0;
+}
+
+.course-header .course-subtitle {
+    color: #555;
+    font-size: 1.1em;
+}
+
+.course-meta-info {
+    display: flex;
+    gap: 20px;
+    margin-top: 10px;
+    font-size: 0.9em;
+    color: #777;
+}
+
+.course-meta-info span {
+    display: flex;
+    align-items: center;
+}
+
+.course-meta-info span svg {
+    margin-right: 5px;
+}
+
+/* Layout for sidebar and content */
+.course-layout {
+    display: flex;
+    gap: 20px;
+}
+
+/* Chapter Navigation / Sidebar */
+.course-sidebar {
+    width: 25%;
+    min-width: 200px;
+    background-color: #f9f9f9;
+    padding: 15px;
+    border-radius: 5px;
+    height: fit-content;
+}
+
+.course-sidebar h3 {
+    margin-top: 0;
+    color: #444;
+    font-size: 1.2em;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+.chapter-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.chapter-list li a {
+    display: block;
+    padding: 10px;
+    text-decoration: none;
+    color: #007bff;
+    border-radius: 4px;
+    margin-bottom: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.chapter-list li a:hover,
+.chapter-list li a.active {
+    background-color: #007bff;
+    color: #fff;
+}
+
+.chapter-list li a.completed {
+    color: #28a745; /* Green for completed */
+    /* text-decoration: line-through; */
+}
+
+.chapter-list li a.completed:before {
+    content: '✅ ';
+    margin-right: 5px;
+}
+
+
+/* Main Content Area */
+.course-content-area {
+    flex-grow: 1;
+    padding: 20px;
+    background-color: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 5px;
+}
+
+.chapter-title {
+    color: #333;
+    margin-top: 0;
+    margin-bottom: 20px;
+}
+
+.chapter-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 5px;
+    margin: 10px 0;
+}
+
+/* Code Blocks */
+pre {
+    background-color: #2d2d2d; /* Dark background for code blocks */
+    color: #f8f8f2; /* Light text color */
+    padding: 15px;
+    border-radius: 5px;
+    overflow-x: auto; /* Allow horizontal scrolling for long lines */
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.9em;
+    line-height: 1.4;
+}
+
+code {
+    font-family: 'Courier New', Courier, monospace;
+    background-color: #eef; /* Light background for inline code */
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-size: 0.9em;
+}
+
+pre code {
+    background-color: transparent; /* Reset for code inside pre */
+    padding: 0;
+}
+
+/* Navigation Buttons (Next/Previous Chapter) */
+.chapter-navigation {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+.btn-nav {
+    padding: 10px 20px;
+    text-decoration: none;
+    background-color: #007bff;
+    color: white;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-nav:hover {
+    background-color: #0056b3;
+}
+
+.btn-nav.disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+/* Completion Status */
+.completion-status {
+    margin-top: 20px;
+    padding: 10px;
+    background-color: #e6ffed;
+    border: 1px solid #5cb85c;
+    color: #3c763d;
+    border-radius: 5px;
+    text-align: center;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .course-layout {
+        flex-direction: column;
+    }
+
+    .course-sidebar {
+        width: 100%;
+        margin-bottom: 20px;
+    }
+}
+
+/* Styles for interactive elements like quizzes or exercises (placeholders) */
+.interactive-quiz, .coding-exercise {
+    margin-top: 20px;
+    padding: 15px;
+    border: 1px dashed #ccc;
+    border-radius: 5px;
+}
+
+.interactive-quiz h4, .coding-exercise h4 {
+    margin-top: 0;
+}
+
+/* Utility Classes */
+.text-center {
+    text-align: center;
+}
+
+.mt-1 { margin-top: 0.5rem; }
+.mt-2 { margin-top: 1rem; }
+.mb-1 { margin-bottom: 0.5rem; }
+.mb-2 { margin-bottom: 1rem; }
+
+/* Loading and Error States */
+.loading-spinner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100px;
+    font-size: 1.2em;
+    color: #555;
+}
+
+.error-message {
+    color: #d9534f;
+    background-color: #f2dede;
+    border: 1px solid #ebccd1;
+    padding: 10px;
+    border-radius: 5px;
+    text-align: center;
+}
+
+/* Ensure course-specific styles don't conflict with main style.css */
+/* It's good practice to scope them if possible or use more specific selectors */
+/* For example, if #course-page-container is the main wrapper in course.html: */
+/* #course-page-container .course-header h1 { ... } */
+
+
+/* Styles for templates/course_overview.html */
+
+/* Ensure the main container for course overview doesn't cause overflow */
+.course-main .course-container {
+    padding-left: 15px; /* Add some padding for mobile */
+    padding-right: 15px;
+}
+
+/* Course header content adjustments */
+.course-main .course-header-content .course-title {
+    word-wrap: break-word; /* Allow long titles to wrap */
+    overflow-wrap: break-word;
+    font-size: 2rem; /* Adjust as needed */
+}
+
+.course-main .course-header-content .course-subtitle {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    font-size: 1.1rem; /* Adjust as needed */
+}
+
+.course-main .course-meta {
+    display: flex;
+    flex-wrap: wrap; /* Allow meta items to wrap on smaller screens */
+    gap: 10px; /* Space between meta items */
+}
+
+.course-main .course-meta-item {
+    font-size: 0.9rem; /* Adjust as needed */
+}
+
+/* Chapters section adjustments */
+.course-main .chapters-section h2 {
+    font-size: 1.5rem; /* Adjust as needed */
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.course-main .chapter-card {
+    display: flex;
+    flex-direction: column; /* Stack elements vertically on small screens by default */
+    border: 1px solid #e2e8f0; /* From style.css --border-color */
+    border-radius: 8px; /* Consistent rounded corners */
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background-color: #ffffff; /* From style.css --surface-color */
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); /* From style.css --shadow-sm */
+}
+
+.course-main .chapter-card .chapter-info .chapter-title {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    font-size: 1.2rem; /* Adjust as needed */
+}
+
+.course-main .chapter-card .chapter-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px; /* Smaller gap for chapter meta items */
+    font-size: 0.85rem;
+}
+
+.course-main .chapter-card .chapter-objectives {
+    padding-left: 20px; /* Indent objectives */
+    font-size: 0.9rem;
+    color: #64748b; /* From style.css --text-secondary */
+}
+
+.course-main .chapter-card .chapter-objectives li {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.course-main .chapter-card .chapter-actions .btn {
+    width: 100%; /* Make button full width within its container */
+    margin-top: 1rem;
+}
+
+/* Responsive adjustments for chapter cards on larger screens */
+@media (min-width: 640px) { /* sm breakpoint or similar */
+    .course-main .chapter-card {
+        flex-direction: row; /* Align items horizontally */
+        gap: 1rem;
+    }
+
+    .course-main .chapter-card .chapter-number {
+        font-size: 1.5rem;
+        color: #94a3b8; /* --text-muted */
+        align-self: flex-start;
+    }
+
+    .course-main .chapter-card .chapter-info {
+        flex-grow: 1;
+    }
+
+    .course-main .chapter-card .chapter-actions {
+        flex-shrink: 0;
+        align-self: center;
+    }
+
+    .course-main .chapter-card .chapter-actions .btn {
+        width: auto; /* Auto width for button on larger screens */
+        margin-top: 0;
+    }
+}
+
+/* Adjustments for the empty course state */
+.course-main .empty-course .course-description p,
+.course-main .empty-course .course-prerequisites p {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+```

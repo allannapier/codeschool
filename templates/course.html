@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="course-page-title">Course Title - Codebotiks</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/course.css') }}">
+    <script src="https://js.sentry-cdn.com/4b03ab7aee3d02db5ea9a72f16414e65.min.js" crossorigin="anonymous"></script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5628713824897873"
+            crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/umd/supabase.js"></script>
+    <script>
+        // Check if Supabase v1 loaded (it has a different API)
+        setTimeout(() => {
+            if (window.supabase && window.supabase.createClient) {
+                window.dispatchEvent(new CustomEvent('supabaseReady'));
+            } else {
+                // Try loading v2 as ES module
+                const script = document.createElement('script');
+                script.type = 'module';
+                script.innerHTML = `
+                    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+                    window.supabase = { createClient };
+                    window.dispatchEvent(new CustomEvent('supabaseReady'));
+                `;
+                script.onerror = () => {
+                    // Dispatch ready anyway so app doesn't hang
+                    window.dispatchEvent(new CustomEvent('supabaseReady'));
+                };
+                document.head.appendChild(script);
+            }
+        }, 300);
+    </script>
+</head>
+<body class="course-page">
+    <header class="main-header">
+        <div class="header-content">
+            <div class="header-left">
+                <div class="logo">
+                    <h1>Code<span class="logo-accent">botiks</span></h1>
+                    <span class="beta-tag">BETA</span>
+                </div>
+                <div class="tagline">
+                    <span>AI-Powered Code Learning Platform</span>
+                </div>
+            </div>
+            <div class="user-section">
+                <div class="header-actions">
+                    <span id="user-email" class="user-email" style="display: none;"></span>
+                    <button id="demo-btn" class="btn btn-outline" title="Watch a quick demo of how Codebotiks works">🎥 Demo</button>
+                    <button id="auth-toggle-btn" class="btn btn-outline" title="Login to track your tutorial progress and save your achievements">Login</button>
+                    <button id="menu-toggle" class="menu-toggle" title="Open navigation menu">
+                        <span class="hamburger-line"></span>
+                        <span class="hamburger-line"></span>
+                        <span class="hamburger-line"></span>
+                    </button>
+                </div>
+
+                <div id="nav-menu" class="nav-menu">
+                    <div class="nav-content">
+                        <div class="nav-section">
+                            <h3>Navigation</h3>
+                            <a href="/" class="nav-link" title="Go to the main coding platform">🏠 Home</a>
+                            <a href="/tutorials" class="nav-link" title="Back to tutorials list">📚 Tutorials</a>
+                            <a href="/blog" class="nav-link" title="Read coding tips, tutorials, and updates">📝 Blog</a>
+                        </div>
+
+                        <div class="nav-section">
+                            <h3>Progress</h3>
+                            <button id="progress-btn" class="menu-btn" title="View your completed tutorials and track your learning progress">📊 View Progress</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="course-container" id="course-page-container">
+        <div class="course-header">
+            <h1 id="course-title-placeholder">Loading Course...</h1>
+            <p id="course-subtitle-placeholder" class="course-subtitle">Please wait while we fetch the course details.</p>
+            <div class="course-meta-info" id="course-meta-placeholder">
+                <!-- Meta info like difficulty, duration will be injected here by JS -->
+            </div>
+        </div>
+
+        <div class="course-layout">
+            <aside class="course-sidebar">
+                <h3>Chapters</h3>
+                <ul class="chapter-list" id="chapter-list-placeholder">
+                    <!-- Chapter links will be injected here by JS -->
+                    <li class="loading-spinner">Loading chapters...</li>
+                </ul>
+            </aside>
+
+            <section class="course-content-area">
+                <h2 id="chapter-title-placeholder">Select a Chapter</h2>
+                <div id="chapter-content-placeholder" class="chapter-content">
+                    <p>Please select a chapter from the list to view its content.</p>
+                    <!-- YouTube video embed placeholder -->
+                    <div id="youtube-embed-placeholder" style="display: none; margin-bottom: 20px;">
+                        <iframe width="100%" height="450" src="" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                    </div>
+                    <!-- Dynamic content will be loaded here -->
+                </div>
+
+                <div class="chapter-navigation">
+                    <button id="prev-chapter-btn" class="btn-nav" disabled>Previous Chapter</button>
+                    <button id="next-chapter-btn" class="btn-nav" disabled>Next Chapter</button>
+                </div>
+                <div id="completion-section" style="margin-top: 20px;">
+                     <!-- Mark as complete button will be injected here -->
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="main-footer">
+        <div class="footer-content">
+            <div class="footer-links">
+                <button id="disclaimer-btn" class="footer-link" title="Read important information about code usage and AI training">Disclaimer</button>
+                <span class="footer-separator">|</span>
+                <a href="/" class="footer-link" title="Go back to the main coding platform">Home</a>
+                <span class="footer-separator">|</span>
+                <a href="/blog" class="footer-link" title="Read coding tips, tutorials, and updates">Blog</a>
+                <span class="footer-separator">|</span>
+                <button id="contact-btn" class="footer-link" title="Send us feedback, questions, or bug reports">Contact Us</button>
+            </div>
+            <div class="footer-text">
+                <p>&copy; 2025 Codebotiks. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modals (Copied from tutorials.html for consistency) -->
+    <!-- Disclaimer Modal -->
+    <div id="disclaimer-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Disclaimer</h2>
+                <button class="close-btn" id="close-disclaimer-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="disclaimer-content">
+                    <h3>Website Disclaimer</h3>
+                    <p><strong>Educational Purpose:</strong> This website is provided for educational purposes only. The content, tools, and services are designed to help users learn programming concepts and improve their coding skills.</p>
+                    <h3>Code Usage and AI Training</h3>
+                    <p><strong>Important Notice:</strong> Any code submitted, analyzed, or processed through this website may be used by OpenAI for training their AI models. By using our services, you consent to this usage. This arrangement allows us to receive free API credits from OpenAI, which helps us keep our educational platform free for all users.</p>
+                    <h3>No Warranty</h3><p>The information and services provided on this website are on an "as is" basis. We make no warranties, expressed or implied, and hereby disclaim all other warranties including implied warranties of merchantability, fitness for a particular purpose, or non-infringement.</p>
+                    <h3>Limitation of Liability</h3><p>In no event shall Codebotiks be liable for any damages arising from the use or inability to use this website or its services.</p>
+                    <h3>Privacy</h3><p>Please do not submit any personal, confidential, or proprietary information through our code analysis tools. Any code submitted should be considered public for learning purposes.</p>
+                    <p><em>By continuing to use this website, you acknowledge that you have read, understood, and agree to this disclaimer.</em></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Modal -->
+    <div id="contact-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Contact Us</h2>
+                <button class="close-btn" id="close-contact-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="contact-form">
+                    <div class="form-group"><label for="contact-name">Name:</label><input type="text" id="contact-name" name="name" required></div>
+                    <div class="form-group"><label for="contact-email">Email:</label><input type="email" id="contact-email" name="email" required></div>
+                    <div class="form-group"><label for="contact-subject">Subject:</label><input type="text" id="contact-subject" name="subject" required></div>
+                    <div class="form-group"><label for="contact-message">Message:</label><textarea id="contact-message" name="message" rows="5" required></textarea></div>
+                    <div class="form-actions"><button type="submit" class="btn primary" id="contact-submit">Send Message</button><button type="button" class="btn" id="contact-cancel">Cancel</button></div>
+                </form>
+                <div id="contact-result" class="contact-result"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auth Modal -->
+    <div id="auth-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header"><h2 id="auth-title">Login to Track Progress</h2><button class="close-btn" id="close-modal">&times;</button></div>
+            <div class="modal-body">
+                <form id="auth-form" method="POST">
+                    <div class="form-group" id="name-group" style="display: none;"><label for="name">Full Name:</label><input type="text" id="name" placeholder="Enter your full name"></div>
+                    <div class="form-group"><label for="email">Email:</label><input type="email" id="email" required></div>
+                    <div class="form-group"><label for="password">Password:</label><input type="password" id="password" required></div>
+                    <div class="form-actions"><button type="submit" class="btn primary" id="auth-submit">Login</button><button type="button" class="btn secondary" id="toggle-auth">Need an account? Sign up</button></div>
+                </form>
+                <div id="auth-error" class="error" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress Modal (from tutorials.js, might be useful globally) -->
+    <div id="progress-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header"><h2>Your Tutorial Progress</h2><button class="close-btn" id="close-progress-modal">&times;</button></div>
+            <div class="modal-body">
+                <div id="progress-stats" class="progress-stats">
+                    <div class="stat-item"><span class="stat-number" id="completed-count">0</span><span class="stat-label">Chapters Completed</span></div>
+                    <div class="stat-item"><span class="stat-number" id="total-count">0</span><span class="stat-label">Total Chapters</span></div>
+                </div>
+                <div id="progress-list" class="progress-list"><h3>Completed Chapters</h3><div id="completed-chapters"></div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Demo Modal -->
+    <div id="demo-modal" class="modal" style="display: none;">
+        <div class="modal-content demo-modal-content">
+            <div class="modal-header"><h2>🎥 Codebotiks Demo</h2><button class="close-btn" id="close-demo-modal" title="Close demo">&times;</button></div>
+            <div class="modal-body demo-modal-body">
+                <div class="demo-container">
+                    <div style="position: relative; box-sizing: content-box; max-height: 80vh; max-height: 80svh; width: 100%; aspect-ratio: 1.9416342412451362; padding: 40px 0 40px 0;">
+                        <iframe src="https://app.supademo.com/embed/cmbnxfpnn9yyisn1rxvs6pn78?embed_v=2" loading="lazy" title="Codebotiks Demo" allow="clipboard-write" frameborder="0" webkitallowfullscreen="true" mozallowfullscreen="true" allowfullscreen style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cookie Consent Banner and Modal (assuming these are global) -->
+    <div id="cookie-banner" class="cookie-banner" style="display: none;">
+        <div class="cookie-content">
+            <div class="cookie-text"><h4>🍪 We use cookies</h4><p>We use cookies to enhance your experience, provide analytics, and show relevant ads. By continuing to use our site, you consent to our use of cookies.</p></div>
+            <div class="cookie-actions"><button id="cookie-accept" class="btn primary">Accept All</button><button id="cookie-essential" class="btn secondary">Essential Only</button><button id="cookie-settings" class="btn">Settings</button></div>
+        </div>
+    </div>
+    <div id="cookie-settings-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header"><h2>🍪 Cookie Settings</h2><button class="close-btn" id="close-cookie-settings">&times;</button></div>
+            <div class="modal-body">
+                <div class="cookie-category"><div class="cookie-category-header"><h3>Essential Cookies</h3><span class="cookie-required">Required</span></div><p>These cookies are necessary for the website to function and cannot be disabled. They include authentication, security, and basic functionality.</p></div>
+                <div class="cookie-category"><div class="cookie-category-header"><h3>Analytics Cookies</h3><label class="cookie-toggle"><input type="checkbox" id="analytics-cookies" checked><span class="cookie-slider"></span></label></div><p>Help us understand how visitors interact with our website by collecting and reporting information anonymously via Sentry error tracking.</p></div>
+                <div class="cookie-category"><div class="cookie-category-header"><h3>Advertising Cookies</h3><label class="cookie-toggle"><input type="checkbox" id="advertising-cookies" checked><span class="cookie-slider"></span></label></div><p>Used to deliver relevant advertisements and track ad performance via Google AdSense.</p></div>
+                <div class="cookie-actions"><button id="save-cookie-preferences" class="btn primary">Save Preferences</button><button id="accept-all-cookies" class="btn secondary">Accept All</button></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Inject Supabase configuration (same as tutorials.html)
+        window.SUPABASE_CONFIG = {
+            url: '{{ supabase_url }}',
+            anonKey: '{{ supabase_anon_key }}'
+        };
+    </script>
+    <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/course.js') }}"></script> <!-- To be created -->
+    <script src="{{ url_for('static', filename='js/cookies.js') }}"></script>
+    <!-- Include tutorials.js for shared modal/menu functions if not refactored -->
+    <!-- <script src="{{ url_for('static', filename='js/tutorials.js') }}"></script> -->
+    <!-- It might be better to extract shared UI functions (modals, menu) into a common.js -->
+
+</body>
+</html>

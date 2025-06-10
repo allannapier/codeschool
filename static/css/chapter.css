@@ -1,0 +1,152 @@
+/* Styles for templates/chapter.html - Mobile Responsiveness & Overflow Prevention */
+
+/* General body class for chapter page specific overrides if needed */
+body.chapter-page-active {
+    /* Example: overflow-x: hidden; /* To aggressively prevent horizontal scroll on body */
+}
+
+/* Main container for the chapter view */
+.chapter-main .chapter-container {
+    /* No specific overflow rules here, handled by children or global styles */
+    /* Consider padding for mobile if not already globally applied */
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+/* Chapter Header */
+.chapter-content .chapter-header h1 {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    font-size: 1.8rem; /* Adjust for mobile, might be larger on desktop */
+    line-height: 1.3;
+}
+
+/* Breadcrumb - typically short, but good to be safe */
+.chapter-content .chapter-breadcrumb span {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+/* Chapter Meta - ensure wrapping if flexed */
+.chapter-content .chapter-meta {
+    display: flex;
+    flex-wrap: wrap; /* Allow items to wrap */
+    gap: 10px; /* Space between items */
+    font-size: 0.9rem;
+}
+
+.chapter-content .chapter-meta span {
+    word-wrap: break-word; /* For individual meta items if they become very long */
+    overflow-wrap: break-word;
+}
+
+/* Learning Objectives */
+.chapter-body .learning-objectives ul {
+    padding-left: 20px; /* Keep default indentation */
+}
+
+.chapter-body .learning-objectives ul li {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    margin-bottom: 0.5em;
+}
+
+/* Chapter Content Body - general text elements */
+.chapter-body .chapter-content-body p,
+.chapter-body .chapter-content-body h1, /* For headings within markdown content */
+.chapter-body .chapter-content-body h2,
+.chapter-body .chapter-content-body h3,
+.chapter-body .chapter-content-body h4,
+.chapter-body .chapter-content-body blockquote {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+/* Code blocks (pre) - crucial for preventing page overflow */
+.chapter-body .chapter-content-body pre {
+    white-space: pre-wrap;       /* Wrap lines that are too long */
+    word-wrap: break-word;       /* Break long words/strings if necessary */
+    overflow-x: auto;            /* Add scrollbar if content still overflows (e.g., very wide table in markdown) */
+    max-width: 100%;             /* Ensure pre doesn't expand beyond its container */
+    /* Existing styles from style.css or course.css for code blocks should provide theming */
+}
+
+/* Inline code - should generally wrap with surrounding text */
+.chapter-body .chapter-content-body code {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    /* Existing styles from style.css or course.css for code should provide theming */
+}
+
+/* Chapter Navigation Buttons */
+.chapter-navigation {
+    display: flex;
+    flex-direction: column; /* Stack buttons vertically on mobile */
+    gap: 10px; /* Space between buttons when stacked */
+}
+
+.chapter-navigation .nav-btn {
+    display: block; /* Make them block to take full width */
+    text-decoration: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    text-align: center;
+    transition: background-color 0.3s ease;
+    word-wrap: break-word; /* For long chapter titles in button text */
+    overflow-wrap: break-word;
+    line-height: 1.4; /* Improve readability for wrapped text */
+}
+
+.chapter-navigation .nav-btn.prev-btn {
+    background-color: #f0f0f0; /* Example style */
+    color: #333;
+}
+
+.chapter-navigation .nav-btn.next-btn {
+    background-color: #007bff; /* Example style */
+    color: #fff;
+}
+
+.chapter-navigation .nav-btn:hover {
+    opacity: 0.8;
+}
+
+/* On larger screens, display nav buttons side-by-side */
+@media (min-width: 768px) {
+    .chapter-navigation {
+        flex-direction: row;
+        justify-content: space-between;
+    }
+
+    .chapter-navigation .nav-btn {
+        width: 48%; /* Adjust width to fit side-by-side with a gap */
+    }
+}
+
+/* Sidebar - ensure it's scrollable if content overflows on small height screens */
+.chapter-sidebar {
+    /* On mobile, the sidebar might be a top bar or collapsible.
+       Assuming it's visible and could have many chapters: */
+    max-height: 40vh; /* Example max height */
+    overflow-y: auto;
+}
+
+/* On larger screens, sidebar can take more height */
+@media (min-width: 768px) {
+    .chapter-sidebar {
+        max-height: calc(100vh - 100px); /* Adjust based on header/footer height */
+    }
+}
+
+/* Ensure images/videos within content are responsive */
+.chapter-content-body img,
+.chapter-content-body video,
+.chapter-content-body iframe {
+    max-width: 100%;
+    height: auto;
+    border-radius: 5px; /* Consistent styling */
+}
+
+```
+
+The analysis is done, and I've drafted the initial CSS for `static/css/chapter.css`. The next step will be to apply these styles, which involves creating the file and then linking it in `chapter.html`. I'll proceed with creating the CSS file now.
