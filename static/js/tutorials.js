@@ -223,49 +223,11 @@ async function getAuthToken() {
             return null;
         }
         
-        const currentUser = window.authSystem.getCurrentUser();
-        
-        // First, try to get the session from the current user object if it has an access_token
-        if (currentUser && currentUser.access_token) {
-            return currentUser.access_token;
-        }
-        
-        // If no direct access token, try to get session from Supabase client
-        let supabaseClient = window.supabase;
-        
-        if (supabaseClient && supabaseClient.auth) {
-            let session = null;
-            
-            // Handle both v1 and v2 Supabase API
-            if (supabaseClient.auth.getSession) {
-                // v2 API
-                try {
-                    const { data: { session: sessionData } } = await supabaseClient.auth.getSession();
-                    session = sessionData;
-                } catch (e) {
-                    console.warn('v2 getSession failed:', e);
-                }
-            } else if (supabaseClient.auth.session) {
-                // v1 API - session() is a synchronous method
-                try {
-                    session = supabaseClient.auth.session();
-                } catch (e) {
-                    console.warn('v1 session() failed:', e);
-                }
-            } else if (supabaseClient.auth.user) {
-                // v1 API alternative - check current user and construct session
-                try {
-                    const user = supabaseClient.auth.user();
-                    if (user) {
-                        session = { user: user, access_token: user.access_token };
-                    }
-                } catch (e) {
-                    console.warn('v1 user() failed:', e);
-                }
-            }
-            
-            if (session && session.access_token) {
-                return session.access_token;
+        // Use the auth system's getAccessToken method
+        if (window.authSystem.getAccessToken) {
+            const token = await window.authSystem.getAccessToken();
+            if (token) {
+                return token;
             }
         }
         

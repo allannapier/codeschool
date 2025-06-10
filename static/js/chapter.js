@@ -948,66 +948,17 @@ async function getAuthToken() {
         const currentUser = window.authSystem.getCurrentUser();
         console.log('DEBUG: current user:', currentUser);
         
-        // Get the Supabase client from the auth system's scope
-        // We need to access the same supabase client that auth.js is using
-        
-        // First, try to get the session from the current user object if it has an access_token
-        if (currentUser && currentUser.access_token) {
-            console.log('DEBUG: Found access_token in current user object');
-            return currentUser.access_token;
-        }
-        
-        // If no direct access token, try to get session from various Supabase client locations
-        let supabaseClient = null;
-        
-        // Try to get the initialized supabase client
-        if (window.supabase && window.supabase.auth) {
-            supabaseClient = window.supabase;
-        }
-        
-        if (supabaseClient) {
-            let session = null;
-            
-            // Handle both v1 and v2 Supabase API
-            if (supabaseClient.auth.getSession) {
-                // v2 API
-                try {
-                    const { data: { session: sessionData } } = await supabaseClient.auth.getSession();
-                    session = sessionData;
-                    console.log('DEBUG: v2 session:', session);
-                } catch (e) {
-                    console.log('DEBUG: v2 getSession failed:', e);
-                }
-            } else if (supabaseClient.auth.session) {
-                // v1 API - session() is a synchronous method
-                try {
-                    session = supabaseClient.auth.session();
-                    console.log('DEBUG: v1 session:', session);
-                } catch (e) {
-                    console.log('DEBUG: v1 session() failed:', e);
-                }
-            } else if (supabaseClient.auth.user) {
-                // v1 API alternative - check current user and construct session
-                try {
-                    const user = supabaseClient.auth.user();
-                    if (user) {
-                        // In v1, we might need to get the session differently
-                        session = { user: user, access_token: user.access_token };
-                        console.log('DEBUG: v1 user-based session:', session);
-                    }
-                } catch (e) {
-                    console.log('DEBUG: v1 user() failed:', e);
-                }
-            }
-            
-            if (session && session.access_token) {
-                console.log('DEBUG: returning access token:', session.access_token.substring(0, 20) + '...');
-                return session.access_token;
+        // Use the auth system's getAccessToken method
+        if (window.authSystem.getAccessToken) {
+            const token = await window.authSystem.getAccessToken();
+            if (token) {
+                console.log('DEBUG: Got token from auth system:', token.substring(0, 20) + '...');
+                return token;
             } else {
-                console.log('DEBUG: no valid session or access token in session');
+                console.log('DEBUG: Auth system returned null token');
             }
         } else {
-            console.log('DEBUG: no supabase client available');
+            console.log('DEBUG: Auth system does not have getAccessToken method');
         }
         
     } catch (error) {
