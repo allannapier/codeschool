@@ -958,6 +958,8 @@ def mark_chapter_complete():
         data = request.get_json()
         course_id = data.get('course_id')
         chapter_id = data.get('chapter_id')
+        test_score = data.get('test_score')
+        practical_passed = data.get('practical_passed')
         
         # Get user ID from token (implement proper auth)
         user_id = get_user_from_token() or get_user_from_session()
@@ -968,8 +970,8 @@ def mark_chapter_complete():
                 'error': 'User not authenticated'
             }), 401
         
-        # Save progress to database
-        success = save_user_progress(user_id, course_id, chapter_id)
+        # Save progress to database with test score and practical status
+        success = save_user_progress(user_id, course_id, chapter_id, test_score, practical_passed)
         
         if not success:
             return jsonify({
@@ -1556,6 +1558,24 @@ def generate_certificate_data(course_id, course_data, user_id=None):
         # Get course completion data
         completion_data = check_course_completion(course_id, user_id)
         
+        # Calculate average test score from user progress
+        average_score = None
+        if user_id:
+            try:
+                progress = load_user_progress(user_id)
+                course_progress = progress.get(str(course_id), {})
+                
+                test_scores = []
+                for chapter_id, chapter_progress in course_progress.items():
+                    test_score = chapter_progress.get('test_score')
+                    if test_score is not None:
+                        test_scores.append(test_score)
+                
+                if test_scores:
+                    average_score = round(sum(test_scores) / len(test_scores))
+            except Exception:
+                pass
+        
         # Generate certificate data
         certificate_data = {
             'student_name': student_name,
@@ -1566,8 +1586,8 @@ def generate_certificate_data(course_id, course_data, user_id=None):
             'chapters_completed': completion_data['completed_chapters'],
             'completion_date': datetime.now().strftime('%B %d, %Y'),
             'certificate_id': f"CB-{course_id}-{str(uuid.uuid4())[:8].upper()}",
-            'average_score': 85,  # In production, calculate from actual test scores
-            'back_url': f'/tutorials/course/{course_id}/chapter/1'
+            'average_score': average_score,  # Calculated from actual test scores
+            'back_url': f'/tutorials/course/{course_id}'
         }
         
         return certificate_data

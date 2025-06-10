@@ -753,6 +753,23 @@ async function autoCompleteChapter() {
     // In production, you might want to require login
     
     try {
+        // Get the test score from the last test results if available
+        let testScore = null;
+        const testResults = document.getElementById('test-results');
+        if (testResults && testResults.style.display !== 'none') {
+            const scoreElement = testResults.querySelector('.test-score');
+            if (scoreElement) {
+                const scoreText = scoreElement.textContent;
+                const scoreMatch = scoreText.match(/(\d+)%/);
+                if (scoreMatch) {
+                    testScore = parseInt(scoreMatch[1]);
+                }
+            }
+        }
+        
+        // Check if practical was passed
+        const practicalPassed = sessionStorage.getItem(`practical_passed_${chapterData.id}`) === 'true';
+        
         const response = await fetch('/api/tutorials/mark-complete', {
             method: 'POST',
             headers: {
@@ -761,7 +778,9 @@ async function autoCompleteChapter() {
             },
             body: JSON.stringify({
                 course_id: courseData.id,
-                chapter_id: chapterData.id
+                chapter_id: chapterData.id,
+                test_score: testScore,
+                practical_passed: practicalPassed
             })
         });
         
