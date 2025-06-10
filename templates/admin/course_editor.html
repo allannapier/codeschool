@@ -318,44 +318,24 @@
                             <button type="button" onclick="addTestQuestion()" class="btn secondary">+ Add Question</button>
                         </div>
                         
-                        <h4 style="margin-top: 2rem;">Practical Exercise</h4>
-                        <div class="form-group">
-                            <label class="toggle-switch">
-                                <input type="checkbox" id="has-practical" onchange="togglePracticalSection()">
-                                <span class="toggle-slider"></span>
-                                Enable practical exercise
-                            </label>
-                        </div>
-                        
-                        <div id="practical-section" class="practical-section" style="display: none;">
-                            <div class="form-group-with-ai">
-                                <div class="form-group">
-                                    <label for="practical-instructions">Instructions</label>
-                                    <textarea id="practical-instructions" 
-                                              placeholder="Describe what students should accomplish in this exercise"
-                                              rows="4"></textarea>
-                                </div>
-                                <button type="button" class="ai-generate-btn" onclick="generateAIContent('practical_instructions', document.getElementById('practical-instructions'))">
-                                    Generate
-                                </button>
+                        <div class="practical-exercises-section">
+                            <div class="section-header">
+                                <h4 style="margin-top: 2rem;">Practical Exercises</h4>
+                                <button type="button" onclick="addPracticalExercise()" class="btn secondary small" id="add-practical-btn" style="display: none;">+ Add Exercise</button>
                             </div>
+                            
                             <div class="form-group">
-                                <label for="practical-starter-code">Starter Code (optional)</label>
-                                <textarea id="practical-starter-code" 
-                                          placeholder="# Write your solution here&#10;def solve():&#10;    pass"
-                                          rows="6"
-                                          class="code-textarea"></textarea>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="has-practical" onchange="togglePracticalSection()">
+                                    <span class="toggle-slider"></span>
+                                    <span style="margin-left: 8px;">Enable practical exercises</span>
+                                </label>
                             </div>
-                            <div class="form-group-with-ai">
-                                <div class="form-group">
-                                    <label for="practical-evaluation-criteria">AI Evaluation Criteria</label>
-                                    <textarea id="practical-evaluation-criteria" 
-                                              placeholder="Describe what the AI should look for when evaluating submissions"
-                                              rows="3"></textarea>
+                            
+                            <div id="practical-section" class="practical-section" style="display: none;">
+                                <div id="practical-exercises-list" class="practical-exercises-list">
+                                    <!-- Practical exercises will be added here -->
                                 </div>
-                                <button type="button" class="ai-generate-btn" onclick="generateAIContent('practical_evaluation_criteria', document.getElementById('practical-evaluation-criteria'))">
-                                    Generate
-                                </button>
                             </div>
                         </div>
                     </div>
