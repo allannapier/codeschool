@@ -2063,6 +2063,15 @@ body {
     text-overflow: ellipsis;
 }
 
+/* Ensure links in course-actions behave like buttons */
+.course-actions a.btn {
+    margin: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+}
+
 /* Responsive adjustments for better mobile display */
 @media (max-width: 768px) {
     .course-actions {
