@@ -938,39 +938,78 @@ function createConfettiEffect() {
 async function getAuthToken() {
     try {
         console.log('DEBUG: getAuthToken called');
-        console.log('DEBUG: window.supabase available:', !!window.supabase);
-        console.log('DEBUG: window.authSystem available:', !!window.authSystem);
         
-        if (window.authSystem) {
-            const currentUser = window.authSystem.getCurrentUser();
-            console.log('DEBUG: current user:', currentUser);
+        // Check if auth system is available and user is logged in
+        if (!window.authSystem || !window.authSystem.getCurrentUser()) {
+            console.log('DEBUG: No auth system or user not logged in');
+            return null;
         }
         
-        if (window.supabase && window.authSystem && window.authSystem.getCurrentUser()) {
-            // Get the current session from Supabase
+        const currentUser = window.authSystem.getCurrentUser();
+        console.log('DEBUG: current user:', currentUser);
+        
+        // Get the Supabase client from the auth system's scope
+        // We need to access the same supabase client that auth.js is using
+        
+        // First, try to get the session from the current user object if it has an access_token
+        if (currentUser && currentUser.access_token) {
+            console.log('DEBUG: Found access_token in current user object');
+            return currentUser.access_token;
+        }
+        
+        // If no direct access token, try to get session from various Supabase client locations
+        let supabaseClient = null;
+        
+        // Try to get the initialized supabase client
+        if (window.supabase && window.supabase.auth) {
+            supabaseClient = window.supabase;
+        }
+        
+        if (supabaseClient) {
             let session = null;
             
             // Handle both v1 and v2 Supabase API
-            if (window.supabase.auth.getSession) {
+            if (supabaseClient.auth.getSession) {
                 // v2 API
-                const { data: { session: sessionData } } = await window.supabase.auth.getSession();
-                session = sessionData;
-                console.log('DEBUG: v2 session:', session);
-            } else if (window.supabase.auth.session) {
-                // v1 API
-                session = window.supabase.auth.session();
-                console.log('DEBUG: v1 session:', session);
+                try {
+                    const { data: { session: sessionData } } = await supabaseClient.auth.getSession();
+                    session = sessionData;
+                    console.log('DEBUG: v2 session:', session);
+                } catch (e) {
+                    console.log('DEBUG: v2 getSession failed:', e);
+                }
+            } else if (supabaseClient.auth.session) {
+                // v1 API - session() is a synchronous method
+                try {
+                    session = supabaseClient.auth.session();
+                    console.log('DEBUG: v1 session:', session);
+                } catch (e) {
+                    console.log('DEBUG: v1 session() failed:', e);
+                }
+            } else if (supabaseClient.auth.user) {
+                // v1 API alternative - check current user and construct session
+                try {
+                    const user = supabaseClient.auth.user();
+                    if (user) {
+                        // In v1, we might need to get the session differently
+                        session = { user: user, access_token: user.access_token };
+                        console.log('DEBUG: v1 user-based session:', session);
+                    }
+                } catch (e) {
+                    console.log('DEBUG: v1 user() failed:', e);
+                }
             }
             
             if (session && session.access_token) {
                 console.log('DEBUG: returning access token:', session.access_token.substring(0, 20) + '...');
                 return session.access_token;
             } else {
-                console.log('DEBUG: no valid session or access token');
+                console.log('DEBUG: no valid session or access token in session');
             }
         } else {
-            console.log('DEBUG: missing supabase or auth system or user not logged in');
+            console.log('DEBUG: no supabase client available');
         }
+        
     } catch (error) {
         console.warn('Could not get auth token:', error);
     }

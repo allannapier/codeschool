@@ -525,6 +525,38 @@ async function getUserProgress() {
     }
 }
 
+// Get current access token
+async function getAccessToken() {
+    if (!currentUser) return null;
+    
+    try {
+        let session = null;
+        
+        // Handle both v1 and v2 Supabase API
+        if (supabase && supabase.auth) {
+            if (supabase.auth.getSession) {
+                // v2 API
+                const { data: { session: sessionData } } = await supabase.auth.getSession();
+                session = sessionData;
+            } else if (supabase.auth.session) {
+                // v1 API - session() is a synchronous method
+                session = supabase.auth.session();
+            } else if (supabase.auth.user) {
+                // v1 API alternative - check current user
+                const user = supabase.auth.user();
+                if (user) {
+                    session = { user: user, access_token: user.access_token };
+                }
+            }
+        }
+        
+        return session && session.access_token ? session.access_token : null;
+    } catch (error) {
+        console.warn('Could not get access token:', error);
+        return null;
+    }
+}
+
 // Export functions for use in other files
 window.authSystem = {
     initAuth,
@@ -532,5 +564,6 @@ window.authSystem = {
     getUserProgress,
     getCurrentUser: () => currentUser,
     isLoggedIn: () => !!currentUser,
-    showProgressModal
+    showProgressModal,
+    getAccessToken
 };
