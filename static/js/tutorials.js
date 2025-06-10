@@ -159,7 +159,17 @@ async function loadCourses() {
             courses = data.courses;
             
             // Load user progress if logged in
+            console.log('DEBUG: Checking if user is logged in...');
+            console.log('DEBUG: authSystem exists:', !!window.authSystem);
+            console.log('DEBUG: authSystem.isLoggedIn exists:', !!(window.authSystem && window.authSystem.isLoggedIn));
+            
             if (window.authSystem && window.authSystem.isLoggedIn()) {
+                console.log('DEBUG: User is logged in, loading progress...');
+                await loadUserProgress();
+            } else {
+                console.log('DEBUG: User not logged in, skipping progress load');
+                // Let's try loading progress anyway to test the API
+                console.log('DEBUG: Testing progress API directly...');
                 await loadUserProgress();
             }
             
