@@ -1468,8 +1468,40 @@ def generate_certificate_data(course_id, course_data, user_id=None):
             try:
                 print(f"DEBUG: Attempting to get user name for user_id: {user_id}")
                 
-                # Try to get user from Supabase auth admin API
-                if supabase:
+                # First, try to get user info from the current request's auth token
+                auth_header = request.headers.get('Authorization')
+                if auth_header and auth_header.startswith('Bearer '):
+                    try:
+                        token = auth_header.split(' ')[1]
+                        if token != 'placeholder-token':
+                            # Decode JWT token to get user metadata
+                            import jwt
+                            decoded = jwt.decode(token, options={"verify_signature": False})
+                            print(f"DEBUG: Decoded JWT: {decoded}")
+                            
+                            # Check for name in JWT token
+                            jwt_names = [
+                                decoded.get('user_metadata', {}).get('display_name'),
+                                decoded.get('user_metadata', {}).get('full_name'),
+                                decoded.get('user_metadata', {}).get('name'),
+                                decoded.get('raw_user_meta_data', {}).get('display_name'),
+                                decoded.get('raw_user_meta_data', {}).get('full_name'),
+                                decoded.get('raw_user_meta_data', {}).get('name'),
+                                decoded.get('display_name'),
+                                decoded.get('full_name'),
+                                decoded.get('name')
+                            ]
+                            
+                            for name_option in jwt_names:
+                                if name_option and name_option.strip():
+                                    student_name = name_option.strip()
+                                    print(f"DEBUG: Found name in JWT: {student_name}")
+                                    break
+                    except Exception as jwt_e:
+                        print(f"DEBUG: Could not decode JWT: {jwt_e}")
+                
+                # If no name found in JWT, try Supabase auth admin API
+                if student_name == 'Student' and supabase:
                     try:
                         print("DEBUG: Attempting to get user from Supabase auth...")
                         auth_response = supabase.auth.admin.get_user_by_id(user_id)
@@ -1477,23 +1509,66 @@ def generate_certificate_data(course_id, course_data, user_id=None):
                         
                         if auth_response and hasattr(auth_response, 'user') and auth_response.user:
                             user = auth_response.user
-                            print(f"DEBUG: Got user object: {user}")
+                            print(f"DEBUG: Got user object type: {type(user)}")
+                            print(f"DEBUG: User object attributes: {dir(user) if hasattr(user, '__dict__') else 'No __dict__'}")
                             
-                            # Try to get display name or full name from user metadata
-                            user_metadata = getattr(user, 'user_metadata', {})
-                            raw_user_metadata = getattr(user, 'raw_user_meta_data', {})
+                            # Handle different ways the user object might be structured
+                            user_metadata = {}
+                            raw_user_metadata = {}
                             
-                            print(f"DEBUG: User metadata: {user_metadata}")
-                            print(f"DEBUG: Raw user metadata: {raw_user_metadata}")
+                            # Try different ways to access user metadata
+                            if hasattr(user, 'user_metadata'):
+                                user_metadata = user.user_metadata or {}
+                            elif hasattr(user, 'user_meta_data'):
+                                user_metadata = user.user_meta_data or {}
+                            elif isinstance(user, dict) and 'user_metadata' in user:
+                                user_metadata = user['user_metadata'] or {}
+                            elif isinstance(user, dict) and 'user_meta_data' in user:
+                                user_metadata = user['user_meta_data'] or {}
+                            
+                            if hasattr(user, 'raw_user_meta_data'):
+                                raw_user_metadata = user.raw_user_meta_data or {}
+                            elif isinstance(user, dict) and 'raw_user_meta_data' in user:
+                                raw_user_metadata = user['raw_user_meta_data'] or {}
+                            
+                            # If user is a dict, try to get metadata from it directly
+                            if isinstance(user, dict):
+                                print(f"DEBUG: User dict keys: {list(user.keys())}")
+                                # Sometimes metadata is stored directly in the user dict
+                                for key in ['full_name', 'display_name', 'name']:
+                                    if key in user and user[key]:
+                                        user_metadata[key] = user[key]
+                            
+                            print(f"DEBUG: Final user_metadata: {user_metadata}")
+                            print(f"DEBUG: Final raw_user_metadata: {raw_user_metadata}")
                             
                             # Check various possible name fields
                             possible_names = [
                                 user_metadata.get('display_name'),
                                 user_metadata.get('full_name'),
+                                user_metadata.get('name'),
                                 raw_user_metadata.get('display_name'),
                                 raw_user_metadata.get('full_name'),
-                                getattr(user, 'email', '').split('@')[0]  # Fallback to email username
+                                raw_user_metadata.get('name')
                             ]
+                            
+                            # If user is a dict, also check direct properties
+                            if isinstance(user, dict):
+                                possible_names.extend([
+                                    user.get('display_name'),
+                                    user.get('full_name'),
+                                    user.get('name')
+                                ])
+                            
+                            # Add email username as fallback
+                            email = None
+                            if hasattr(user, 'email'):
+                                email = user.email
+                            elif isinstance(user, dict) and 'email' in user:
+                                email = user['email']
+                            
+                            if email:
+                                possible_names.append(email.split('@')[0])
                             
                             for name_option in possible_names:
                                 if name_option and name_option.strip():
