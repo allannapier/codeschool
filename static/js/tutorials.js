@@ -182,15 +182,22 @@ async function loadCourses() {
 // Load user progress for tutorials
 async function loadUserProgress() {
     try {
+        console.log('DEBUG: Loading user progress...');
         const response = await fetch('/api/tutorials/progress', {
             headers: {
                 'Authorization': `Bearer ${await getAuthToken()}`
             }
         });
         
+        console.log('DEBUG: Progress API response status:', response.status);
+        
         if (response.ok) {
             const data = await response.json();
             userProgress = data.progress || {};
+            console.log('DEBUG: Loaded user progress:', userProgress);
+        } else {
+            console.log('DEBUG: Progress API failed:', response.status);
+            userProgress = {};
         }
     } catch (error) {
         console.warn('Could not load user progress:', error);
@@ -308,13 +315,23 @@ function createCourseCardHTML(course) {
 
 // Get course progress for a specific course
 function getCourseProgress(courseId) {
+    console.log(`DEBUG: getCourseProgress called for course ${courseId}`);
+    console.log(`DEBUG: userProgress:`, userProgress);
+    console.log(`DEBUG: courses:`, courses);
+    
     const progress = userProgress[courseId] || {};
     const course = courses.find(c => c.id === courseId);
     
-    return {
+    console.log(`DEBUG: progress for course ${courseId}:`, progress);
+    console.log(`DEBUG: course data:`, course);
+    
+    const result = {
         completed: Object.keys(progress).length,
         total: course ? course.chapter_count : 0
     };
+    
+    console.log(`DEBUG: calculated progress:`, result);
+    return result;
 }
 
 // Start a course (navigate to first chapter)
