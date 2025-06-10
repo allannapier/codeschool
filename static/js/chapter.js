@@ -807,11 +807,8 @@ async function autoCompleteChapter() {
             // Check if course is completed
             if (result.course_completed) {
                 showCourseCompletionModal(result.certificate_url);
-            } else {
-                if (window.showSuccess) {
-                    window.showSuccess('Chapter completed! Great job! 🎉');
-                }
             }
+            // Removed the redundant success message since there's already a congratulations modal
         } else {
             console.error('DEBUG: Chapter completion failed:', result.error);
         }

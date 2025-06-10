@@ -684,12 +684,33 @@ def course_overview(course_id):
         # Load all chapters for this course
         all_chapters = load_all_chapters(course_id)
         
-        # If course has chapters, redirect to the first one
+        # If course has chapters, redirect to the appropriate chapter based on progress
         if all_chapters and len(all_chapters) > 0:
-            # Sort chapters by chapter_number to ensure we get the first one
+            # Sort chapters by chapter_number
             sorted_chapters = sorted(all_chapters, key=lambda x: x.get('chapter_number', 1))
-            first_chapter = sorted_chapters[0]
-            return redirect(f'/tutorials/course/{course_id}/chapter/{first_chapter["id"]}')
+            
+            # Get user ID and check progress
+            user_id = get_user_from_token() or get_user_from_session()
+            if user_id:
+                # Get completed chapters for this user and course
+                completed_chapters = get_user_completed_chapters(user_id, course_id)
+                print(f"DEBUG: User {user_id} completed chapters: {completed_chapters}")
+                
+                # Find the first incomplete chapter
+                for chapter in sorted_chapters:
+                    if chapter['id'] not in completed_chapters:
+                        print(f"DEBUG: Redirecting to next incomplete chapter: {chapter['id']}")
+                        return redirect(f'/tutorials/course/{course_id}/chapter/{chapter["id"]}')
+                
+                # If all chapters are completed, go to the last chapter
+                last_chapter = sorted_chapters[-1]
+                print(f"DEBUG: All chapters completed, going to last chapter: {last_chapter['id']}")
+                return redirect(f'/tutorials/course/{course_id}/chapter/{last_chapter["id"]}')
+            else:
+                # No user session, start from beginning
+                first_chapter = sorted_chapters[0]
+                print(f"DEBUG: No user session, starting from first chapter: {first_chapter['id']}")
+                return redirect(f'/tutorials/course/{course_id}/chapter/{first_chapter["id"]}')
         
         # If no chapters, show course overview page
         supabase_url = os.getenv('SUPABASE_URL', '')
