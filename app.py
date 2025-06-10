@@ -803,16 +803,9 @@ def get_tutorial_progress():
     """Get user's tutorial progress"""
     try:
         # Get user ID from token
-        user_id_from_token = get_user_from_token()
-        user_id_from_session = get_user_from_session()
-        user_id = user_id_from_token or user_id_from_session
-        
-        print(f"DEBUG: get_tutorial_progress - user_id_from_token: {user_id_from_token}")
-        print(f"DEBUG: get_tutorial_progress - user_id_from_session: {user_id_from_session}")
-        print(f"DEBUG: get_tutorial_progress - final user_id: {user_id}")
+        user_id = get_user_from_token() or get_user_from_session()
         
         if not user_id:
-            print("DEBUG: No user ID found, returning empty progress")
             return jsonify({
                 'success': True,
                 'progress': {}  # Return empty if not logged in
@@ -820,16 +813,12 @@ def get_tutorial_progress():
         
         # Load user progress from database
         progress = load_user_progress(user_id)
-        print(f"DEBUG: get_tutorial_progress - loaded progress: {progress}")
         
         return jsonify({
             'success': True,
             'progress': progress
         })
     except Exception as e:
-        print(f"ERROR: get_tutorial_progress failed: {str(e)}")
-        import traceback
-        traceback.print_exc()
         return jsonify({
             'success': False,
             'error': str(e)
@@ -970,25 +959,19 @@ def mark_chapter_complete():
         course_id = data.get('course_id')
         chapter_id = data.get('chapter_id')
         
-        print(f"DEBUG: mark_chapter_complete called with course_id={course_id}, chapter_id={chapter_id}")
-        
         # Get user ID from token (implement proper auth)
         user_id = get_user_from_token() or get_user_from_session()
-        print(f"DEBUG: User ID resolved to: {user_id}")
         
         if not user_id:
-            print("ERROR: User not authenticated")
             return jsonify({
                 'success': False,
                 'error': 'User not authenticated'
             }), 401
         
         # Save progress to database
-        print("DEBUG: Calling save_user_progress...")
         success = save_user_progress(user_id, course_id, chapter_id)
         
         if not success:
-            print("ERROR: save_user_progress returned False")
             return jsonify({
                 'success': False,
                 'error': 'Failed to save progress'
@@ -1005,13 +988,9 @@ def mark_chapter_complete():
             response_data['course_completed'] = True
             response_data['certificate_url'] = f'/tutorials/certificate/{course_id}'
         
-        print(f"DEBUG: Returning success response: {response_data}")
         return jsonify(response_data)
         
     except Exception as e:
-        print(f"ERROR: Exception in mark_chapter_complete: {str(e)}")
-        import traceback
-        traceback.print_exc()
         return jsonify({
             'success': False,
             'error': str(e)
@@ -1322,10 +1301,7 @@ def get_user_from_session():
 def save_user_progress(user_id, course_id, chapter_id, test_score=None, practical_passed=None):
     """Save user progress to Supabase"""
     try:
-        print(f"DEBUG: Attempting to save progress - user_id={user_id}, course_id={course_id}, chapter_id={chapter_id}")
-        
         if not supabase:
-            print("ERROR: Supabase not configured")
             return False
         
         # Get chapter title for the challenge_title field
@@ -1336,8 +1312,6 @@ def save_user_progress(user_id, course_id, chapter_id, test_score=None, practica
         existing_response = supabase.table('user_progress').select('*').eq('user_id', user_id).eq('course_id', course_id).eq('chapter_id', chapter_id).execute()
         
         if existing_response.data:
-            print(f"DEBUG: Progress already exists for user {user_id}, chapter {chapter_id}")
-            print(f"INFO: Chapter already completed - not saving duplicate")
             return True  # Return True because the chapter is indeed completed
         else:
             # Insert new record
@@ -1353,23 +1327,11 @@ def save_user_progress(user_id, course_id, chapter_id, test_score=None, practica
                 'status': 'completed'
             }
             
-            print(f"DEBUG: Progress data to save: {progress_data}")
-            
             response = supabase.table('user_progress').insert(progress_data).execute()
             
-            print(f"DEBUG: Supabase response: {response}")
-            
-            if response.data:
-                print(f"SUCCESS: Progress saved for user {user_id}, chapter {chapter_id}")
-                return True
-            else:
-                print(f"ERROR: Failed to save progress - no data returned: {response}")
-                return False
+            return bool(response.data)
             
     except Exception as e:
-        print(f"ERROR: Exception saving user progress: {str(e)}")
-        import traceback
-        traceback.print_exc()
         return False
 
 def load_user_progress(user_id):
@@ -1475,8 +1437,6 @@ def generate_certificate_data(course_id, course_data, user_id=None):
         student_name = 'Student'  # Default fallback
         if user_id:
             try:
-                print(f"DEBUG: Attempting to get user name for user_id: {user_id}")
-                
                 # First, try to get user info from the current request's auth token
                 auth_header = request.headers.get('Authorization')
                 if auth_header and auth_header.startswith('Bearer '):
@@ -1486,7 +1446,6 @@ def generate_certificate_data(course_id, course_data, user_id=None):
                             # Decode JWT token to get user metadata
                             import jwt
                             decoded = jwt.decode(token, options={"verify_signature": False})
-                            print(f"DEBUG: Decoded JWT: {decoded}")
                             
                             # Check for name in JWT token
                             jwt_names = [
@@ -1504,22 +1463,17 @@ def generate_certificate_data(course_id, course_data, user_id=None):
                             for name_option in jwt_names:
                                 if name_option and name_option.strip():
                                     student_name = name_option.strip()
-                                    print(f"DEBUG: Found name in JWT: {student_name}")
                                     break
-                    except Exception as jwt_e:
-                        print(f"DEBUG: Could not decode JWT: {jwt_e}")
+                    except Exception:
+                        pass
                 
                 # If no name found in JWT, try Supabase auth admin API
                 if student_name == 'Student' and supabase:
                     try:
-                        print("DEBUG: Attempting to get user from Supabase auth...")
                         auth_response = supabase.auth.admin.get_user_by_id(user_id)
-                        print(f"DEBUG: Auth response: {auth_response}")
                         
                         if auth_response and hasattr(auth_response, 'user') and auth_response.user:
                             user = auth_response.user
-                            print(f"DEBUG: Got user object type: {type(user)}")
-                            print(f"DEBUG: User object attributes: {dir(user) if hasattr(user, '__dict__') else 'No __dict__'}")
                             
                             # Handle different ways the user object might be structured
                             user_metadata = {}
@@ -1542,14 +1496,10 @@ def generate_certificate_data(course_id, course_data, user_id=None):
                             
                             # If user is a dict, try to get metadata from it directly
                             if isinstance(user, dict):
-                                print(f"DEBUG: User dict keys: {list(user.keys())}")
                                 # Sometimes metadata is stored directly in the user dict
                                 for key in ['full_name', 'display_name', 'name']:
                                     if key in user and user[key]:
                                         user_metadata[key] = user[key]
-                            
-                            print(f"DEBUG: Final user_metadata: {user_metadata}")
-                            print(f"DEBUG: Final raw_user_metadata: {raw_user_metadata}")
                             
                             # Check various possible name fields
                             possible_names = [
@@ -1582,39 +1532,25 @@ def generate_certificate_data(course_id, course_data, user_id=None):
                             for name_option in possible_names:
                                 if name_option and name_option.strip():
                                     student_name = name_option.strip()
-                                    print(f"DEBUG: Using name: {student_name}")
                                     break
                             else:
                                 # Final fallback to email or user ID
                                 student_name = getattr(user, 'email', f'User {user_id[:8]}')
-                                print(f"DEBUG: Using fallback name: {student_name}")
                                 
-                    except Exception as auth_e:
-                        print(f"DEBUG: Could not get user from auth: {auth_e}")
-                        import traceback
-                        traceback.print_exc()
-                        
+                    except Exception:
                         # Try to get user name from users table as fallback
                         try:
-                            print("DEBUG: Fallback - attempting to query users table...")
                             user_response = supabase.table('users').select('name, email').eq('id', user_id).execute()
-                            print(f"DEBUG: Users table response: {user_response}")
                             
                             if user_response.data and len(user_response.data) > 0:
                                 user_data = user_response.data[0]
                                 student_name = user_data.get('name') or user_data.get('email', f'User {user_id[:8]}')
-                                print(f"DEBUG: Found user data in table: {user_data}, using name: {student_name}")
                             else:
                                 student_name = f'User {user_id[:8]}'
-                                print(f"DEBUG: No user data found, using: {student_name}")
-                        except Exception as table_e:
-                            print(f"DEBUG: Could not query users table: {table_e}")
+                        except Exception:
                             student_name = f'User {user_id[:8]}'
                             
-            except Exception as e:
-                print(f"DEBUG: Could not load user name: {e}")
-                import traceback
-                traceback.print_exc()
+            except Exception:
                 student_name = 'Student'
         
         # Get course completion data

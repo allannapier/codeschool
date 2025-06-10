@@ -349,8 +349,6 @@ async function submitTest() {
 
 // Show test results
 function showTestResults(score, passed, feedback) {
-    console.log(`DEBUG: showTestResults called - score: ${score}, passed: ${passed}`);
-    
     const testContent = document.getElementById('test-content');
     const testResults = document.getElementById('test-results');
     
@@ -368,16 +366,12 @@ function showTestResults(score, passed, feedback) {
     
     // Store test pass status
     if (passed) {
-        console.log(`DEBUG: Test passed, storing in sessionStorage: test_passed_${chapterData.id}`);
         sessionStorage.setItem(`test_passed_${chapterData.id}`, 'true');
         
         // Check if chapter can be completed
-        console.log('DEBUG: Test passed, checking chapter completion in 1 second...');
         setTimeout(() => {
             checkAndCompleteChapter();
         }, 1000);
-    } else {
-        console.log('DEBUG: Test failed, not triggering chapter completion');
     }
     
     // Scroll to results
@@ -687,7 +681,6 @@ function clearSessionStorage() {
     if (chapterData && chapterData.id) {
         sessionStorage.removeItem(`test_passed_${chapterData.id}`);
         sessionStorage.removeItem(`practical_passed_${chapterData.id}`);
-        console.log(`DEBUG: Cleared session storage for chapter ${chapterData.id}`);
     }
 }
 
@@ -716,24 +709,18 @@ async function loadUserProgressForChapter() {
 // Check if chapter requirements are met and auto-complete if so
 // This should ONLY be called after a user successfully completes a test or practical
 async function checkAndCompleteChapter(triggerSource = 'unknown') {
-    console.log(`DEBUG: checkAndCompleteChapter called from: ${triggerSource}`);
-    
     // Check if this chapter has any requirements
     const hasTest = chapterData.has_test;
     const hasPractical = chapterData.has_practical;
     
-    console.log(`DEBUG: Chapter requirements - hasTest: ${hasTest}, hasPractical: ${hasPractical}`);
-    
     // If no requirements, complete immediately only if triggered by user action
     if (!hasTest && !hasPractical && triggerSource !== 'pageLoad') {
-        console.log('DEBUG: No requirements, completing immediately');
         await autoCompleteChapter();
         return;
     }
     
     // Don't auto-complete on page load - only when user actually completes requirements
     if (triggerSource === 'pageLoad') {
-        console.log('DEBUG: Page load - not auto-completing, just updating UI');
         return;
     }
     
@@ -744,41 +731,28 @@ async function checkAndCompleteChapter(triggerSource = 'unknown') {
     // Check test status from current session only
     if (hasTest) {
         testPassed = sessionStorage.getItem(`test_passed_${chapterData.id}`) === 'true';
-        console.log(`DEBUG: Test required - passed in current session: ${testPassed}`);
     }
     
     // Check practical status from current session only
     if (hasPractical) {
         practicalPassed = sessionStorage.getItem(`practical_passed_${chapterData.id}`) === 'true';
-        console.log(`DEBUG: Practical required - passed in current session: ${practicalPassed}`);
     }
-    
-    console.log(`DEBUG: Requirements check - testPassed: ${testPassed}, practicalPassed: ${practicalPassed}`);
     
     // If all requirements met in current session, complete the chapter
     if (testPassed && practicalPassed) {
-        console.log('DEBUG: All requirements met in current session, calling autoCompleteChapter');
         await autoCompleteChapter();
-    } else {
-        console.log('DEBUG: Requirements not met in current session, not completing chapter');
     }
 }
 
 // Automatically mark chapter as complete when all requirements are met
 async function autoCompleteChapter() {
-    console.log('DEBUG: autoCompleteChapter called');
-    
     // Check if user is logged in (for production)
     const isLoggedIn = window.authSystem && window.authSystem.isLoggedIn();
-    console.log(`DEBUG: User logged in: ${isLoggedIn}`);
     
     // For development, allow completion even if not logged in
     // In production, you might want to require login
     
     try {
-        console.log('DEBUG: Making API call to mark-complete');
-        console.log(`DEBUG: course_id: ${courseData.id}, chapter_id: ${chapterData.id}`);
-        
         const response = await fetch('/api/tutorials/mark-complete', {
             method: 'POST',
             headers: {
@@ -791,13 +765,9 @@ async function autoCompleteChapter() {
             })
         });
         
-        console.log('DEBUG: API response received:', response.status);
-        
         const result = await response.json();
-        console.log('DEBUG: API result:', result);
         
         if (result.success) {
-            console.log('DEBUG: Chapter completion successful');
             updateCourseProgress();
             updateChapterNavigation();
             
@@ -805,12 +775,9 @@ async function autoCompleteChapter() {
             if (result.course_completed) {
                 showCourseCompletionModal(result.certificate_url);
             }
-            // Removed the redundant success message since there's already a congratulations modal
-        } else {
-            console.error('DEBUG: Chapter completion failed:', result.error);
         }
     } catch (error) {
-        console.error('DEBUG: Error auto-completing chapter:', error);
+        console.error('Error auto-completing chapter:', error);
     }
 }
 
@@ -937,34 +904,20 @@ function createConfettiEffect() {
 // Get auth token from Supabase session
 async function getAuthToken() {
     try {
-        console.log('DEBUG: getAuthToken called');
-        
         // Check if auth system is available and user is logged in
         if (!window.authSystem || !window.authSystem.getCurrentUser()) {
-            console.log('DEBUG: No auth system or user not logged in');
             return null;
         }
-        
-        const currentUser = window.authSystem.getCurrentUser();
-        console.log('DEBUG: current user:', currentUser);
         
         // Use the auth system's getAccessToken method
         if (window.authSystem.getAccessToken) {
             const token = await window.authSystem.getAccessToken();
-            if (token) {
-                console.log('DEBUG: Got token from auth system:', token.substring(0, 20) + '...');
-                return token;
-            } else {
-                console.log('DEBUG: Auth system returned null token');
-            }
-        } else {
-            console.log('DEBUG: Auth system does not have getAccessToken method');
+            return token;
         }
         
     } catch (error) {
         console.warn('Could not get auth token:', error);
     }
-    console.log('DEBUG: returning null token');
     return null;
 }
 
@@ -1017,15 +970,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             // Load user progress after auth is ready
             if (window.authSystem.isLoggedIn()) {
-                console.log('DEBUG: User is logged in, loading progress for chapter');
                 await loadUserProgressForChapter();
-            } else {
-                console.log('DEBUG: User is not logged in');
             }
         } catch (error) {
-            console.warn('Auth system initialization failed:', error);
+            // Silent fallback
         }
-    } else {
-        console.warn('Auth system not available');
     }
 });

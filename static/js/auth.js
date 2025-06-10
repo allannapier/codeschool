@@ -528,30 +528,17 @@ async function getUserProgress() {
 // Get current access token
 async function getAccessToken() {
     if (!currentUser) {
-        console.log('DEBUG: No current user in getAccessToken');
         return null;
     }
     
-    console.log('DEBUG: getAccessToken - currentUser exists:', !!currentUser);
-    console.log('DEBUG: getAccessToken - supabase client exists:', !!supabase);
-    console.log('DEBUG: getAccessToken - window.supabase exists:', !!window.supabase);
-    
     // Try to ensure we have a supabase client
     if (!supabase) {
-        console.log('DEBUG: Attempting to create supabase client');
         try {
             if (window.supabase && window.supabase.createClient && SUPABASE_URL && SUPABASE_ANON_KEY) {
                 supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                console.log('DEBUG: Successfully created supabase client');
-            } else {
-                console.log('DEBUG: Cannot create supabase client - missing dependencies');
-                console.log('DEBUG: window.supabase:', !!window.supabase);
-                console.log('DEBUG: createClient method:', !!(window.supabase && window.supabase.createClient));
-                console.log('DEBUG: SUPABASE_URL:', !!SUPABASE_URL);
-                console.log('DEBUG: SUPABASE_ANON_KEY:', !!SUPABASE_ANON_KEY);
             }
         } catch (error) {
-            console.warn('Failed to create supabase client:', error);
+            // Silent fallback
         }
     }
     
@@ -560,66 +547,46 @@ async function getAccessToken() {
         
         // Handle both v1 and v2 Supabase API
         if (supabase && supabase.auth) {
-            console.log('DEBUG: supabase.auth available, checking session');
-            
             if (supabase.auth.getSession) {
                 // v2 API
-                console.log('DEBUG: Using v2 getSession');
                 const { data: { session: sessionData } } = await supabase.auth.getSession();
                 session = sessionData;
             } else if (supabase.auth.session) {
                 // v1 API - session() is a synchronous method
-                console.log('DEBUG: Using v1 session()');
                 session = supabase.auth.session();
             } else if (supabase.auth.user) {
                 // v1 API alternative - check current user
-                console.log('DEBUG: Using v1 user()');
                 const user = supabase.auth.user();
                 if (user) {
                     session = { user: user, access_token: user.access_token };
                 }
             }
-            
-            console.log('DEBUG: Retrieved session:', !!session);
-            if (session) {
-                console.log('DEBUG: Session has access_token:', !!session.access_token);
-            }
-        } else {
-            console.log('DEBUG: no supabase client available');
         }
         
         let token = session && session.access_token ? session.access_token : null;
         
         // If we couldn't get token from session, try to get it from the current user object
         if (!token && currentUser) {
-            console.log('DEBUG: Trying to get token from current user object');
             // In some cases, the access token might be stored in the user object
             if (currentUser.access_token) {
                 token = currentUser.access_token;
-                console.log('DEBUG: Found access_token in currentUser');
             } else if (currentUser.jwt) {
                 token = currentUser.jwt;
-                console.log('DEBUG: Found jwt in currentUser');
             } else if (currentUser.token) {
                 token = currentUser.token;
-                console.log('DEBUG: Found token in currentUser');
             } else {
-                console.log('DEBUG: Current user object keys:', Object.keys(currentUser));
                 // Check if there's any token-like property
                 for (const key of Object.keys(currentUser)) {
                     if (key.toLowerCase().includes('token') && typeof currentUser[key] === 'string' && currentUser[key].length > 20) {
                         token = currentUser[key];
-                        console.log(`DEBUG: Found potential token in currentUser.${key}`);
                         break;
                     }
                 }
             }
         }
         
-        console.log('DEBUG: Final token result:', !!token);
         return token;
     } catch (error) {
-        console.warn('Could not get access token:', error);
         return null;
     }
 }

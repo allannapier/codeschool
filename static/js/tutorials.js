@@ -159,17 +159,10 @@ async function loadCourses() {
             courses = data.courses;
             
             // Load user progress if logged in
-            console.log('DEBUG: Checking if user is logged in...');
-            console.log('DEBUG: authSystem exists:', !!window.authSystem);
-            console.log('DEBUG: authSystem.isLoggedIn exists:', !!(window.authSystem && window.authSystem.isLoggedIn));
-            
             if (window.authSystem && window.authSystem.isLoggedIn()) {
-                console.log('DEBUG: User is logged in, loading progress...');
                 await loadUserProgress();
             } else {
-                console.log('DEBUG: User not logged in, skipping progress load');
-                // Let's try loading progress anyway to test the API
-                console.log('DEBUG: Testing progress API directly...');
+                // Try loading progress anyway (will return empty if not authenticated)
                 await loadUserProgress();
             }
             
@@ -192,12 +185,7 @@ async function loadCourses() {
 // Load user progress for tutorials
 async function loadUserProgress() {
     try {
-        console.log('DEBUG: Loading user progress...');
-        console.log('DEBUG: Auth system available:', !!window.authSystem);
-        console.log('DEBUG: User logged in:', !!(window.authSystem && window.authSystem.isLoggedIn()));
-        
         const token = await getAuthToken();
-        console.log('DEBUG: Got auth token:', !!token);
         
         const response = await fetch('/api/tutorials/progress', {
             headers: {
@@ -205,22 +193,10 @@ async function loadUserProgress() {
             }
         });
         
-        console.log('DEBUG: Progress API response status:', response.status);
-        
         if (response.ok) {
             const data = await response.json();
             userProgress = data.progress || {};
-            console.log('DEBUG: Loaded user progress:', userProgress);
-            console.log('DEBUG: Progress object keys:', Object.keys(userProgress));
-            
-            // Log each course's progress
-            for (const [courseId, courseProgress] of Object.entries(userProgress)) {
-                console.log(`DEBUG: Course ${courseId} progress:`, Object.keys(courseProgress));
-            }
         } else {
-            console.log('DEBUG: Progress API failed:', response.status);
-            const errorData = await response.json();
-            console.log('DEBUG: Error response:', errorData);
             userProgress = {};
         }
     } catch (error) {
@@ -351,23 +327,13 @@ function createCourseCardHTML(course) {
 
 // Get course progress for a specific course
 function getCourseProgress(courseId) {
-    console.log(`DEBUG: getCourseProgress called for course ${courseId}`);
-    console.log(`DEBUG: userProgress:`, userProgress);
-    console.log(`DEBUG: courses:`, courses);
-    
     const progress = userProgress[courseId] || {};
     const course = courses.find(c => c.id === courseId);
     
-    console.log(`DEBUG: progress for course ${courseId}:`, progress);
-    console.log(`DEBUG: course data:`, course);
-    
-    const result = {
+    return {
         completed: Object.keys(progress).length,
         total: course ? course.chapter_count : 0
     };
-    
-    console.log(`DEBUG: calculated progress:`, result);
-    return result;
 }
 
 // Start a course (navigate to first chapter)
@@ -537,7 +503,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             // After auth is initialized, reload progress if user is logged in
             if (window.authSystem.isLoggedIn()) {
-                console.log('DEBUG: Auth system ready and user logged in, reloading progress...');
                 await loadUserProgress();
                 displayCourses(); // Refresh the course display with updated progress
             }
