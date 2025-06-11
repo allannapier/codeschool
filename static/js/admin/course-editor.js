@@ -423,10 +423,41 @@ function populateChapterForm(chapter) {
         populateTestQuestions(chapter.test_questions);
     }
     
-    // Populate practical
-    document.getElementById('practical-instructions').value = chapter.practical_instructions || '';
-    document.getElementById('practical-starter-code').value = chapter.practical_starter_code || '';
-    document.getElementById('practical-evaluation-criteria').value = chapter.practical_evaluation_criteria || '';
+    // Populate practical exercises
+    if (chapter.has_practical && chapter.practical_exercises && chapter.practical_exercises.length > 0) {
+        // Clear any existing exercises
+        const exercisesList = document.getElementById('practical-exercises-list');
+        exercisesList.innerHTML = '';
+        
+        // Add each exercise
+        chapter.practical_exercises.forEach((exercise, index) => {
+            addPracticalExercise();
+            const exerciseNumber = index + 1;
+            
+            // Populate the fields for this exercise
+            const instructionsField = document.getElementById(`practical-instructions-${exerciseNumber}`);
+            const starterCodeField = document.getElementById(`practical-starter-code-${exerciseNumber}`);
+            const criteriaField = document.getElementById(`practical-evaluation-criteria-${exerciseNumber}`);
+            
+            if (instructionsField) instructionsField.value = exercise.instructions || '';
+            if (starterCodeField) starterCodeField.value = exercise.starter_code || '';
+            if (criteriaField) criteriaField.value = exercise.evaluation_criteria || '';
+        });
+    } else if (chapter.has_practical) {
+        // Legacy format - convert single practical to array format
+        const exercisesList = document.getElementById('practical-exercises-list');
+        exercisesList.innerHTML = '';
+        addPracticalExercise();
+        
+        // Use the old field names as fallback
+        const instructionsField = document.getElementById('practical-instructions-1');
+        const starterCodeField = document.getElementById('practical-starter-code-1');
+        const criteriaField = document.getElementById('practical-evaluation-criteria-1');
+        
+        if (instructionsField) instructionsField.value = chapter.practical_instructions || '';
+        if (starterCodeField) starterCodeField.value = chapter.practical_starter_code || '';
+        if (criteriaField) criteriaField.value = chapter.practical_evaluation_criteria || '';
+    }
 }
 
 // Add learning objective
@@ -469,7 +500,134 @@ function toggleTestSection() {
 function togglePracticalSection() {
     const hasPractical = document.getElementById('has-practical').checked;
     const practicalSection = document.getElementById('practical-section');
+    const addPracticalBtn = document.getElementById('add-practical-btn');
+    
     practicalSection.style.display = hasPractical ? 'block' : 'none';
+    addPracticalBtn.style.display = hasPractical ? 'inline-block' : 'none';
+    
+    // If enabling for the first time and no exercises exist, add the first one
+    if (hasPractical) {
+        const exercisesList = document.getElementById('practical-exercises-list');
+        if (exercisesList.children.length === 0) {
+            addPracticalExercise();
+        }
+    }
+}
+
+// Add practical exercise
+function addPracticalExercise() {
+    const exercisesList = document.getElementById('practical-exercises-list');
+    const exerciseNumber = exercisesList.children.length + 1;
+    
+    const exerciseHTML = `
+        <div class="practical-exercise-item" data-exercise-index="${exerciseNumber - 1}">
+            <div class="practical-exercise-header">
+                <h5 class="practical-exercise-title">Exercise ${exerciseNumber}</h5>
+                <div class="practical-exercise-actions">
+                    <button type="button" onclick="removePracticalExercise(this)" class="remove-practical-btn">Remove</button>
+                </div>
+            </div>
+            <div class="practical-exercise-content">
+                <div class="form-group-with-ai">
+                    <div class="form-group">
+                        <label for="practical-instructions-${exerciseNumber}">Instructions</label>
+                        <textarea id="practical-instructions-${exerciseNumber}" 
+                                  name="practical-instructions-${exerciseNumber}"
+                                  placeholder="Describe what students should accomplish in this exercise"
+                                  rows="4"></textarea>
+                    </div>
+                    <button type="button" class="ai-generate-btn" onclick="generateAIContent('practical_instructions', document.getElementById('practical-instructions-${exerciseNumber}'))">
+                        Generate
+                    </button>
+                </div>
+                <div class="form-group">
+                    <label for="practical-starter-code-${exerciseNumber}">Starter Code (optional)</label>
+                    <textarea id="practical-starter-code-${exerciseNumber}" 
+                              name="practical-starter-code-${exerciseNumber}"
+                              placeholder="# Write your solution here&#10;def solve():&#10;    pass"
+                              rows="6"
+                              class="code-textarea"></textarea>
+                </div>
+                <div class="form-group-with-ai">
+                    <div class="form-group">
+                        <label for="practical-evaluation-criteria-${exerciseNumber}">AI Evaluation Criteria</label>
+                        <textarea id="practical-evaluation-criteria-${exerciseNumber}" 
+                                  name="practical-evaluation-criteria-${exerciseNumber}"
+                                  placeholder="Describe what the AI should look for when evaluating submissions"
+                                  rows="3"></textarea>
+                    </div>
+                    <button type="button" class="ai-generate-btn" onclick="generateAIContent('practical_evaluation_criteria', document.getElementById('practical-evaluation-criteria-${exerciseNumber}'))">
+                        Generate
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    exercisesList.insertAdjacentHTML('beforeend', exerciseHTML);
+    updateExerciseNumbers();
+}
+
+// Remove practical exercise
+function removePracticalExercise(button) {
+    const exerciseItem = button.closest('.practical-exercise-item');
+    const exercisesList = document.getElementById('practical-exercises-list');
+    
+    // Don't allow removing the last exercise if practical is enabled
+    if (exercisesList.children.length <= 1) {
+        showMessage('At least one practical exercise is required when practical exercises are enabled.', 'error');
+        return;
+    }
+    
+    exerciseItem.remove();
+    updateExerciseNumbers();
+}
+
+// Update exercise numbers after adding/removing
+function updateExerciseNumbers() {
+    const exercisesList = document.getElementById('practical-exercises-list');
+    const exercises = exercisesList.querySelectorAll('.practical-exercise-item');
+    
+    exercises.forEach((exercise, index) => {
+        const exerciseNumber = index + 1;
+        exercise.dataset.exerciseIndex = index;
+        
+        // Update title
+        const title = exercise.querySelector('.practical-exercise-title');
+        title.textContent = `Exercise ${exerciseNumber}`;
+        
+        // Update IDs and names
+        const instructionsField = exercise.querySelector('textarea[id^="practical-instructions-"]');
+        const starterCodeField = exercise.querySelector('textarea[id^="practical-starter-code-"]');
+        const criteriaField = exercise.querySelector('textarea[id^="practical-evaluation-criteria-"]');
+        
+        if (instructionsField) {
+            instructionsField.id = `practical-instructions-${exerciseNumber}`;
+            instructionsField.name = `practical-instructions-${exerciseNumber}`;
+            const instructionsLabel = exercise.querySelector('label[for^="practical-instructions-"]');
+            if (instructionsLabel) {
+                instructionsLabel.setAttribute('for', `practical-instructions-${exerciseNumber}`);
+            }
+        }
+        
+        if (starterCodeField) {
+            starterCodeField.id = `practical-starter-code-${exerciseNumber}`;
+            starterCodeField.name = `practical-starter-code-${exerciseNumber}`;
+            const starterCodeLabel = exercise.querySelector('label[for^="practical-starter-code-"]');
+            if (starterCodeLabel) {
+                starterCodeLabel.setAttribute('for', `practical-starter-code-${exerciseNumber}`);
+            }
+        }
+        
+        if (criteriaField) {
+            criteriaField.id = `practical-evaluation-criteria-${exerciseNumber}`;
+            criteriaField.name = `practical-evaluation-criteria-${exerciseNumber}`;
+            const criteriaLabel = exercise.querySelector('label[for^="practical-evaluation-criteria-"]');
+            if (criteriaLabel) {
+                criteriaLabel.setAttribute('for', `practical-evaluation-criteria-${exerciseNumber}`);
+            }
+        }
+    });
 }
 
 // Add test question
@@ -658,9 +816,7 @@ async function saveChapter() {
         has_test: document.getElementById('has-test').checked,
         has_practical: document.getElementById('has-practical').checked,
         test_questions: collectTestQuestions(),
-        practical_instructions: document.getElementById('practical-instructions').value,
-        practical_starter_code: document.getElementById('practical-starter-code').value,
-        practical_evaluation_criteria: document.getElementById('practical-evaluation-criteria').value
+        practical_exercises: collectPracticalExercises()
     };
     
     // Validate required fields
@@ -754,6 +910,39 @@ function collectTestQuestions() {
     });
     
     return questions;
+}
+
+// Collect practical exercises
+function collectPracticalExercises() {
+    if (!document.getElementById('has-practical').checked) {
+        return [];
+    }
+    
+    const exercises = [];
+    const exerciseElements = document.querySelectorAll('.practical-exercise-item');
+    
+    exerciseElements.forEach((exerciseElement, index) => {
+        const exerciseNumber = index + 1;
+        
+        const instructionsField = exerciseElement.querySelector(`textarea[id^="practical-instructions-"]`);
+        const starterCodeField = exerciseElement.querySelector(`textarea[id^="practical-starter-code-"]`);
+        const criteriaField = exerciseElement.querySelector(`textarea[id^="practical-evaluation-criteria-"]`);
+        
+        const instructions = instructionsField ? instructionsField.value.trim() : '';
+        const starterCode = starterCodeField ? starterCodeField.value.trim() : '';
+        const evaluationCriteria = criteriaField ? criteriaField.value.trim() : '';
+        
+        // Only include exercises that have at least instructions
+        if (instructions) {
+            exercises.push({
+                instructions: instructions,
+                starter_code: starterCode,
+                evaluation_criteria: evaluationCriteria
+            });
+        }
+    });
+    
+    return exercises;
 }
 
 // Update chapter order after drag and drop

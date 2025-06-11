@@ -902,3 +902,75 @@
         font-size: 0.85rem;
     }
 }
+
+/* Practical Exercises Styles */
+.practical-exercises-section {
+    margin-top: 2rem;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.practical-exercises-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+.practical-exercise-item {
+    border: 1px solid var(--admin-border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    background: var(--admin-surface);
+    position: relative;
+}
+
+.practical-exercise-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--admin-border);
+}
+
+.practical-exercise-title {
+    font-weight: 600;
+    color: var(--admin-text-primary);
+    margin: 0;
+}
+
+.practical-exercise-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.practical-exercise-content {
+    display: grid;
+    gap: 1rem;
+}
+
+.remove-practical-btn {
+    background: var(--admin-danger);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.remove-practical-btn:hover {
+    background: #b91c1c;
+}
+
+/* Toggle switch label spacing fix */
+.toggle-switch span {
+    margin-left: 8px;
+}
