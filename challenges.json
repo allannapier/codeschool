@@ -2,7 +2,7 @@
   "challenges": [
     {
       "title": "Hello World Variations",
-      "description": "Create a program that displays personalized greetings. Start with 'Hello World', then modify it to display 'Hello [Your Name]', and finally add timestamps to your greeting messages.",
+      "description": "Create a program that displays personalized greetings. Start with 'Hello World', then modify it to display 'Hello [Your Name]'",
       "level": "beginner"
     },
     {
